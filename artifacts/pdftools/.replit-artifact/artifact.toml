@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "PDF Tools"
+version = "1.0.0"
+id = "artifacts/pdftools"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25723
+
+[services.development]
+run = "pnpm --filter @workspace/pdftools run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/pdftools", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/pdftools/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25723"
+BASE_PATH = "/"
