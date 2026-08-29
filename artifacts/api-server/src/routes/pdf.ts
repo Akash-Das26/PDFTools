@@ -50,7 +50,21 @@ const { PDFParse } = require("pdf-parse") as {
   };
 };
 
-const openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const configuredAiKey = process.env.OPENAI_API_KEY;
+const usesOpenRouter = configuredAiKey?.startsWith("sk-or-") ?? false;
+const openaiClient = new OpenAI({
+  apiKey: configuredAiKey,
+  ...(usesOpenRouter
+    ? {
+        baseURL: "https://openrouter.ai/api/v1",
+        defaultHeaders: {
+          "HTTP-Referer": "https://pdftools.replit.app",
+          "X-Title": "PDF Tools",
+        },
+      }
+    : {}),
+});
+const aiModel = usesOpenRouter ? "openai/gpt-5-mini" : "gpt-5-mini";
 
 async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
   const parser = new PDFParse({ data: buffer });
@@ -486,7 +500,7 @@ router.post("/pdf/ai-summarize", upload.single("file"), async (req, res): Promis
     const text = rawText.length > 12000 ? rawText.slice(0, 12000) + "\n\n[…document truncated for summarization…]" : rawText;
 
     const completion = await openaiClient.chat.completions.create({
-      model: "gpt-5-mini",
+      model: aiModel,
       max_completion_tokens: 1024,
       messages: [
         {

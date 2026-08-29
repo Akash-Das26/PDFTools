@@ -10,7 +10,7 @@ const ADVANTAGES = [
     feature: "AI PDF Summarizer",
     icon: Sparkles,
     us: "Free, instant — no account",
-    them: "Premium subscribers only",
+    them: "Not in the reference product's main tool list",
     usGood: true,
     themGood: false,
     description: "Upload any PDF and get an AI-generated summary plus key points in seconds.",
@@ -19,7 +19,7 @@ const ADVANTAGES = [
     feature: "Add Page Numbers",
     icon: Hash,
     us: "Dedicated tool, 5 positions, custom start",
-    them: "Buried inside the Watermark tool",
+    them: "Not in the reference product's main tool list",
     usGood: true,
     themGood: false,
     description: "Stamp page numbers exactly where you want them — bottom-center, corners, top — with the format you choose.",
@@ -28,7 +28,7 @@ const ADVANTAGES = [
     feature: "Extract Text",
     icon: FileType,
     us: "Free browser tool",
-    them: "Paid API tier only",
+    them: "Not surfaced in the reference product's main tool list",
     usGood: true,
     themGood: false,
     description: "Pull all readable text from any PDF into a clean .txt file, right in your browser.",
@@ -95,9 +95,9 @@ export default function Home() {
       <section className="w-full py-16 md:py-24 px-4 md:px-6 bg-muted/30">
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3">What we offer that others don't</h2>
+            <h2 className="text-3xl font-bold mb-3">What this version adds</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              Three features that popular PDF tools either paywall or don't offer at all.
+              Three practical upgrades added after comparing the reference product with today’s PDF tools.
             </p>
           </div>
 
@@ -132,7 +132,7 @@ export default function Home() {
                     </div>
                     <div className="bg-muted/60 border border-border rounded-lg p-3">
                       <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-                        iLovePDF
+                        Reference snapshot
                       </p>
                       <div className="flex items-center gap-1.5">
                         <X className="w-3.5 h-3.5 text-destructive flex-shrink-0" />

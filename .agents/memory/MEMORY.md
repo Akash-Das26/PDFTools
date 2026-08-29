@@ -1,0 +1,1 @@
+- [PDF text extraction runtime](pdf-text-extraction-runtime.md) — bundled pdf-parse v2 needs its worker copied beside the server bundle.
