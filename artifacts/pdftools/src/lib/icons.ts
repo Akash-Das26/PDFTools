@@ -5,6 +5,11 @@ import {
   RotateCw,
   FileText,
   Lock,
+  Unlock,
+  Stamp,
+  Sparkles,
+  Hash,
+  FileType,
   LucideIcon,
 } from "lucide-react";
 
@@ -13,6 +18,10 @@ export const toolIcons: Record<string, LucideIcon> = {
   split: Split,
   compress: Minimize2,
   rotate: RotateCw,
-  watermark: FileText,
+  watermark: Stamp,
   protect: Lock,
+  unlock: Unlock,
+  "ai-summarize": Sparkles,
+  "add-page-numbers": Hash,
+  "extract-text": FileType,
 };

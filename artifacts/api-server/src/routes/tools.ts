@@ -83,6 +83,41 @@ export const PDF_TOOLS = [
     acceptMultiple: false,
     color: "#8B5CF6",
   },
+  // AI
+  {
+    id: "ai-summarize",
+    name: "AI Summarizer",
+    description: "Get an instant AI-generated summary and key points from any PDF. Completely free — no paywall.",
+    category: "ai",
+    icon: "Sparkles",
+    inputLabel: "Select PDF to summarize",
+    outputLabel: "Summary",
+    acceptMultiple: false,
+    color: "#E5322D",
+  },
+  // Convert
+  {
+    id: "add-page-numbers",
+    name: "Add Page Numbers",
+    description: "Stamp page numbers on every page. Pick position, style, and starting number.",
+    category: "organize",
+    icon: "Hash",
+    inputLabel: "Select PDF to number",
+    outputLabel: "Numbered PDF",
+    acceptMultiple: false,
+    color: "#4F8EF7",
+  },
+  {
+    id: "extract-text",
+    name: "Extract Text",
+    description: "Pull all readable text from a PDF into a plain .txt file. Free, instant, no account needed.",
+    category: "convert",
+    icon: "FileType",
+    inputLabel: "Select PDF to extract text from",
+    outputLabel: "Extracted Text (.txt)",
+    acceptMultiple: false,
+    color: "#10B981",
+  },
 ];
 
 router.get("/tools", async (_req, res): Promise<void> => {

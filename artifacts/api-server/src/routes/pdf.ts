@@ -1,8 +1,66 @@
 import { Router, type IRouter } from "express";
 import multer from "multer";
-import { PDFDocument, degrees, rgb, StandardFonts, PDFFont } from "pdf-lib";
+import { PDFDocument, degrees, rgb, StandardFonts } from "pdf-lib";
+import OpenAI from "openai";
+
+// Polyfill browser globals that pdfjs-dist requires even in Node.js text-extraction mode
+// (DOMMatrix, ImageData, Path2D are not available in Node.js but pdfjs initialises them at module load)
+if (typeof (globalThis as Record<string, unknown>).DOMMatrix === "undefined") {
+  (globalThis as Record<string, unknown>).DOMMatrix = class DOMMatrix {
+    a=1;b=0;c=0;d=1;e=0;f=0;
+    m11=1;m12=0;m13=0;m14=0;
+    m21=0;m22=1;m23=0;m24=0;
+    m31=0;m32=0;m33=1;m34=0;
+    m41=0;m42=0;m43=0;m44=1;
+    is2D=true;isIdentity=true;
+    constructor(_init?: unknown) {}
+    multiply(_other?: unknown) { return this; }
+    translate(_tx?: number, _ty?: number, _tz?: number) { return this; }
+    scale(_sx?: number, _sy?: number, _sz?: number, _ox?: number, _oy?: number, _oz?: number) { return this; }
+    rotate(_angle?: number) { return this; }
+    rotateAxisAngle(_x?: number, _y?: number, _z?: number, _angle?: number) { return this; }
+    skewX(_angle?: number) { return this; }
+    skewY(_angle?: number) { return this; }
+    flipX() { return this; }
+    flipY() { return this; }
+    inverse() { return this; }
+    transformPoint(_point?: unknown) { return { x: 0, y: 0, z: 0, w: 1 }; }
+    toFloat32Array() { return new Float32Array(16); }
+    toFloat64Array() { return new Float64Array(16); }
+    toString() { return "matrix(1, 0, 0, 1, 0, 0)"; }
+  };
+}
+if (typeof (globalThis as Record<string, unknown>).ImageData === "undefined") {
+  (globalThis as Record<string, unknown>).ImageData = class ImageData {
+    width: number; height: number; data: Uint8ClampedArray;
+    constructor(w: number, h: number) { this.width=w; this.height=h; this.data=new Uint8ClampedArray(w*h*4); }
+  };
+}
+if (typeof (globalThis as Record<string, unknown>).Path2D === "undefined") {
+  (globalThis as Record<string, unknown>).Path2D = class Path2D {};
+}
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const archiver = require("archiver") as (format: string, opts?: object) => import("archiver").Archiver;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { PDFParse } = require("pdf-parse") as {
+  PDFParse: new (options: { data: Buffer }) => {
+    getText: () => Promise<{ text: string; total: number }>;
+    destroy: () => Promise<void>;
+  };
+};
+
+const openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
+  const parser = new PDFParse({ data: buffer });
+  try {
+    const result = await parser.getText();
+    return { text: result.text, pageCount: result.total };
+  } finally {
+    await parser.destroy();
+  }
+}
 
 const router: IRouter = Router();
 
@@ -304,6 +362,159 @@ router.post("/pdf/unlock", upload.single("file"), async (req, res): Promise<void
   } catch (err) {
     req.log.error({ err }, "Unlock failed");
     res.status(500).json({ error: "Failed to unlock PDF" });
+  }
+});
+
+// ─── Add Page Numbers ─────────────────────────────────────────────────────────
+router.post("/pdf/add-page-numbers", upload.single("file"), async (req, res): Promise<void> => {
+  try {
+    const file = req.file;
+    if (!file) {
+      res.status(400).json({ error: "A PDF file is required" });
+      return;
+    }
+
+    const position = (req.body.position as string) || "bottom-center";
+    const startNumber = Math.max(1, parseInt(req.body.startNumber ?? "1", 10));
+    const format = (req.body.format as string) || "1"; // "1" | "Page 1" | "1/N"
+
+    const src = await PDFDocument.load(file.buffer);
+    const totalPages = src.getPageCount();
+    const font = await src.embedFont(StandardFonts.Helvetica);
+    const fontSize = 11;
+    const margin = 24;
+
+    src.getPages().forEach((page, idx) => {
+      const { width, height } = page.getSize();
+      const pageNum = idx + startNumber;
+      let label = String(pageNum);
+      if (format === "Page 1") label = `Page ${pageNum}`;
+      else if (format === "1/N") label = `${pageNum} / ${totalPages + startNumber - 1}`;
+
+      const textWidth = font.widthOfTextAtSize(label, fontSize);
+
+      let x: number;
+      let y: number;
+
+      switch (position) {
+        case "bottom-right":
+          x = width - textWidth - margin;
+          y = margin;
+          break;
+        case "bottom-left":
+          x = margin;
+          y = margin;
+          break;
+        case "top-center":
+          x = (width - textWidth) / 2;
+          y = height - margin - fontSize;
+          break;
+        case "top-right":
+          x = width - textWidth - margin;
+          y = height - margin - fontSize;
+          break;
+        default: // bottom-center
+          x = (width - textWidth) / 2;
+          y = margin;
+      }
+
+      page.drawText(label, {
+        x,
+        y,
+        size: fontSize,
+        font,
+        color: rgb(0.2, 0.2, 0.2),
+        opacity: 0.85,
+      });
+    });
+
+    const pdfBytes = await src.save();
+    res.set("Content-Type", "application/pdf");
+    res.set("Content-Disposition", 'attachment; filename="numbered.pdf"');
+    res.send(Buffer.from(pdfBytes));
+  } catch (err) {
+    req.log.error({ err }, "Add page numbers failed");
+    res.status(500).json({ error: "Failed to add page numbers" });
+  }
+});
+
+// ─── Extract Text ─────────────────────────────────────────────────────────────
+router.post("/pdf/extract-text", upload.single("file"), async (req, res): Promise<void> => {
+  try {
+    const file = req.file;
+    if (!file) {
+      res.status(400).json({ error: "A PDF file is required" });
+      return;
+    }
+
+    const parsed = await extractPdfText(file.buffer);
+    const text = parsed.text?.trim() || "";
+
+    if (!text) {
+      res.status(422).json({ error: "No extractable text found. The PDF may be a scanned image." });
+      return;
+    }
+
+    const baseName = file.originalname.replace(/\.pdf$/i, "");
+    res.set("Content-Type", "text/plain; charset=utf-8");
+    res.set("Content-Disposition", `attachment; filename="${baseName}.txt"`);
+    res.send(text);
+  } catch (err) {
+    req.log.error({ err }, "Extract text failed");
+    res.status(500).json({ error: "Failed to extract text from PDF" });
+  }
+});
+
+// ─── AI Summarize ─────────────────────────────────────────────────────────────
+router.post("/pdf/ai-summarize", upload.single("file"), async (req, res): Promise<void> => {
+  try {
+    const file = req.file;
+    if (!file) {
+      res.status(400).json({ error: "A PDF file is required" });
+      return;
+    }
+
+    const parsed = await extractPdfText(file.buffer);
+    const rawText = parsed.text?.trim() || "";
+
+    if (!rawText) {
+      res.status(422).json({ error: "No extractable text found. The PDF may be a scanned image without text layers." });
+      return;
+    }
+
+    // Truncate to ~12 000 chars to stay within token budget while preserving most docs
+    const text = rawText.length > 12000 ? rawText.slice(0, 12000) + "\n\n[…document truncated for summarization…]" : rawText;
+
+    const completion = await openaiClient.chat.completions.create({
+      model: "gpt-5-mini",
+      max_completion_tokens: 1024,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a professional document analyst. Given the text of a PDF, respond with a JSON object matching exactly this shape: { \"summary\": \"<2-4 sentence overview>\", \"keyPoints\": [\"<point 1>\", \"<point 2>\", \"<point 3>\", \"<point 4>\", \"<point 5>\"] }. Be concise and factual. Return only valid JSON, no markdown fences.",
+        },
+        { role: "user", content: `Summarize this document:\n\n${text}` },
+      ],
+    });
+
+    const raw = completion.choices[0]?.message?.content ?? "{}";
+    let parsed2: { summary?: string; keyPoints?: string[] };
+    try {
+      parsed2 = JSON.parse(raw);
+    } catch {
+      parsed2 = { summary: raw, keyPoints: [] };
+    }
+
+    res.json({
+      summary: parsed2.summary ?? "No summary available.",
+      keyPoints: parsed2.keyPoints ?? [],
+      wordCount: rawText.split(/\s+/).filter(Boolean).length,
+      pageCount: parsed.pageCount,
+    });
+  } catch (err) {
+    req.log.error({ err }, "AI summarize failed");
+    res.status(500).json({ error: "Failed to summarize PDF. Please check your OpenAI API key." });
   }
 });
 

@@ -22,6 +22,13 @@ export function Navbar() {
           >
             About
           </Link>
+          <Link
+            href="/pricing"
+            className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+            data-testid="link-pricing"
+          >
+            Pricing
+          </Link>
           <Button
             variant="ghost"
             size="icon"
