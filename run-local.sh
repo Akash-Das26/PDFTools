@@ -6,7 +6,7 @@ if ! command -v pnpm >/dev/null 2>&1; then
   exit 1
 fi
 
-if [ ! -d node_modules ]; then
+if [ ! -x node_modules/.bin/esbuild ]; then
   echo "Installing dependencies..."
   pnpm install
 fi

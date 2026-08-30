@@ -7,7 +7,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-if not exist node_modules (
+if not exist node_modules\.bin\esbuild (
   echo Installing dependencies...
   call pnpm install
   if errorlevel 1 exit /b 1

@@ -1,2 +1,3 @@
 - [PDF text extraction runtime](pdf-text-extraction-runtime.md) — bundled pdf-parse v2 needs its worker copied beside the server bundle.
 - [PDF Tools build environment](pdf-tools-build-environment.md) — Vite build checks require the artifact's PORT and BASE_PATH variables outside its workflow.
+- [Local pnpm build approvals](local-pnpm-build-approvals.md) — project config explicitly permits required esbuild installs for fresh GitHub checkouts.

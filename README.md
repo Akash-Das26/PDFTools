@@ -8,7 +8,7 @@ extraction, and page numbering.
 ### Requirements
 
 - Node.js 20 or newer
-- pnpm 9 or newer
+- pnpm 10 (the repository pins pnpm 10.26.1)
 - PostgreSQL 14 or newer
 
 ### Setup
@@ -35,7 +35,8 @@ Open http://localhost:5173.
 
 If you prefer a one-command start after cloning, use `./run-local.sh` on
 macOS/Linux or `run-local.bat` on Windows. These launchers install dependencies
-on the first run and create `.env` from `.env.example`.
+on the first run (or repair a partial install) and create `.env` from
+`.env.example`.
 
 The local launcher reads `.env`, starts the API on port `8080`, starts the Vite
 frontend on port `5173`, and proxies `/api` requests to the API server. Set
