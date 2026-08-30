@@ -1,0 +1,9 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "HTFuM2kqbOfkEG5137bwA"
+uri = "file://downloads/pdf-tools-local.zip"
+type = "unspecified"
+title = "PDF Tools — Local ZIP"
+description = "Portable source archive with frontend, API server, shared packages, local launchers, environment template, and setup instructions. Extract it, configure PostgreSQL in .env, then run run-local.sh or run-local.bat."

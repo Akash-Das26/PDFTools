@@ -33,6 +33,10 @@ pnpm dev:local
 
 Open http://localhost:5173.
 
+For a downloaded ZIP, use `./run-local.sh` on macOS/Linux or
+`run-local.bat` on Windows. These launchers install dependencies on the first
+run and create `.env` from `.env.example`.
+
 The local launcher reads `.env`, starts the API on port `8080`, starts the Vite
 frontend on port `5173`, and proxies `/api` requests to the API server. Set
 `WEB_PORT` or `API_PORT` in `.env` to use different ports.
