@@ -1,9 +1,11 @@
 import { useListTools } from "@workspace/api-client-react";
+import { Link } from "wouter";
 import { Navbar } from "@/components/navbar";
 import { ToolCard } from "@/components/tool-card";
 import { StatsSection } from "@/components/stats-section";
 import { toolIcons } from "@/lib/icons";
-import { FileSearch, Sparkles, Hash, FileType, Check, X } from "lucide-react";
+import { FileSearch, Sparkles, Hash, FileType, Check, X, ArrowRight } from "lucide-react";
+import { Seo } from "@/components/seo";
 
 const ADVANTAGES = [
   {
@@ -69,6 +71,11 @@ export default function Home() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
+      <Seo
+        title="Free PDF Tools Online: Merge, Compress, Summarize & More"
+        description="Fast, free online PDF tools for merging, splitting, compressing, protecting, summarizing, extracting text, and numbering pages."
+        path="/"
+      />
       <Navbar />
 
       {/* Hero Section */}
@@ -155,9 +162,24 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="w-full px-4 md:px-6 py-12">
+        <div className="container max-w-5xl mx-auto rounded-2xl border border-primary/20 bg-primary/5 px-6 py-8 md:px-10 md:flex md:items-center md:justify-between md:gap-8">
+          <div>
+            <p className="text-sm font-semibold text-primary uppercase tracking-wide mb-2">Compare before you choose</p>
+            <h2 className="text-2xl font-bold mb-2">A clearer way to choose your PDF tool</h2>
+            <p className="text-sm text-muted-foreground max-w-xl">
+              See how PDF Tools compares with iLovePDF, Smallpdf, Adobe Acrobat, PDF24, Sejda, Foxit, and Soda PDF.
+            </p>
+          </div>
+          <Link href="/compare" className="inline-flex items-center gap-2 text-sm font-semibold text-primary mt-5 md:mt-0 whitespace-nowrap">
+            Read the comparisons <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
+
       {/* Tools Grid */}
       <section className="w-full py-16 md:py-24 px-4 md:px-6">
-        <div className="container max-w-6xl mx-auto">
+        <div id="tools" className="container max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-3">All tools</h2>
             <p className="text-muted-foreground">Every PDF operation you need in one place.</p>

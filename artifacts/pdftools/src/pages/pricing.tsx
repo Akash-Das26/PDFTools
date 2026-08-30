@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Check, ArrowLeft, Sparkles, ShieldCheck, Zap } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
+import { Seo } from "@/components/seo";
 
 const INCLUDED = [
   "All core PDF tools",
@@ -15,6 +16,11 @@ const INCLUDED = [
 export default function Pricing() {
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
+      <Seo
+        title="PDF Tools Pricing: Free Online PDF Tools"
+        description="See what is included in PDF Tools: free PDF processing, AI summaries, text extraction, page numbering, and clean output without an account."
+        path="/pricing"
+      />
       <Navbar />
       <main className="flex-1 py-14 md:py-20 px-4 md:px-6">
         <div className="container max-w-5xl mx-auto">

@@ -24,6 +24,7 @@ import {
 import { toolIcons } from "@/lib/icons";
 import { formatFileSize, downloadBlob } from "@/lib/file-utils";
 import { useToast } from "@/hooks/use-toast";
+import { Seo } from "@/components/seo";
 
 type ProcessingState = "idle" | "uploading" | "processing" | "success" | "error";
 
@@ -257,6 +258,11 @@ export default function Tool() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
+      <Seo
+        title={`${tool.name} Online — Free PDF Tool`}
+        description={`${tool.description} Process your PDF online with PDF Tools.`}
+        path={`/tools/${tool.id}`}
+      />
       <Navbar />
 
       <main className="flex-1 py-12 px-4 md:px-6">

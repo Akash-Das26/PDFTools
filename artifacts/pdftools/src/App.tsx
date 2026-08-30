@@ -7,6 +7,8 @@ import Home from '@/pages/home';
 import About from '@/pages/about';
 import Tool from '@/pages/tool';
 import Pricing from '@/pages/pricing';
+import CompareHub from '@/pages/compare';
+import ComparisonPage from '@/pages/comparison';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
 
 const queryClient = new QueryClient();
@@ -17,6 +19,8 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/about" component={About} />
       <Route path="/pricing" component={Pricing} />
+      <Route path="/compare" component={CompareHub} />
+      <Route path="/compare/:competitor" component={ComparisonPage} />
       <Route path="/tools/:toolId" component={Tool} />
       <Route component={NotFound} />
     </Switch>

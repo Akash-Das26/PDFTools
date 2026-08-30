@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/navbar";
 import { Shield, Clock, Lock, Trash2 } from "lucide-react";
+import { Seo } from "@/components/seo";
 
 export default function About() {
   const features = [
@@ -31,6 +32,11 @@ export default function About() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
+      <Seo
+        title="About PDF Tools: Fast, Private PDF Processing"
+        description="Learn how PDF Tools makes everyday PDF processing fast, focused, and privacy-conscious."
+        path="/about"
+      />
       <Navbar />
 
       <main className="flex-1">
