@@ -33,9 +33,9 @@ pnpm dev:local
 
 Open http://localhost:5173.
 
-For a downloaded ZIP, use `./run-local.sh` on macOS/Linux or
-`run-local.bat` on Windows. These launchers install dependencies on the first
-run and create `.env` from `.env.example`.
+If you prefer a one-command start after cloning, use `./run-local.sh` on
+macOS/Linux or `run-local.bat` on Windows. These launchers install dependencies
+on the first run and create `.env` from `.env.example`.
 
 The local launcher reads `.env`, starts the API on port `8080`, starts the Vite
 frontend on port `5173`, and proxies `/api` requests to the API server. Set
@@ -55,4 +55,17 @@ PORT=5173 BASE_PATH=/ API_PORT=8080 pnpm --filter @workspace/pdftools run dev
 
 ```bash
 pnpm build
+```
+
+## GitHub checkout
+
+The repository root is the runnable project. After cloning it from GitHub:
+
+```bash
+git clone <repository-url>
+cd <repository-directory>
+pnpm install
+cp .env.example .env
+pnpm --filter @workspace/db run push
+pnpm dev:local
 ```
