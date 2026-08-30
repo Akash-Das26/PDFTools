@@ -6,6 +6,12 @@ if ! command -v pnpm >/dev/null 2>&1; then
   exit 1
 fi
 
+if [ ! -f pnpm-workspace.yaml ] || [ ! -f lib/db/package.json ]; then
+  echo "Run this script from the PDF Tools repository root."
+  echo "Expected pnpm-workspace.yaml and lib/db/package.json in the current directory."
+  exit 1
+fi
+
 if [ ! -x node_modules/.bin/esbuild ]; then
   echo "Installing dependencies..."
   pnpm install

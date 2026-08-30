@@ -70,3 +70,8 @@ cp .env.example .env
 pnpm --filter @workspace/db run push
 pnpm dev:local
 ```
+
+Run these commands from the directory that contains `pnpm-workspace.yaml`.
+If pnpm reports a workspace scope smaller than the full project or says no
+projects match `@workspace/db`, you are in the wrong directory or an
+incomplete copy of the repository.
