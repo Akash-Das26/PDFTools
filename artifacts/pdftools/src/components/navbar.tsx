@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { Button } from "@/components/ui/button";
-import logoSvg from "@assets/ilovepdf-logo.svg";
+import logoSvg from "@/assets/pdf-tools-logo.svg";
 
 export function Navbar() {
   const { theme, toggleTheme } = useTheme();

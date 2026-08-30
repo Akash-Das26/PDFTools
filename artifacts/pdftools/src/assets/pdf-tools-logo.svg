@@ -1,0 +1,9 @@
+<svg width="176" height="40" viewBox="0 0 176 40" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">PDF Tools</title>
+  <rect x="1" y="1" width="38" height="38" rx="10" fill="#2563EB"/>
+  <path d="M12 8.5H24.5L31 15V31.5H12V8.5Z" fill="white"/>
+  <path d="M24.5 8.5V15H31" fill="#BFDBFE"/>
+  <path d="M24.5 8.5V15H31" stroke="#2563EB" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M16.5 20.5H26.5M16.5 24.5H26.5" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+  <text x="49" y="27" fill="#111827" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="-0.7">PDF Tools</text>
+</svg>
