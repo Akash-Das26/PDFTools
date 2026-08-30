@@ -52,18 +52,20 @@ const { PDFParse } = require("pdf-parse") as {
 
 const configuredAiKey = process.env.OPENAI_API_KEY;
 const usesOpenRouter = configuredAiKey?.startsWith("sk-or-") ?? false;
-const openaiClient = new OpenAI({
-  apiKey: configuredAiKey,
-  ...(usesOpenRouter
-    ? {
-        baseURL: "https://openrouter.ai/api/v1",
-        defaultHeaders: {
-          "HTTP-Referer": "https://pdftools.replit.app",
-          "X-Title": "PDF Tools",
-        },
-      }
-    : {}),
-});
+const openaiClient = configuredAiKey
+  ? new OpenAI({
+      apiKey: configuredAiKey,
+      ...(usesOpenRouter
+        ? {
+            baseURL: "https://openrouter.ai/api/v1",
+            defaultHeaders: {
+              "HTTP-Referer": "https://pdftools.replit.app",
+              "X-Title": "PDF Tools",
+            },
+          }
+        : {}),
+    })
+  : null;
 const aiModel = usesOpenRouter ? "openai/gpt-5-mini" : "gpt-5-mini";
 
 async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
@@ -485,6 +487,13 @@ router.post("/pdf/ai-summarize", upload.single("file"), async (req, res): Promis
     const file = req.file;
     if (!file) {
       res.status(400).json({ error: "A PDF file is required" });
+      return;
+    }
+
+    if (!openaiClient) {
+      res.status(503).json({
+        error: "AI summarization is not configured. Set OPENAI_API_KEY in .env and restart the API server.",
+      });
       return;
     }
 
