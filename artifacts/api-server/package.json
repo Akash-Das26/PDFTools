@@ -10,6 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@napi-rs/canvas": "0.1.80",
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
     "archiver": "^8.0.0",
