@@ -1,115 +1,107 @@
 import { useRef, useState } from "react";
-import { UploadCloud, FileText } from "lucide-react";
+import type { ToolAccent } from "@workspace/api-client-react";
+import { ACCENT_TILE } from "@/lib/tool-categories";
+import { COMPACT_CTA } from "@/lib/ui";
+import { uiIcons } from "@/lib/icons";
 import { cn } from "@/lib/utils";
-import { formatFileSize } from "@/lib/file-utils";
-
-interface UploadDropzoneProps {
-  accept: string[];
-  /** 1 file for most tools; higher for multi-file tools. */
-  maxFiles?: number;
-  onFiles: (files: File[]) => void;
-  /** Files currently staged (for the selected state). */
-  files?: File[];
-  onRemove?: (index: number) => void;
-  disabled?: boolean;
-  label?: string;
-}
 
 /**
- * Upload dropzone (Step 1). Dashed 2px border that goes solid primary on
- * drag-over with a faint brand tint; includes the "Browse files" fallback
- * button (keyboard accessible, per design spec §6) and a staged-file strip
- * with size metadata once files are chosen.
+ * Step 1 — upload dropzone.
+ *
+ * Per DESIGN.md: a 2px dashed border in `border-strong`, `rounded-xl`, and on
+ * drag-over the border goes solid `primary` against a faint brand tint. A
+ * keyboard-accessible "Browse files" button is mandatory (accessibility
+ * section), so the hidden input always has a labelled trigger.
+ *
+ * The limits line states the real server limits (50 MB per file, 20 files),
+ * which come from `artifacts/api-server/src/lib/upload.ts`.
  */
-export function UploadDropzone({ accept, maxFiles = 1, onFiles, files = [], onRemove, disabled = false, label }: UploadDropzoneProps) {
+export function UploadDropzone({
+  onFiles,
+  accept,
+  multiple = false,
+  accent = "primary",
+  inputLabel,
+  disabled = false,
+}: {
+  onFiles: (files: File[]) => void;
+  accept?: string[];
+  multiple?: boolean;
+  accent?: ToolAccent;
+  inputLabel: string;
+  disabled?: boolean;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
 
-  const openPicker = () => inputRef.current?.click();
-
-  const handleDrop = (event: React.DragEvent) => {
-    event.preventDefault();
-    setDragging(false);
-    if (disabled) return;
-    const dropped = Array.from(event.dataTransfer.files ?? []);
-    if (dropped.length > 0) onFiles(dropped.slice(0, maxFiles));
-  };
+  const acceptAttr = accept?.join(",");
 
   return (
-    <div className="space-y-3">
+    <div
+      data-testid="upload-dropzone"
+      onDragOver={(event) => {
+        if (disabled) return;
+        event.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={(event) => {
+        event.preventDefault();
+        setDragging(false);
+        if (disabled) return;
+        onFiles(Array.from(event.dataTransfer.files));
+      }}
+      className={cn(
+        "flex flex-col items-center justify-center gap-space-md rounded-xl border-2 border-dashed border-border-strong px-space-lg py-margin-lg text-center transition-colors",
+        dragging && "border-solid border-primary bg-primary/5",
+        disabled && "opacity-60",
+      )}
+    >
       <div
-        onDragOver={(event) => {
-          event.preventDefault();
-          if (!disabled) setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={handleDrop}
-        onClick={() => !disabled && openPicker()}
-        data-testid="upload-dropzone"
         className={cn(
-          "rounded-xl border-2 border-dashed border-border bg-card p-8 md:p-10 text-center cursor-pointer transition-all",
-          "hover:border-foreground/30",
-          dragging && "border-solid border-primary bg-primary/5 dark:bg-primary/5",
-          disabled && "opacity-60 pointer-events-none",
+          "flex h-12 w-12 items-center justify-center rounded-xl",
+          ACCENT_TILE[accent],
         )}
       >
-        <div className={cn("w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-4 transition-all", dragging ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary")}>
-          <UploadCloud className="w-6 h-6" />
-        </div>
-        <div className="font-semibold text-foreground">{label ?? "Drop any document here"}</div>
-        <p className="mt-1 text-sm text-muted-foreground">or</p>
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            openPicker();
-          }}
-          className="mt-3 inline-flex h-10 px-5 items-center rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all"
-          data-testid="button-browse-files"
-        >
-          Browse files
-        </button>
-        <p className="mt-3 text-xs text-muted-foreground">Up to 50MB each{maxFiles > 1 ? ` · up to ${maxFiles} files` : ""}</p>
-        <input
-          ref={inputRef}
-          type="file"
-          accept={accept.join(",")}
-          multiple={maxFiles > 1}
-          className="hidden"
-          data-testid="input-file"
-          onChange={(event) => {
-            const selected = Array.from(event.target.files ?? []);
-            if (selected.length > 0) onFiles(selected.slice(0, maxFiles));
-            event.target.value = "";
-          }}
-        />
+        <uiIcons.uploadCloud className="h-6 w-6" />
       </div>
 
-      {files.length > 0 && (
-        <ul className="space-y-2">
-          {files.map((file, index) => (
-            <li
-              key={`${file.name}-${index}`}
-              className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2"
-              data-testid={`file-item-${index}`}
-            >
-              <FileText className="w-4 h-4 text-primary shrink-0" />
-              <span className="text-sm font-medium truncate flex-1">{file.name}</span>
-              <span className="text-xs text-muted-foreground shrink-0">{formatFileSize(file.size)}</span>
-              {onRemove && (
-                <button
-                  type="button"
-                  onClick={() => onRemove(index)}
-                  className="text-xs font-medium text-destructive hover:underline shrink-0"
-                  data-testid={`button-remove-file-${index}`}
-                >
-                  Remove
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="flex flex-col gap-space-xs">
+        <p className="text-headline-sm text-foreground">{inputLabel}</p>
+        <p className="text-body-sm text-muted-foreground">
+          Drag and drop {multiple ? "files" : "a file"} here, or browse from your
+          device
+        </p>
+      </div>
+
+      <button
+        type="button"
+        data-testid="button-browse-files"
+        disabled={disabled}
+        onClick={() => inputRef.current?.click()}
+        className={COMPACT_CTA}
+      >
+        Choose {multiple ? "files" : "file"}
+      </button>
+
+      <p className="text-label-sm text-muted-foreground">
+        Up to 50 MB each
+        {multiple ? ", 20 files per job" : ""}
+      </p>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept={acceptAttr}
+        multiple={multiple}
+        disabled={disabled}
+        data-testid="input-file"
+        className="hidden"
+        onChange={(event) => {
+          onFiles(Array.from(event.target.files ?? []));
+          event.target.value = "";
+        }}
+      />
     </div>
   );
 }

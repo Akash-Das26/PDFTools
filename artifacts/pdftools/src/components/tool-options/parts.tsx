@@ -1,68 +1,102 @@
 import type { ReactNode } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
+
+/**
+ * Small shared pieces every Configure panel is built from, so the 32 panels
+ * look and behave identically. Only Radix primitives already in the project
+ * (radio-group, select, slider, switch, checkbox) are used beneath these.
+ */
 
 export function OptionField({
   label,
   hint,
   htmlFor,
-  className,
   children,
 }: {
   label: string;
-  hint?: ReactNode;
+  hint?: string;
   htmlFor?: string;
-  className?: string;
   children: ReactNode;
 }) {
   return (
-    <div className={cn("space-y-2", className)}>
-      <Label htmlFor={htmlFor} className="block">
-        {label}
-      </Label>
+    <div className="flex flex-col gap-space-md">
+      <div className="flex items-center justify-between">
+        <label htmlFor={htmlFor} className="text-headline-md text-foreground">
+          {label}
+        </label>
+        {hint && (
+          <span className="text-label-sm text-muted-foreground">{hint}</span>
+        )}
+      </div>
       {children}
-      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );
 }
 
-export function InfoNote({ children }: { children: ReactNode }) {
-  return <p className="text-sm text-muted-foreground">{children}</p>;
+export interface RadioOption {
+  value: string;
+  label: string;
+  description: string;
 }
 
 /**
- * Shared page-selection field. Every tool that can target pages uses the same
- * syntax the server parses: "1,3,5-8".
+ * Card-style radio group, matching the reference's compression-profile
+ * selector: three side-by-side cards where the checked one lifts to
+ * `surface-container-lowest` with a shadow and a primary ring.
  */
-export function PageSelectionField({
+export function OptionRadioGroup({
+  name,
   value,
+  options,
   onChange,
-  hint = "Comma separated pages or ranges, e.g. 1,3,5-8.",
-  emptyMeansAll = true,
-  id = "pages-input",
-  testId,
+  columns = 3,
 }: {
+  name: string;
   value: string;
+  options: RadioOption[];
   onChange: (value: string) => void;
-  hint?: string;
-  emptyMeansAll?: boolean;
-  id?: string;
-  testId?: string;
+  columns?: 2 | 3;
 }) {
   return (
-    <OptionField
-      label={emptyMeansAll ? "Pages (optional)" : "Pages"}
-      htmlFor={id}
-      hint={emptyMeansAll ? `${hint} Leave empty to apply to every page.` : hint}
+    <RadioGroup
+      name={name}
+      value={value}
+      onValueChange={onChange}
+      data-testid={`option-${name}`}
+      className={cn(
+        "grid gap-space-md",
+        columns === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2",
+      )}
     >
-      <Input
-        id={id}
-        placeholder="1,3,5-8"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        data-testid={testId ?? id}
-      />
-    </OptionField>
+      {options.map((option) => {
+        const checked = option.value === value;
+        return (
+          <label
+            key={option.value}
+            data-testid={`option-${name}-${option.value}`}
+            className={cn(
+              "relative flex cursor-pointer flex-col gap-space-xs rounded-xl p-space-md transition-all",
+              checked
+                ? "bg-surface-container-lowest shadow-level-3 ring-2 ring-primary"
+                : "bg-surface-container-low hover:bg-surface-container",
+            )}
+          >
+            <RadioGroupItem
+              value={option.value}
+              aria-label={option.label}
+              className={cn(
+                "absolute right-space-md top-space-md",
+                checked ? "border-primary text-primary" : "border-border-strong",
+              )}
+            />
+            <span className="text-label-md text-foreground">{option.label}</span>
+            <span className="pr-6 text-body-sm text-muted-foreground">
+              {option.description}
+            </span>
+          </label>
+        );
+      })}
+    </RadioGroup>
   );
 }

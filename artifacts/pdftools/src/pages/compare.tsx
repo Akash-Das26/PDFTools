@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { ArrowRight, Check, ExternalLink, Sparkles, ShieldCheck } from "lucide-react";
-import { Navbar } from "@/components/navbar";
+import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Seo } from "@/components/seo";
 import { comparisons } from "@/lib/comparisons";
@@ -13,7 +13,7 @@ export default function CompareHub() {
         description="Compare PDF Tools with iLovePDF, Smallpdf, Adobe Acrobat, PDF24, Sejda, Foxit, and Soda PDF on features, pricing, free limits, and ease of use."
         path="/compare"
       />
-      <Navbar />
+      <SiteHeader />
       <main className="flex-1">
         <section className="px-4 md:px-6 py-16 md:py-24">
           <div className="container max-w-5xl mx-auto text-center">
