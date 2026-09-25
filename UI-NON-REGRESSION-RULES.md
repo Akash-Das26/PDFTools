@@ -10,8 +10,12 @@ before merging.
 
 ## 1. Design tokens are locked — don't improvise
 
-The canonical tokens live in **`precision_pdf_utility` (light) and its
-embedded `dark-*` values (dark)** — from the Stitch export. Do not:
+The canonical tokens live in **`artifacts/pdftools/src/index.css`** (`@theme
+inline`, values taken from `precision_pdf_utility`). Note: in dark mode the
+brand accents are deliberately inverted to their `-fixed-dim` siblings
+(`primary #B70011 → #FFB4AB` etc.) so accent text passes 4.5:1 on the dark
+canvas — that salmon `#ffb4ab` on dark screens is the approved override, NOT
+the old obsidian_slate leak. Do not "fix" it back, and do not:
 - Introduce a new hex value for primary/secondary/success/warning/destructive
   anywhere. If a screen needs a color not in the token set, that's a sign the
   token set needs updating (as a deliberate, reviewed change) — not a license
@@ -22,9 +26,11 @@ embedded `dark-*` values (dark)** — from the Stitch export. Do not:
 - Mix in colors from an alternate/unused theme file. (This exact bug shipped
   once already: the `obsidian_slate` theme leaked a salmon `#ffb4ab` accent
   into a dark screen that was supposed to use the real brand red `#DC2626`.
-  `obsidian_slate` has been deleted — if a new alternate theme exploration
-  gets added later, it must be clearly marked unused and never merged into a
-  real screen's classes.)
+  The `obsidian_slate` *token set* is unused — its DESIGN.md survives only
+  inside the reference folder — and the salmon hex now enters the app solely
+  through the approved dark-mode `--primary` override above. Filled CTAs keep
+  the theme-invariant `primary-container` + `on-primary-container` pair
+  (#DC2626 + #ffffff) in both themes.)
 
 Reference: colors, typography, spacing, radii — see
 `PDFTools-Frontend-Design.md`, Section 2.
@@ -43,8 +49,14 @@ on:
 Before adding or editing a tool, grep the codebase for its name and confirm
 every existing reference uses the same icon. (This exact bug shipped once:
 Compress PDF used three different icons — `zoom_in_map`, `tune`, and
-`compress` — across three screens. Now standardized on `compress`
-everywhere.)
+`compress` — across three screens.)
+
+**Correction (2026-09-26):** `lucide-react@0.545.0` — the pinned version —
+exports no `Compress` icon, so "standardized on `compress` everywhere" is not
+literally satisfiable. The app standardizes on **`Minimize2`** for Compress PDF
+via the registry in `artifacts/pdftools/src/lib/icons.ts`. If lucide ever ships
+a `Compress` glyph and the dependency is upgraded, switch the registry entry in
+one place — do not edit call sites.
 
 ---
 
