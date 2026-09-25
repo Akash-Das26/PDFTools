@@ -2,4 +2,6 @@
 - [PDF Tools build environment](pdf-tools-build-environment.md) — Vite build checks require the artifact's PORT and BASE_PATH variables outside its workflow.
 - [Local pnpm build approvals](local-pnpm-build-approvals.md) — project config explicitly permits required esbuild installs for fresh GitHub checkouts.
 - [Optional AI configuration](optional-ai-configuration.md) — the API must start without an AI key; only AI summarization should be unavailable.
+<<<<<<< HEAD
 - [PDF Tools warning cleanup](pdf-tools-warning-cleanup.md) — native pdf-parse bindings need direct workspace linkage; Vite builds should exclude Next-only client directives.
+- [PDF tool dependencies](pdf-tool-dependencies.md) — archiver v8 class API, @cantoo/pdf-lib encryption, and why the pdf tag is excluded from zod codegen.

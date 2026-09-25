@@ -78,8 +78,8 @@ export default function About() {
               <li className="flex gap-3">
                 <span className="font-bold text-foreground">1.</span>
                 <span>
-                  Choose your tool — merge, split, compress, rotate, watermark, or
-                  protect.
+                  Choose your tool — organize pages, optimize, convert to images or
+                  text, or protect the document.
                 </span>
               </li>
               <li className="flex gap-3">

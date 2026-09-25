@@ -30,6 +30,17 @@ async function buildAll() {
     external: [
       "*.node",
       "sharp",
+      // Native/heavy PDF deps are loaded at runtime instead of being bundled:
+      // @napi-rs/canvas is a platform-specific .node binding, and @cantoo/pdf-lib
+      // (the pdf-lib fork used for encryption) keeps its deps external too.
+      "@napi-rs/*",
+      "@cantoo/pdf-lib",
+      // tesseract.js spawns a worker thread by filesystem path and loads
+      // tesseract.js-core WASM plus the traineddata pack relative to its own
+      // package, so it must stay in node_modules rather than be bundled.
+      "tesseract.js",
+      "tesseract.js-core",
+      "@tesseract.js-data/*",
       "better-sqlite3",
       "sqlite3",
       "canvas",

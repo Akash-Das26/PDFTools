@@ -46,6 +46,16 @@ export default defineConfig({
       override: {
         transformer: titleTransformer,
       },
+      // The `pdf` tag is excluded on purpose: Orval emits zod v4 helpers
+      // (`zod.int()`, `zod.looseObject()`) for multipart request bodies, which do
+      // not exist in the zod v3 version this workspace pins. Those endpoints are
+      // validated at runtime by the hand-written schemas in
+      // `@workspace/api-zod/src/pdf-tools.ts`, which also coerce the string
+      // values that `multipart/form-data` delivers.
+      filters: {
+        mode: "exclude",
+        tags: ["pdf"],
+      },
     },
     output: {
       workspace: apiZodSrc,

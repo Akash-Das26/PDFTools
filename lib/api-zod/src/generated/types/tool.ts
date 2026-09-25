@@ -15,5 +15,7 @@ export interface Tool {
   inputLabel: string;
   outputLabel: string;
   acceptMultiple?: boolean;
+  /** Accepted mime types and extensions for the file picker */
+  accept?: string[];
   color?: string;
 }

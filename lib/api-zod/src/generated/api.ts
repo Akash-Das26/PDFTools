@@ -28,6 +28,7 @@ export const ListToolsResponseItem = zod.object({
   "inputLabel": zod.string(),
   "outputLabel": zod.string(),
   "acceptMultiple": zod.boolean().optional(),
+  "accept": zod.array(zod.string()).optional().describe('Accepted mime types and extensions for the file picker'),
   "color": zod.string().optional()
 })
 export const ListToolsResponse = zod.array(ListToolsResponseItem)

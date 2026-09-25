@@ -14,6 +14,8 @@ tags:
     description: PDF tool catalog
   - name: jobs
     description: Processing job history
+  - name: pdf
+    description: PDF processing tools
 paths:
   /healthz:
     get:
@@ -94,6 +96,447 @@ paths:
               schema:
                 $ref: "#/components/schemas/Job"
 
+  # ── PDF tools ───────────────────────────────────────────────────────────────
+  # Every tool accepts `multipart/form-data`. The document itself is sent as the
+  # `file` part (`files` for multi-document tools), so it is described rather
+  # than modelled here — the remaining form fields are the tool options.
+  /pdf/rotate:
+    post:
+      operationId: rotatePdf
+      tags: [pdf]
+      summary: Rotate all or selected pages
+      description: Send the document as `file`, or several documents as repeated `files` parts.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [rotation]
+              properties:
+                rotation:
+                  type: integer
+                  description: Clockwise rotation in degrees
+                  enum: [90, 180, 270]
+                pages:
+                  type: string
+                  description: 'Page selection such as "1,3,5-8". Empty means every page.'
+      responses:
+        "200":
+          description: Rotated PDF (ZIP when several documents were uploaded)
+
+  /pdf/remove-pages:
+    post:
+      operationId: removePdfPages
+      tags: [pdf]
+      summary: Delete selected pages
+      description: Send the document as `file`.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [pages]
+              properties:
+                pages:
+                  type: string
+                  description: 'Pages to delete, e.g. "2,4,7-9"'
+      responses:
+        "200":
+          description: PDF without the removed pages
+
+  /pdf/reorder-pages:
+    post:
+      operationId: reorderPdfPages
+      tags: [pdf]
+      summary: Rebuild a PDF in a new page order
+      description: Send the document as `file`. Pages missing from `order` are dropped.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [order]
+              properties:
+                order:
+                  type: string
+                  description: 'Page numbers in their new order, e.g. "3,1,2,4"'
+      responses:
+        "200":
+          description: Reordered PDF
+
+  /pdf/compare:
+    post:
+      operationId: comparePdfs
+      tags: [pdf]
+      summary: Compare the text of two PDFs
+      description: Send exactly two documents as repeated `files` parts. Returns counts, the ordered diff, and a Markdown rendering of the report.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: JSON comparison report with a downloadable Markdown rendering
+
+  /pdf/page-info:
+    post:
+      operationId: getPdfPageInfo
+      tags: [pdf]
+      summary: Read page count, geometry and previews
+      description: Send the document as `file`. The only PDF tool endpoint returning JSON. Thumbnails are omitted for documents above the preview page limit.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                thumbnails:
+                  type: boolean
+                  default: true
+                thumbnailWidth:
+                  type: integer
+                  description: Preview width in pixels
+                  default: 140
+      responses:
+        "200":
+          description: Page information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PdfPageInfo"
+
+  /pdf/watermark:
+    post:
+      operationId: watermarkPdf
+      tags: [pdf]
+      summary: Stamp text or an image watermark
+      description: Send the document as `file` and, for image watermarks, the image as the `image` part.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: [text, image]
+                  default: text
+                text:
+                  type: string
+                opacity:
+                  type: number
+                  default: 0.3
+                position:
+                  type: string
+                  enum:
+                    - top-left
+                    - top-center
+                    - top-right
+                    - middle-left
+                    - center
+                    - middle-right
+                    - bottom-left
+                    - bottom-center
+                    - bottom-right
+                    - diagonal
+                  default: diagonal
+                color:
+                  type: string
+                  description: Hex colour used for text watermarks
+                fontSize:
+                  type: number
+                rotation:
+                  type: number
+                scale:
+                  type: number
+                  description: Image watermark width as a fraction of the page width
+                  default: 0.35
+                pages:
+                  type: string
+      responses:
+        "200":
+          description: Watermarked PDF
+
+  /pdf/protect:
+    post:
+      operationId: protectPdf
+      tags: [pdf]
+      summary: Encrypt a PDF with a password
+      description: Send the document as `file`.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                ownerPassword:
+                  type: string
+                algorithm:
+                  type: string
+                  enum: [AES-256, AES-128, RC4-128, RC4-40]
+                  default: AES-256
+                allowPrinting:
+                  type: boolean
+                  default: true
+                allowCopying:
+                  type: boolean
+                  default: true
+                allowModifying:
+                  type: boolean
+                  default: true
+                allowAnnotating:
+                  type: boolean
+                  default: true
+                allowFillingForms:
+                  type: boolean
+                  default: true
+      responses:
+        "200":
+          description: Encrypted PDF
+
+  /pdf/unlock:
+    post:
+      operationId: unlockPdf
+      tags: [pdf]
+      summary: Remove password protection when the password is known
+      description: Send the document as `file`.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Unencrypted PDF
+
+  /pdf/crop:
+    post:
+      operationId: cropPdf
+      tags: [pdf]
+      summary: Crop pages by adjusting their page boxes
+      description: Send the document as `file`. Margins are in points or percent of the page.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                unit:
+                  type: string
+                  enum: [pt, percent]
+                  default: percent
+                top:
+                  type: number
+                  default: 0
+                right:
+                  type: number
+                  default: 0
+                bottom:
+                  type: number
+                  default: 0
+                left:
+                  type: number
+                  default: 0
+                pages:
+                  type: string
+      responses:
+        "200":
+          description: Cropped PDF
+
+  /pdf/pdf-to-images:
+    post:
+      operationId: pdfToImages
+      tags: [pdf]
+      summary: Render pages as JPG or PNG
+      description: Send the document as `file`. Several pages come back as a ZIP.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                format:
+                  type: string
+                  enum: [jpg, png]
+                  default: jpg
+                quality:
+                  type: integer
+                  default: 85
+                width:
+                  type: integer
+                  description: Rendered width in pixels
+                  default: 1200
+                pages:
+                  type: string
+      responses:
+        "200":
+          description: Page image, or a ZIP of images for multi-page selections
+
+  /pdf/images-to-pdf:
+    post:
+      operationId: imagesToPdf
+      tags: [pdf]
+      summary: Compose JPG/PNG uploads into one PDF
+      description: Send one or more images as repeated `files` parts.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                pageSize:
+                  type: string
+                  enum: [fit, a4, letter]
+                  default: fit
+                orientation:
+                  type: string
+                  enum: [auto, portrait, landscape]
+                  default: auto
+                margin:
+                  type: number
+                  default: 24
+      responses:
+        "200":
+          description: PDF containing one page per image
+
+  /pdf/duplicate-pages:
+    post:
+      operationId: duplicatePdfPages
+      tags: [pdf]
+      summary: Copy pages inside the same document
+      description: Send the document as `file`. Copies go next to each original or at the end.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                pages:
+                  type: string
+                  description: Comma separated pages or ranges; empty means every page
+                copies:
+                  type: integer
+                  minimum: 1
+                  maximum: 20
+                  default: 1
+                placement:
+                  type: string
+                  enum: [after, end]
+                  default: after
+      responses:
+        "200":
+          description: PDF containing the copied pages
+
+  /pdf/repair:
+    post:
+      operationId: repairPdf
+      tags: [pdf]
+      summary: Rebuild a damaged PDF
+      description: Send the document as `file`. No options - recovery is chosen from the file itself.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Repaired PDF. The `X-Repair-Recovered` header reports whether recovery was needed.
+
+  /pdf/pdf-to-pdfa:
+    post:
+      operationId: pdfToPdfA
+      tags: [pdf]
+      summary: Convert a PDF to PDF/A for archiving
+      description: Send the document as `file`.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                conformance:
+                  type: string
+                  enum: [1B, 2B, 2U, 3B, 3U]
+                  default: 3B
+      responses:
+        "200":
+          description: PDF/A document
+
+  /pdf/extract-text:
+    post:
+      operationId: exportPdfText
+      tags: [pdf]
+      summary: Export the text layer as .txt or Markdown
+      description: Send the document as `file`.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                format:
+                  type: string
+                  enum: [txt, md]
+                  default: txt
+                pages:
+                  type: string
+      responses:
+        "200":
+          description: Plain text or Markdown document
+
+  /pdf/ocr:
+    post:
+      operationId: ocrPdf
+      tags: [pdf]
+      summary: OCR a scanned PDF into .txt, Markdown or a searchable PDF
+      description: Send the document as `file`. Pages are rendered and recognised with tesseract.js.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                language:
+                  type: string
+                  enum: [eng, spa, fra, deu, ita, por, nld, rus, pol, tur, ara, hin, heb, chi_sim, chi_tra, jpn, kor]
+                  default: eng
+                mode:
+                  type: string
+                  enum: [text, searchable-pdf]
+                  default: text
+                format:
+                  type: string
+                  enum: [txt, md]
+                  default: txt
+                pages:
+                  type: string
+      responses:
+        "200":
+          description: Recognised text (.txt/.md) or a searchable PDF
+
 components:
   schemas:
     HealthStatus:
@@ -123,8 +566,42 @@ components:
           type: string
         acceptMultiple:
           type: boolean
+        accept:
+          type: array
+          description: Accepted mime types and extensions for the file picker
+          items:
+            type: string
         color:
           type: string
+
+    PdfPageInfo:
+      type: object
+      required: [pageCount, pages, thumbnailsIncluded, thumbnailWidth]
+      properties:
+        pageCount:
+          type: number
+        thumbnailsIncluded:
+          type: boolean
+          description: True when every page carries a preview image
+        thumbnailWidth:
+          type: number
+        pages:
+          type: array
+          items:
+            type: object
+            required: [number, width, height, rotation]
+            properties:
+              number:
+                type: number
+              width:
+                type: number
+              height:
+                type: number
+              rotation:
+                type: number
+              thumbnail:
+                type: string
+                description: PNG data URL preview of the page, when previews were requested
 
     Stats:
       type: object

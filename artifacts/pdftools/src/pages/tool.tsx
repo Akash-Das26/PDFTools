@@ -1,30 +1,28 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { useParams, Link } from "wouter";
 import { useListTools, useCreateJob, getListJobsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Slider } from "@/components/ui/slider";
 import {
   Upload,
   X,
-  FileText,
   Loader2,
   CheckCircle2,
   Download,
   ArrowLeft,
   AlertCircle,
   Sparkles,
+  GitCompare,
   Copy,
   Check,
 } from "lucide-react";
-import { toolIcons } from "@/lib/icons";
+import { toolIcons, defaultToolIcon } from "@/lib/icons";
 import { formatFileSize, downloadBlob } from "@/lib/file-utils";
 import { useToast } from "@/hooks/use-toast";
 import { Seo } from "@/components/seo";
+import { ToolOptionsPanel } from "@/components/tool-options";
+import { baseNameOf, type ToolOptionsReport } from "@/components/tool-options/types";
 
 type ProcessingState = "idle" | "uploading" | "processing" | "success" | "error";
 
@@ -33,6 +31,40 @@ interface SummaryResult {
   keyPoints: string[];
   wordCount: number;
   pageCount: number;
+}
+
+interface CompareDiffLine {
+  type: "equal" | "add" | "remove";
+  text: string;
+  page: number;
+}
+
+interface CompareResult {
+  a: { name: string; pages: number; lines: number };
+  b: { name: string; pages: number; lines: number };
+  identical: boolean;
+  large: boolean;
+  truncated: boolean;
+  counts: { unchanged: number; removed: number; added: number };
+  diff: CompareDiffLine[];
+  report: string;
+  filename: string;
+}
+
+const DEFAULT_ACCEPT = ["application/pdf", ".pdf"];
+
+/** Reads the filename the server suggested for the download, if it sent one. */
+function filenameFromResponse(response: Response): string | null {
+  const header = response.headers.get("content-disposition");
+  const match = header ? /filename="?([^";]+)"?/i.exec(header) : null;
+  return match?.[1] ?? null;
+}
+
+function isAcceptedFile(file: File, accept: string[]): boolean {
+  const name = file.name.toLowerCase();
+  return accept.some((rule) =>
+    rule.startsWith(".") ? name.endsWith(rule.toLowerCase()) : file.type === rule,
+  );
 }
 
 export default function Tool() {
@@ -53,56 +85,58 @@ export default function Tool() {
   const [outputSize, setOutputSize] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [summaryResult, setSummaryResult] = useState<SummaryResult | null>(null);
+  const [compareResult, setCompareResult] = useState<CompareResult | null>(null);
   const [copied, setCopied] = useState(false);
-
-  // Tool-specific options
-  const [quality, setQuality] = useState<"extreme" | "recommended" | "high">("recommended");
-  const [rotation, setRotation] = useState<90 | 180 | 270>(90);
-  const [splitType, setSplitType] = useState<"all" | "pages">("all");
-  const [pages, setPages] = useState("");
-  const [watermarkText, setWatermarkText] = useState("");
-  const [watermarkOpacity, setWatermarkOpacity] = useState([0.3]);
-  const [watermarkPosition, setWatermarkPosition] = useState<"center" | "diagonal">("diagonal");
-  const [password, setPassword] = useState("");
-  const [pageNumPosition, setPageNumPosition] = useState<string>("bottom-center");
-  const [pageNumStart, setPageNumStart] = useState("1");
-  const [pageNumFormat, setPageNumFormat] = useState<"1" | "Page 1" | "1/N">("1");
+  const [options, setOptions] = useState<ToolOptionsReport | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const accept = useMemo(
+    () => (tool?.accept?.length ? tool.accept : DEFAULT_ACCEPT),
+    [tool?.accept],
+  );
+  const baseName = useMemo(() => (files[0] ? baseNameOf(files[0].name) : "document"), [files]);
 
   const handleFileSelect = useCallback(
     (selectedFiles: FileList | null) => {
       if (!selectedFiles || !tool) return;
 
-      const fileArray = Array.from(selectedFiles).filter(
-        (f) => f.type === "application/pdf"
-      );
+      const fileArray = Array.from(selectedFiles);
+      const accepted = fileArray.filter((file) => isAcceptedFile(file, accept));
 
-      if (fileArray.length === 0) {
+      if (accepted.length === 0) {
         toast({
           title: "Invalid file type",
-          description: "Please upload PDF files only.",
+          description: `This tool accepts ${accept.join(", ")}.`,
           variant: "destructive",
         });
         return;
       }
 
-      if (!tool.acceptMultiple && fileArray.length > 1) {
+      if (accepted.length !== fileArray.length) {
+        toast({
+          title: "Some files were skipped",
+          description: `Only ${accept.join(", ")} files are accepted.`,
+        });
+      }
+
+      if (!tool.acceptMultiple && accepted.length > 1) {
         toast({
           title: "Single file only",
           description: `${tool.name} accepts only one file at a time.`,
           variant: "destructive",
         });
-        setFiles([fileArray[0]]);
+        setFiles([accepted[0]!]);
       } else {
-        setFiles(tool.acceptMultiple ? fileArray : [fileArray[0]]);
+        setFiles(tool.acceptMultiple ? accepted : [accepted[0]!]);
       }
 
       setState("idle");
       setResultBlob(null);
       setSummaryResult(null);
+      setCompareResult(null);
     },
-    [tool, toast]
+    [accept, tool, toast],
   );
 
   const handleDrop = (e: React.DragEvent) => {
@@ -110,6 +144,10 @@ export default function Tool() {
     setIsDragging(false);
     handleFileSelect(e.dataTransfer.files);
   };
+
+  const handleOptionsChange = useCallback((report: ToolOptionsReport) => {
+    setOptions(report);
+  }, []);
 
   const handleProcess = async () => {
     if (!tool || files.length === 0) return;
@@ -126,25 +164,9 @@ export default function Tool() {
         formData.append("file", files[0]);
       }
 
-      // Tool-specific options
-      if (toolId === "compress") {
-        formData.append("quality", quality);
-      } else if (toolId === "rotate") {
-        formData.append("rotation", rotation.toString());
-      } else if (toolId === "split") {
-        formData.append("splitType", splitType);
-        if (splitType === "pages") formData.append("pages", pages);
-      } else if (toolId === "watermark") {
-        formData.append("text", watermarkText);
-        formData.append("opacity", watermarkOpacity[0].toString());
-        formData.append("position", watermarkPosition);
-      } else if (toolId === "protect") {
-        formData.append("password", password);
-      } else if (toolId === "add-page-numbers") {
-        formData.append("position", pageNumPosition);
-        formData.append("startNumber", pageNumStart);
-        formData.append("format", pageNumFormat);
-      }
+      // Tool-specific fields, produced by the option panel for this tool.
+      for (const [key, value] of options?.fields ?? []) formData.append(key, value);
+      for (const [key, file] of options?.files ?? []) formData.append(key, file);
 
       const response = await fetch(`/api/pdf/${toolId}`, {
         method: "POST",
@@ -176,17 +198,28 @@ export default function Tool() {
         return;
       }
 
+      // Compare returns JSON so the report can be rendered here rather than
+      // only offered as a download.
+      if (toolId === "compare") {
+        const json = await response.json() as CompareResult;
+        setCompareResult(json);
+        setOutputSize(json.report.length);
+        setState("success");
+
+        createJob.mutate(
+          { data: { tool: toolId!, originalFilename: files[0]!.name, inputSizeBytes: totalInputSize, outputSizeBytes: json.report.length, status: "completed" } },
+          { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListJobsQueryKey() }) }
+        );
+        toast({ title: "Comparison ready!", description: "Your PDFs have been compared." });
+        return;
+      }
+
       const blob = await response.blob();
       setResultBlob(blob);
       setOutputSize(blob.size);
 
-      const baseName = files[0].name.replace(/\.pdf$/i, "");
-      let filename = `${baseName}_${toolId}.pdf`;
-      if (toolId === "merge") filename = `${baseName}_merged.pdf`;
-      else if (toolId === "split" && splitType === "all") filename = `${baseName}_split.zip`;
-      else if (toolId === "rotate") filename = `${baseName}_rotated.pdf`;
-      else if (toolId === "add-page-numbers") filename = `${baseName}_numbered.pdf`;
-      else if (toolId === "extract-text") filename = `${baseName}.txt`;
+      const filename =
+        filenameFromResponse(response) ?? options?.resultName ?? `${baseName}_${toolId}.pdf`;
 
       setResultFilename(filename);
       setState("success");
@@ -214,7 +247,17 @@ export default function Tool() {
     setState("idle");
     setResultBlob(null);
     setSummaryResult(null);
+    setCompareResult(null);
     setErrorMessage("");
+    setOptions(null);
+  };
+
+  const handleDownloadReport = () => {
+    if (!compareResult) return;
+    downloadBlob(
+      new Blob([compareResult.report], { type: "text/markdown;charset=utf-8" }),
+      compareResult.filename,
+    );
   };
 
   const handleCopySummary = () => {
@@ -253,8 +296,10 @@ export default function Tool() {
     );
   }
 
-  const Icon = toolIcons[tool.id] || FileText;
+  const Icon = toolIcons[tool.id] || defaultToolIcon;
   const isAI = toolId === "ai-summarize";
+  const optionsReady = options?.ready ?? true;
+  const acceptsImages = accept.some((rule) => rule.startsWith("image/") || /\.(jpe?g|png)$/i.test(rule));
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
@@ -309,8 +354,8 @@ export default function Tool() {
               <h3 className="text-lg font-semibold mb-2">{tool.inputLabel}</h3>
               <p className="text-sm text-muted-foreground mb-6">
                 {tool.acceptMultiple
-                  ? "Drag and drop PDF files here, or click to browse"
-                  : "Drag and drop a PDF file here, or click to browse"}
+                  ? `Drag and drop your ${acceptsImages ? "images" : "PDF files"} here, or click to browse`
+                  : `Drag and drop a ${acceptsImages ? "file" : "PDF file"} here, or click to browse`}
               </p>
               <Button onClick={() => fileInputRef.current?.click()} data-testid="button-browse-files">
                 Browse Files
@@ -318,7 +363,7 @@ export default function Tool() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,application/pdf"
+                accept={accept.join(",")}
                 multiple={tool.acceptMultiple}
                 onChange={(e) => handleFileSelect(e.target.files)}
                 className="hidden"
@@ -339,13 +384,22 @@ export default function Tool() {
                   {files.map((file, idx) => (
                     <div key={idx} className="flex items-center justify-between p-3 bg-muted/50 rounded" data-testid={`file-item-${idx}`}>
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <FileText className="w-5 h-5 flex-shrink-0 text-primary" />
+                        <Icon className="w-5 h-5 flex-shrink-0 text-primary" />
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium truncate">{file.name}</p>
                           <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => setFiles(files.filter((_, i) => i !== idx))} data-testid={`button-remove-file-${idx}`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          const remaining = files.filter((_, i) => i !== idx);
+                          setFiles(remaining);
+                          if (remaining.length === 0) setOptions(null);
+                        }}
+                        data-testid={`button-remove-file-${idx}`}
+                      >
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
@@ -356,133 +410,18 @@ export default function Tool() {
               {/* Tool Options */}
               <div className="bg-card border border-card-border rounded-lg p-6">
                 <h3 className="font-semibold mb-4">Options</h3>
-
-                {toolId === "compress" && (
-                  <div>
-                    <Label className="mb-3 block">Compression Quality</Label>
-                    <RadioGroup value={quality} onValueChange={(v) => setQuality(v as typeof quality)}>
-                      <div className="flex items-center space-x-2 mb-2"><RadioGroupItem value="extreme" id="extreme" /><Label htmlFor="extreme" className="font-normal cursor-pointer">Extreme (smallest file)</Label></div>
-                      <div className="flex items-center space-x-2 mb-2"><RadioGroupItem value="recommended" id="recommended" /><Label htmlFor="recommended" className="font-normal cursor-pointer">Recommended (balanced)</Label></div>
-                      <div className="flex items-center space-x-2"><RadioGroupItem value="high" id="high" /><Label htmlFor="high" className="font-normal cursor-pointer">High Quality (larger file)</Label></div>
-                    </RadioGroup>
-                  </div>
-                )}
-
-                {toolId === "rotate" && (
-                  <div>
-                    <Label className="mb-3 block">Rotation Angle</Label>
-                    <RadioGroup value={rotation.toString()} onValueChange={(v) => setRotation(Number(v) as typeof rotation)}>
-                      <div className="flex items-center space-x-2 mb-2"><RadioGroupItem value="90" id="r90" /><Label htmlFor="r90" className="font-normal cursor-pointer">90° Clockwise</Label></div>
-                      <div className="flex items-center space-x-2 mb-2"><RadioGroupItem value="180" id="r180" /><Label htmlFor="r180" className="font-normal cursor-pointer">180°</Label></div>
-                      <div className="flex items-center space-x-2"><RadioGroupItem value="270" id="r270" /><Label htmlFor="r270" className="font-normal cursor-pointer">270° Clockwise</Label></div>
-                    </RadioGroup>
-                  </div>
-                )}
-
-                {toolId === "split" && (
-                  <div>
-                    <Label className="mb-3 block">Split Mode</Label>
-                    <RadioGroup value={splitType} onValueChange={(v) => setSplitType(v as typeof splitType)}>
-                      <div className="flex items-center space-x-2 mb-2"><RadioGroupItem value="all" id="all" /><Label htmlFor="all" className="font-normal cursor-pointer">Split into individual pages</Label></div>
-                      <div className="flex items-center space-x-2 mb-3"><RadioGroupItem value="pages" id="pages" /><Label htmlFor="pages" className="font-normal cursor-pointer">Extract specific pages</Label></div>
-                    </RadioGroup>
-                    {splitType === "pages" && (
-                      <div className="mt-3">
-                        <Label htmlFor="pages-input" className="mb-2 block text-sm">Page Numbers (comma-separated)</Label>
-                        <Input id="pages-input" placeholder="e.g., 1,3,5" value={pages} onChange={(e) => setPages(e.target.value)} data-testid="input-pages" />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {toolId === "watermark" && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="watermark-text" className="mb-2 block">Watermark Text</Label>
-                      <Input id="watermark-text" placeholder="Enter watermark text" value={watermarkText} onChange={(e) => setWatermarkText(e.target.value)} data-testid="input-watermark-text" />
-                    </div>
-                    <div>
-                      <Label className="mb-2 block">Opacity: {(watermarkOpacity[0] * 100).toFixed(0)}%</Label>
-                      <Slider value={watermarkOpacity} onValueChange={setWatermarkOpacity} min={0.1} max={1} step={0.1} />
-                    </div>
-                    <div>
-                      <Label className="mb-3 block">Position</Label>
-                      <RadioGroup value={watermarkPosition} onValueChange={(v) => setWatermarkPosition(v as typeof watermarkPosition)}>
-                        <div className="flex items-center space-x-2 mb-2"><RadioGroupItem value="center" id="wm-center" /><Label htmlFor="wm-center" className="font-normal cursor-pointer">Center</Label></div>
-                        <div className="flex items-center space-x-2"><RadioGroupItem value="diagonal" id="wm-diagonal" /><Label htmlFor="wm-diagonal" className="font-normal cursor-pointer">Diagonal</Label></div>
-                      </RadioGroup>
-                    </div>
-                  </div>
-                )}
-
-                {toolId === "protect" && (
-                  <div>
-                    <Label htmlFor="password" className="mb-2 block">Password</Label>
-                    <Input id="password" type="password" placeholder="Enter password to protect PDF" value={password} onChange={(e) => setPassword(e.target.value)} data-testid="input-password" />
-                  </div>
-                )}
-
-                {toolId === "add-page-numbers" && (
-                  <div className="space-y-5">
-                    <div>
-                      <Label className="mb-3 block">Position</Label>
-                      <RadioGroup value={pageNumPosition} onValueChange={setPageNumPosition}>
-                        {[
-                          { value: "bottom-center", label: "Bottom Center" },
-                          { value: "bottom-right", label: "Bottom Right" },
-                          { value: "bottom-left", label: "Bottom Left" },
-                          { value: "top-center", label: "Top Center" },
-                          { value: "top-right", label: "Top Right" },
-                        ].map(({ value, label }) => (
-                          <div key={value} className="flex items-center space-x-2 mb-2">
-                            <RadioGroupItem value={value} id={`pn-${value}`} />
-                            <Label htmlFor={`pn-${value}`} className="font-normal cursor-pointer">{label}</Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="pn-start" className="mb-2 block">Starting Number</Label>
-                        <Input id="pn-start" type="number" min="1" value={pageNumStart} onChange={(e) => setPageNumStart(e.target.value)} placeholder="1" />
-                      </div>
-                      <div>
-                        <Label className="mb-3 block">Format</Label>
-                        <RadioGroup value={pageNumFormat} onValueChange={(v) => setPageNumFormat(v as typeof pageNumFormat)}>
-                          {(["1", "Page 1", "1/N"] as const).map((f) => (
-                            <div key={f} className="flex items-center space-x-2 mb-1">
-                              <RadioGroupItem value={f} id={`pnf-${f}`} />
-                              <Label htmlFor={`pnf-${f}`} className="font-normal cursor-pointer font-mono text-sm">{f}</Label>
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {toolId === "merge" && (
-                  <p className="text-sm text-muted-foreground">Files will be merged in the order shown above.</p>
-                )}
-
-                {(toolId === "extract-text" || toolId === "ai-summarize") && (
-                  <p className="text-sm text-muted-foreground">
-                    {toolId === "extract-text"
-                      ? "All readable text will be extracted and saved as a .txt file."
-                      : "AI will read the document and produce a concise summary with key takeaways."}
-                  </p>
-                )}
+                <ToolOptionsPanel
+                  toolId={tool.id}
+                  file={files[0]!}
+                  baseName={baseName}
+                  onChange={handleOptionsChange}
+                />
               </div>
 
               {/* Process Button */}
               <Button
                 onClick={handleProcess}
-                disabled={
-                  state === "processing" ||
-                  (toolId === "watermark" && !watermarkText) ||
-                  (toolId === "protect" && !password) ||
-                  (toolId === "split" && splitType === "pages" && !pages)
-                }
+                disabled={state === "processing" || !optionsReady}
                 className="w-full"
                 size="lg"
                 data-testid="button-process"
@@ -546,12 +485,113 @@ export default function Tool() {
             </div>
           )}
 
+          {/* Success — PDF comparison */}
+          {state === "success" && compareResult && (
+            <div className="space-y-4">
+              <div className="bg-card border border-card-border rounded-lg p-6" data-testid="compare-result">
+                <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <GitCompare className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold text-lg">Comparison</h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {compareResult.identical && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20">
+                        Identical text
+                      </span>
+                    )}
+                    <Button variant="outline" size="sm" onClick={handleDownloadReport} data-testid="button-download-report">
+                      <Download className="w-4 h-4 mr-1" />Download report
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                  {([{ label: "A", doc: compareResult.a }, { label: "B", doc: compareResult.b }] as const).map(({ label, doc }) => (
+                    <div key={label} className="bg-muted/50 p-4 rounded">
+                      <p className="text-xs text-muted-foreground mb-1">Document {label}</p>
+                      <p className="font-medium truncate" title={`${doc.name}.pdf`}>{doc.name}.pdf</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {doc.pages} page{doc.pages !== 1 ? "s" : ""} · {doc.lines} text line{doc.lines !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {compareResult.identical ? (
+                  <p className="text-sm text-muted-foreground">
+                    Both documents contain the same text. There is nothing to show in a diff.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    {[
+                      { label: "Unchanged", value: compareResult.counts.unchanged, tone: "text-muted-foreground" },
+                      { label: "Removed", value: compareResult.counts.removed, tone: "text-red-600 dark:text-red-400" },
+                      { label: "Added", value: compareResult.counts.added, tone: "text-green-600 dark:text-green-400" },
+                    ].map((stat) => (
+                      <div key={stat.label} className="bg-muted/50 p-4 rounded">
+                        <p className={`text-2xl font-bold ${stat.tone}`} data-testid={`compare-count-${stat.label.toLowerCase()}`}>
+                          {stat.value.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {compareResult.large && (
+                  <p className="text-xs text-muted-foreground mt-4">
+                    These documents are large, so differences are listed without their original ordering.
+                  </p>
+                )}
+              </div>
+
+              {!compareResult.identical && (
+                <div className="bg-card border border-card-border rounded-lg p-6">
+                  <h3 className="font-semibold mb-3">Differences (A → B)</h3>
+                  <div className="max-h-[28rem] overflow-auto rounded border border-border bg-muted/30" data-testid="compare-diff">
+                    {compareResult.diff.map((line, index) => {
+                      const marker = line.type === "add" ? "+" : line.type === "remove" ? "−" : " ";
+                      return (
+                        <div
+                          key={index}
+                          className={`flex gap-3 px-3 py-0.5 font-mono text-xs leading-relaxed ${
+                            line.type === "add"
+                              ? "bg-green-500/10 text-green-700 dark:text-green-300"
+                              : line.type === "remove"
+                                ? "bg-red-500/10 text-red-700 dark:text-red-300"
+                                : "text-muted-foreground"
+                          }`}
+                        >
+                          <span className="w-3 shrink-0 select-none opacity-70">{marker}</span>
+                          <span className="whitespace-pre-wrap break-words flex-1">{line.text}</span>
+                          {line.type !== "equal" && <span className="shrink-0 opacity-60">p.{line.page}</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {compareResult.truncated && (
+                    <p className="text-xs text-muted-foreground mt-3">
+                      Showing the first {compareResult.diff.length.toLocaleString()} diff lines. Download the report for the full summary.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <Button onClick={handleReset} variant="outline" className="w-full" data-testid="button-compare-another">
+                Compare Other Files
+              </Button>
+            </div>
+          )}
+
           {/* Success — File Download */}
           {state === "success" && resultBlob && !summaryResult && (
             <div className="bg-card border border-card-border rounded-lg p-8 text-center">
               <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-green-600 dark:text-green-500" />
               <h3 className="text-2xl font-bold mb-2">Success!</h3>
-              <p className="text-muted-foreground mb-6">Your file has been processed and downloaded.</p>
+              <p className="text-muted-foreground mb-6">
+                Your file has been processed and downloaded as <span className="font-medium text-foreground">{resultFilename}</span>.
+              </p>
 
               <div className="grid grid-cols-2 gap-4 mb-6 max-w-md mx-auto">
                 <div className="bg-muted/50 p-4 rounded">

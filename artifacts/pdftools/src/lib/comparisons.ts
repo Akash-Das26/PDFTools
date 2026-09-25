@@ -31,7 +31,8 @@ export interface ComparisonData {
 const PDF_TOOLS_ROWS: ComparisonRow[] = [
   {
     label: "Key features",
-    pdfTools: "Merge, split, compress, rotate, watermark, protect, unlock, AI summary, extract text, page numbers",
+    pdfTools:
+      "Merge, split, compress, rotate, remove/reorder/crop pages, watermark, AES-256 protect, unlock, PDF to JPG/PNG, image to PDF, text and Markdown export, AI summary, page numbers",
     competitor: "",
   },
   {
@@ -41,7 +42,7 @@ const PDF_TOOLS_ROWS: ComparisonRow[] = [
   },
   {
     label: "Free option",
-    pdfTools: "Core tools, AI summaries, text extraction, and page numbering",
+    pdfTools: "All tools — organizing, conversion, protection, AI summaries, text and Markdown export",
     competitor: "",
   },
   {

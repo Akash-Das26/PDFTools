@@ -18,7 +18,26 @@ export interface Tool {
   inputLabel: string;
   outputLabel: string;
   acceptMultiple?: boolean;
+  /** Accepted mime types and extensions for the file picker */
+  accept?: string[];
   color?: string;
+}
+
+export type PdfPageInfoPagesItem = {
+  number: number;
+  width: number;
+  height: number;
+  rotation: number;
+  /** PNG data URL preview of the page, when previews were requested */
+  thumbnail?: string;
+};
+
+export interface PdfPageInfo {
+  pageCount: number;
+  /** True when every page carries a preview image */
+  thumbnailsIncluded: boolean;
+  thumbnailWidth: number;
+  pages: PdfPageInfoPagesItem[];
 }
 
 export interface Stats {
@@ -53,5 +72,257 @@ export interface JobInput {
 
 export type ListJobsParams = {
 limit?: number;
+};
+
+/**
+ * Clockwise rotation in degrees
+ */
+export type RotatePdfBodyRotation = typeof RotatePdfBodyRotation[keyof typeof RotatePdfBodyRotation];
+
+
+export const RotatePdfBodyRotation = {
+  NUMBER_90: 90,
+  NUMBER_180: 180,
+  NUMBER_270: 270,
+} as const;
+
+export type RotatePdfBody = {
+  /** Clockwise rotation in degrees */
+  rotation: RotatePdfBodyRotation;
+  /** Page selection such as "1,3,5-8". Empty means every page. */
+  pages?: string;
+};
+
+export type RemovePdfPagesBody = {
+  /** Pages to delete, e.g. "2,4,7-9" */
+  pages: string;
+};
+
+export type ReorderPdfPagesBody = {
+  /** Page numbers in their new order, e.g. "3,1,2,4" */
+  order: string;
+};
+
+export type ComparePdfsBody = { [key: string]: unknown };
+
+export type GetPdfPageInfoBody = {
+  thumbnails?: boolean;
+  /** Preview width in pixels */
+  thumbnailWidth?: number;
+};
+
+export type WatermarkPdfBodyType = typeof WatermarkPdfBodyType[keyof typeof WatermarkPdfBodyType];
+
+
+export const WatermarkPdfBodyType = {
+  text: 'text',
+  image: 'image',
+} as const;
+
+export type WatermarkPdfBodyPosition = typeof WatermarkPdfBodyPosition[keyof typeof WatermarkPdfBodyPosition];
+
+
+export const WatermarkPdfBodyPosition = {
+  'top-left': 'top-left',
+  'top-center': 'top-center',
+  'top-right': 'top-right',
+  'middle-left': 'middle-left',
+  center: 'center',
+  'middle-right': 'middle-right',
+  'bottom-left': 'bottom-left',
+  'bottom-center': 'bottom-center',
+  'bottom-right': 'bottom-right',
+  diagonal: 'diagonal',
+} as const;
+
+export type WatermarkPdfBody = {
+  type?: WatermarkPdfBodyType;
+  text?: string;
+  opacity?: number;
+  position?: WatermarkPdfBodyPosition;
+  /** Hex colour used for text watermarks */
+  color?: string;
+  fontSize?: number;
+  rotation?: number;
+  /** Image watermark width as a fraction of the page width */
+  scale?: number;
+  pages?: string;
+};
+
+export type ProtectPdfBodyAlgorithm = typeof ProtectPdfBodyAlgorithm[keyof typeof ProtectPdfBodyAlgorithm];
+
+
+export const ProtectPdfBodyAlgorithm = {
+  'AES-256': 'AES-256',
+  'AES-128': 'AES-128',
+  'RC4-128': 'RC4-128',
+  'RC4-40': 'RC4-40',
+} as const;
+
+export type ProtectPdfBody = {
+  password: string;
+  ownerPassword?: string;
+  algorithm?: ProtectPdfBodyAlgorithm;
+  allowPrinting?: boolean;
+  allowCopying?: boolean;
+  allowModifying?: boolean;
+  allowAnnotating?: boolean;
+  allowFillingForms?: boolean;
+};
+
+export type UnlockPdfBody = {
+  password?: string;
+};
+
+export type CropPdfBodyUnit = typeof CropPdfBodyUnit[keyof typeof CropPdfBodyUnit];
+
+
+export const CropPdfBodyUnit = {
+  pt: 'pt',
+  percent: 'percent',
+} as const;
+
+export type CropPdfBody = {
+  unit?: CropPdfBodyUnit;
+  top?: number;
+  right?: number;
+  bottom?: number;
+  left?: number;
+  pages?: string;
+};
+
+export type PdfToImagesBodyFormat = typeof PdfToImagesBodyFormat[keyof typeof PdfToImagesBodyFormat];
+
+
+export const PdfToImagesBodyFormat = {
+  jpg: 'jpg',
+  png: 'png',
+} as const;
+
+export type PdfToImagesBody = {
+  format?: PdfToImagesBodyFormat;
+  quality?: number;
+  /** Rendered width in pixels */
+  width?: number;
+  pages?: string;
+};
+
+export type ImagesToPdfBodyPageSize = typeof ImagesToPdfBodyPageSize[keyof typeof ImagesToPdfBodyPageSize];
+
+
+export const ImagesToPdfBodyPageSize = {
+  fit: 'fit',
+  a4: 'a4',
+  letter: 'letter',
+} as const;
+
+export type ImagesToPdfBodyOrientation = typeof ImagesToPdfBodyOrientation[keyof typeof ImagesToPdfBodyOrientation];
+
+
+export const ImagesToPdfBodyOrientation = {
+  auto: 'auto',
+  portrait: 'portrait',
+  landscape: 'landscape',
+} as const;
+
+export type ImagesToPdfBody = {
+  pageSize?: ImagesToPdfBodyPageSize;
+  orientation?: ImagesToPdfBodyOrientation;
+  margin?: number;
+};
+
+export type DuplicatePdfPagesBodyPlacement = typeof DuplicatePdfPagesBodyPlacement[keyof typeof DuplicatePdfPagesBodyPlacement];
+
+
+export const DuplicatePdfPagesBodyPlacement = {
+  after: 'after',
+  end: 'end',
+} as const;
+
+export type DuplicatePdfPagesBody = {
+  /** Comma separated pages or ranges; empty means every page */
+  pages?: string;
+  /**
+     * @minimum 1
+     * @maximum 20
+     */
+  copies?: number;
+  placement?: DuplicatePdfPagesBodyPlacement;
+};
+
+export type RepairPdfBody = { [key: string]: unknown };
+
+export type PdfToPdfABodyConformance = typeof PdfToPdfABodyConformance[keyof typeof PdfToPdfABodyConformance];
+
+
+export const PdfToPdfABodyConformance = {
+  '1B': '1B',
+  '2B': '2B',
+  '2U': '2U',
+  '3B': '3B',
+  '3U': '3U',
+} as const;
+
+export type PdfToPdfABody = {
+  conformance?: PdfToPdfABodyConformance;
+};
+
+export type ExportPdfTextBodyFormat = typeof ExportPdfTextBodyFormat[keyof typeof ExportPdfTextBodyFormat];
+
+
+export const ExportPdfTextBodyFormat = {
+  txt: 'txt',
+  md: 'md',
+} as const;
+
+export type ExportPdfTextBody = {
+  format?: ExportPdfTextBodyFormat;
+  pages?: string;
+};
+
+export type OcrPdfBodyLanguage = typeof OcrPdfBodyLanguage[keyof typeof OcrPdfBodyLanguage];
+
+
+export const OcrPdfBodyLanguage = {
+  eng: 'eng',
+  spa: 'spa',
+  fra: 'fra',
+  deu: 'deu',
+  ita: 'ita',
+  por: 'por',
+  nld: 'nld',
+  rus: 'rus',
+  pol: 'pol',
+  tur: 'tur',
+  ara: 'ara',
+  hin: 'hin',
+  heb: 'heb',
+  chi_sim: 'chi_sim',
+  chi_tra: 'chi_tra',
+  jpn: 'jpn',
+  kor: 'kor',
+} as const;
+
+export type OcrPdfBodyMode = typeof OcrPdfBodyMode[keyof typeof OcrPdfBodyMode];
+
+
+export const OcrPdfBodyMode = {
+  text: 'text',
+  'searchable-pdf': 'searchable-pdf',
+} as const;
+
+export type OcrPdfBodyFormat = typeof OcrPdfBodyFormat[keyof typeof OcrPdfBodyFormat];
+
+
+export const OcrPdfBodyFormat = {
+  txt: 'txt',
+  md: 'md',
+} as const;
+
+export type OcrPdfBody = {
+  language?: OcrPdfBodyLanguage;
+  mode?: OcrPdfBodyMode;
+  format?: OcrPdfBodyFormat;
+  pages?: string;
 };
 
