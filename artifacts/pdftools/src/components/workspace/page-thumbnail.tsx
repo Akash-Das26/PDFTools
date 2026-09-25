@@ -80,7 +80,17 @@ export const PageThumbnail = forwardRef<HTMLButtonElement, PageThumbnailProps>(
             data-testid={`page-checkbox-${page.number}`}
             onClick={onToggle}
             onKeyDown={(event) => {
-              if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+              // Alt+Arrow must be tested BEFORE the plain-arrow branches: a
+              // combined keydown also matches `key === "ArrowLeft"`, so testing
+              // the plain branch first made Alt+Arrow reorder unreachable —
+              // keyboard users could move focus but never reorder pages.
+              if (event.altKey && event.key === "ArrowLeft") {
+                event.preventDefault();
+                onMove(-1);
+              } else if (event.altKey && event.key === "ArrowRight") {
+                event.preventDefault();
+                onMove(1);
+              } else if (event.key === "ArrowRight" || event.key === "ArrowDown") {
                 event.preventDefault();
                 onNavigate(1);
               } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
@@ -89,10 +99,6 @@ export const PageThumbnail = forwardRef<HTMLButtonElement, PageThumbnailProps>(
               } else if (event.key === " " || event.key === "Enter") {
                 event.preventDefault();
                 onKeySelect();
-              } else if (event.altKey && event.key === "ArrowLeft") {
-                onMove(-1);
-              } else if (event.altKey && event.key === "ArrowRight") {
-                onMove(1);
               }
             }}
             className={cn(
