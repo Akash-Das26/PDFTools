@@ -97,9 +97,72 @@ paths:
                 $ref: "#/components/schemas/Job"
 
   # ── PDF tools ───────────────────────────────────────────────────────────────
-  # Every tool accepts `multipart/form-data`. The document itself is sent as the
-  # `file` part (`files` for multi-document tools), so it is described rather
-  # than modelled here — the remaining form fields are the tool options.
+  # Every tool accepts `multipart/form-data` and models its upload parts
+  # explicitly, because they are not interchangeable — the field name selects a
+  # different multer handler on the server:
+  #   file    one document   (`upload.single`)
+  #   files   several, appended in upload order   (`upload.array`)
+  #   image   the watermark image on /pdf/watermark   (`upload.fields`)
+  # Limits come from the shared multer instance: 50 MB per file, 20 files.
+  # The remaining form fields are the tool options.
+  /pdf/merge:
+    post:
+      operationId: mergePdfs
+      tags: [pdf]
+      summary: Combine two or more PDFs into one
+      description: Send two or more documents as repeated `files` parts, in the
+        order they should be appended. Files that cannot be parsed are skipped
+        with a server-side warning rather than failing the whole request.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  minItems: 2
+                  description: Two or more documents, sent as repeated `files` parts.
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "200":
+          description: Merged PDF
+        "400":
+          description: Fewer than two files were sent
+
+  /pdf/split:
+    post:
+      operationId: splitPdf
+      tags: [pdf]
+      summary: Cut a PDF into single-page documents
+      description: Send the document as `file`. A single target page comes back
+        as a PDF; anything longer comes back as a ZIP of one-page PDFs.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to split.
+                splitType:
+                  type: string
+                  enum: [all, pages]
+                  default: all
+                  description: '`all` splits every page; `pages` splits only `pages`.'
+                pages:
+                  type: string
+                  description: 'Only read when `splitType` is `pages`. Empty means every page.'
+      responses:
+        "200":
+          description: One-page PDF, or a ZIP of one-page PDFs
+
   /pdf/rotate:
     post:
       operationId: rotatePdf
@@ -114,6 +177,12 @@ paths:
               type: object
               required: [rotation]
               properties:
+                files:
+                  type: array
+                  description: One or more documents, sent as repeated `files` parts.
+                  items:
+                    type: string
+                    format: binary
                 rotation:
                   type: integer
                   description: Clockwise rotation in degrees
@@ -139,6 +208,10 @@ paths:
               type: object
               required: [pages]
               properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to delete pages from.
                 pages:
                   type: string
                   description: 'Pages to delete, e.g. "2,4,7-9"'
@@ -160,6 +233,10 @@ paths:
               type: object
               required: [order]
               properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to reorder.
                 order:
                   type: string
                   description: 'Page numbers in their new order, e.g. "3,1,2,4"'
@@ -179,6 +256,13 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              properties:
+                files:
+                  type: array
+                  description: One or more documents, sent as repeated `files` parts.
+                  items:
+                    type: string
+                    format: binary
       responses:
         "200":
           description: JSON comparison report with a downloadable Markdown rendering
@@ -196,6 +280,10 @@ paths:
             schema:
               type: object
               properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to inspect.
                 thumbnails:
                   type: boolean
                   default: true
@@ -224,6 +312,14 @@ paths:
             schema:
               type: object
               properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to stamp.
+                image:
+                  type: string
+                  format: binary
+                  description: The watermark image. Required when `type` is `image`.
                 type:
                   type: string
                   enum: [text, image]
@@ -278,6 +374,10 @@ paths:
               type: object
               required: [password]
               properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to encrypt.
                 password:
                   type: string
                 ownerPassword:
@@ -318,6 +418,10 @@ paths:
             schema:
               type: object
               properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The encrypted PDF.
                 password:
                   type: string
       responses:
@@ -337,6 +441,10 @@ paths:
             schema:
               type: object
               properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to crop.
                 unit:
                   type: string
                   enum: [pt, percent]
@@ -372,6 +480,10 @@ paths:
             schema:
               type: object
               properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to render.
                 format:
                   type: string
                   enum: [jpg, png]
@@ -402,6 +514,12 @@ paths:
             schema:
               type: object
               properties:
+                files:
+                  type: array
+                  description: One or more documents, sent as repeated `files` parts.
+                  items:
+                    type: string
+                    format: binary
                 pageSize:
                   type: string
                   enum: [fit, a4, letter]
@@ -417,6 +535,70 @@ paths:
         "200":
           description: PDF containing one page per image
 
+  /pdf/compress:
+    post:
+      operationId: compressPdf
+      tags: [pdf]
+      summary: Shrink a PDF by re-serialising it
+      description: Send the document as `file`. The document is re-serialised
+        with object streams and its author/keyword metadata dropped. Caveat - no
+        Ghostscript is available in this environment, so all three `quality`
+        modes currently take this same path; the field is accepted so the
+        request shape stays stable.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to compress.
+                quality:
+                  type: string
+                  enum: [extreme, recommended, high]
+                  default: recommended
+                  description: Accepted, but not yet differentiated by the compressor.
+      responses:
+        "200":
+          description: Compressed PDF
+
+  /pdf/add-page-numbers:
+    post:
+      operationId: addPageNumbers
+      tags: [pdf]
+      summary: Stamp page numbers onto a PDF
+      description: Send the document as `file`.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to number.
+                position:
+                  type: string
+                  enum: [bottom-center, bottom-right, bottom-left, top-center, top-right]
+                  default: bottom-center
+                startNumber:
+                  type: integer
+                  minimum: 1
+                  maximum: 100000
+                  default: 1
+                format:
+                  type: string
+                  enum: ["1", "Page 1", "1/N"]
+                  default: "1"
+      responses:
+        "200":
+          description: Numbered PDF
+
   /pdf/duplicate-pages:
     post:
       operationId: duplicatePdfPages
@@ -430,6 +612,10 @@ paths:
             schema:
               type: object
               properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to copy pages within.
                 pages:
                   type: string
                   description: Comma separated pages or ranges; empty means every page
@@ -458,6 +644,11 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The damaged PDF.
       responses:
         "200":
           description: Repaired PDF. The `X-Repair-Recovered` header reports whether recovery was needed.
@@ -475,6 +666,10 @@ paths:
             schema:
               type: object
               properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to convert.
                 conformance:
                   type: string
                   enum: [1B, 2B, 2U, 3B, 3U]
@@ -496,6 +691,10 @@ paths:
             schema:
               type: object
               properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to extract text from.
                 format:
                   type: string
                   enum: [txt, md]
@@ -519,6 +718,10 @@ paths:
             schema:
               type: object
               properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The scanned PDF.
                 language:
                   type: string
                   enum: [eng, spa, fra, deu, ita, por, nld, rus, pol, tur, ara, hin, heb, chi_sim, chi_tra, jpn, kor]
@@ -537,6 +740,49 @@ paths:
         "200":
           description: Recognised text (.txt/.md) or a searchable PDF
 
+  /pdf/ai-summarize:
+    post:
+      operationId: summarizePdf
+      tags: [pdf]
+      summary: Summarise a document with an AI model
+      description: Send the document as `file`. The only AI endpoint that needs
+        an `OPENAI_API_KEY`; when the key is absent the API still starts and
+        this route answers 503. Returns JSON rather than a file. The text layer
+        is truncated to roughly 12000 characters before being sent to the model.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to summarise.
+      responses:
+        "200":
+          description: Summary, key points, word count and page count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  summary:
+                    type: string
+                  keyPoints:
+                    type: array
+                    items:
+                      type: string
+                  wordCount:
+                    type: integer
+                  pageCount:
+                    type: integer
+        "422":
+          description: The PDF has no extractable text layer
+        "503":
+          description: OPENAI_API_KEY is not configured
+
 components:
   schemas:
     HealthStatus:
@@ -546,9 +792,53 @@ components:
         status:
           type: string
 
+    ToolCategory:
+      type: string
+      description: |
+        Landing-page display category. Order is significant and mirrors the
+        reference design: organize, convert-to, convert-from, edit, security, ai.
+      enum:
+        - organize
+        - convert-to
+        - convert-from
+        - edit
+        - security
+        - ai
+
+    ToolAccent:
+      type: string
+      description: |
+        Named colour token for the tool icon tile. Resolves to a theme token in
+        the web app (`primary` -> bg-primary/10 text-primary, `ai` ->
+        bg-secondary-container/20 text-secondary-hover). Never a raw hex.
+      enum:
+        - primary
+        - secondary
+        - tertiary
+        - ai
+
+    ToolWorkspace:
+      type: string
+      description: Which of the two approved workspace templates the tool uses.
+      enum:
+        - stepper
+        - page-picker
+
+    ToolWireStatus:
+      type: string
+      description: |
+        Whether the tool has a live backend route. `pending` tools must render a
+        disabled Process button plus a visible badge.
+      enum:
+        - implemented
+        - partial
+        - pending
+
     Tool:
       type: object
-      required: [id, name, description, category, icon, inputLabel, outputLabel]
+      required:
+        [id, name, description, category, accent, icon, workspace, status,
+         inputLabel, outputLabel]
       properties:
         id:
           type: string
@@ -556,10 +846,28 @@ components:
           type: string
         description:
           type: string
+        keywords:
+          type: array
+          description: Search synonyms, matching the reference's data-keywords
+          items:
+            type: string
+        popular:
+          type: boolean
+          description: Shows the "Popular" ribbon on the landing card
         category:
-          type: string
+          $ref: "#/components/schemas/ToolCategory"
+        accent:
+          $ref: "#/components/schemas/ToolAccent"
         icon:
           type: string
+          description: lucide-react export name, used identically on card and workspace header
+        workspace:
+          $ref: "#/components/schemas/ToolWorkspace"
+        status:
+          $ref: "#/components/schemas/ToolWireStatus"
+        route:
+          type: ["string", "null"]
+          description: Live backend route path, or null when backend-pending
         inputLabel:
           type: string
         outputLabel:
@@ -571,8 +879,6 @@ components:
           description: Accepted mime types and extensions for the file picker
           items:
             type: string
-        color:
-          type: string
 
     PdfPageInfo:
       type: object

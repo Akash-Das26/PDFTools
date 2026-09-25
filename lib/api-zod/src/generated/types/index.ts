@@ -12,3 +12,7 @@ export * from './jobInput';
 export * from './listJobsParams';
 export * from './stats';
 export * from './tool';
+export * from './toolAccent';
+export * from './toolCategory';
+export * from './toolWireStatus';
+export * from './toolWorkspace';
