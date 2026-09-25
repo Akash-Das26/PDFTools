@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
@@ -40,6 +40,11 @@
   --color-destructive-foreground: hsl(var(--destructive-foreground));
   --color-destructive-border: var(--destructive-border);
 
+  --color-success: hsl(var(--success));
+  --color-success-subtle: hsl(var(--success) / 0.1);
+  --color-warning: hsl(var(--warning));
+  --color-warning-subtle: hsl(var(--warning) / 0.12);
+
   --color-chart-1: hsl(var(--chart-1));
   --color-chart-2: hsl(var(--chart-2));
   --color-chart-3: hsl(var(--chart-3));
@@ -79,55 +84,59 @@
   --elevate-1: rgba(0, 0, 0, 0.03);
   --elevate-2: rgba(0, 0, 0, 0.08);
 
-  --background: 240 6% 97%; /* #F5F5FA */
-  --foreground: 0 0% 9%; /* #161616 */
-  --border: 240 6% 90%;
+  /* Canonical tokens — precision_pdf_utility (light). Do not improvise (UI-NON-REGRESSION-RULES §1). */
+  --background: 0 0% 100%; /* light-bg #FFFFFF */
+  --foreground: 222 47% 11%; /* light-foreground #0F172A */
+  --border: 214 32% 91%; /* light-border #E2E8F0 */
 
-  --card: 203 100% 97%; /* #DEF2FF surface tint */
-  --card-foreground: 0 0% 9%;
-  --card-border: 203 100% 88%;
+  --card: 210 40% 98%; /* light-surface #F8FAFC */
+  --card-foreground: 222 47% 11%;
+  --card-border: 214 32% 91%; /* #E2E8F0 */
 
-  --sidebar: 240 6% 97%;
-  --sidebar-foreground: 0 0% 9%;
-  --sidebar-border: 240 6% 90%;
-  --sidebar-primary: 4 82% 54%; /* red */
+  --sidebar: 210 40% 98%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-border: 214 32% 91%;
+  --sidebar-primary: 0 72% 51%; /* primary #DC2626 */
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 203 100% 97%;
-  --sidebar-accent-foreground: 0 0% 9%;
-  --sidebar-ring: 4 82% 54%;
+  --sidebar-accent: 210 40% 96%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-ring: 0 72% 51%;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 9%;
-  --popover-border: 240 6% 90%;
+  --popover: 0 0% 100%; /* Level 3 surface */
+  --popover-foreground: 222 47% 11%;
+  --popover-border: 214 32% 91%;
 
-  --primary: 4 82% 54%; /* #E5322D red */
-  --primary-foreground: 0 0% 100%;
+  --primary: 0 72% 51%; /* primary #DC2626 */
+  --primary-foreground: 0 0% 100%; /* on-primary */
 
-  --secondary: 203 100% 97%; /* light blue surface */
-  --secondary-foreground: 0 0% 9%;
+  --secondary: 221 83% 53%; /* secondary #2563EB */
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 240 5% 96%;
-  --muted-foreground: 240 2% 44%; /* #707078 */
+  --muted: 210 40% 96%; /* #F1F5F9 secondary-button hover */
+  --muted-foreground: 215 16% 47%; /* light-muted #64748B */
 
-  --accent: 42 100% 60%; /* #FFC233 amber CTA */
-  --accent-foreground: 0 0% 9%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222 47% 11%;
 
-  --destructive: 0 84% 60%;
+  --destructive: 0 72% 51%; /* #DC2626 */
   --destructive-foreground: 0 0% 100%;
 
-  --input: 240 6% 85%;
-  --ring: 4 82% 54%;
-  
-  --chart-1: 4 82% 54%;
-  --chart-2: 42 100% 60%;
-  --chart-3: 203 100% 50%;
-  --chart-4: 280 60% 60%;
-  --chart-5: 160 60% 50%;
+  --success: 142 72% 37%; /* #16A34A */
+  --warning: 38 92% 50%; /* #D97706 */
 
-  --app-font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --input: 214 32% 91%;
+  --ring: 0 72% 51%;
+
+  --chart-1: 0 72% 51%;
+  --chart-2: 221 83% 53%;
+  --chart-3: 142 72% 37%;
+  --chart-4: 38 92% 50%;
+  --chart-5: 240 5% 65%;
+
+  --app-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: 'SF Mono', Menlo, monospace;
-  --radius: 0.5rem; /* 8px */
+  --radius: 0.75rem; /* rounded-xl standard per design system (12px) */
   
   --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
   --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.1);
@@ -204,50 +213,54 @@
   --elevate-1: rgba(255, 255, 255, 0.04);
   --elevate-2: rgba(255, 255, 255, 0.09);
 
-  --background: 240 8% 12%;
-  --foreground: 0 0% 95%;
-  --border: 240 4% 22%;
+  /* Canonical tokens — precision_pdf_utility dark-* values. */
+  --background: 240 4.3% 4.5%; /* dark-bg #0B0B0C (exact HSL) */
+  --foreground: 0 0% 96%; /* dark-foreground #F4F4F5 */
+  --border: 240 4% 16%; /* dark-border #27272A */
 
-  --card: 240 6% 16%;
-  --card-foreground: 0 0% 95%;
-  --card-border: 240 4% 24%;
+  --card: 240 6% 9%; /* dark-surface #18181B */
+  --card-foreground: 0 0% 96%;
+  --card-border: 240 4% 16%; /* #27272A */
 
-  --sidebar: 240 8% 12%;
-  --sidebar-foreground: 0 0% 95%;
-  --sidebar-border: 240 4% 22%;
-  --sidebar-primary: 4 82% 54%;
+  --sidebar: 240 6% 9%;
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-border: 240 4% 16%;
+  --sidebar-primary: 0 72% 51%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 6% 16%;
-  --sidebar-accent-foreground: 0 0% 95%;
-  --sidebar-ring: 4 82% 54%;
+  --sidebar-accent: 240 5% 15%;
+  --sidebar-accent-foreground: 0 0% 96%;
+  --sidebar-ring: 0 72% 51%;
 
-  --popover: 240 8% 14%;
-  --popover-foreground: 0 0% 95%;
-  --popover-border: 240 4% 24%;
+  --popover: 240 6% 9%; /* dark-surface #18181B (Level 3) */
+  --popover-foreground: 0 0% 96%;
+  --popover-border: 240 4% 16%;
 
-  --primary: 4 82% 54%;
+  --primary: 0 72% 51%; /* #DC2626 — brand red is theme-invariant */
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 240 6% 18%;
-  --secondary-foreground: 0 0% 95%;
+  --secondary: 221 83% 53%; /* #2563EB theme-invariant */
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 240 6% 20%;
-  --muted-foreground: 240 4% 64%;
+  --muted: 240 5% 15%; /* #27272A secondary-button hover */
+  --muted-foreground: 240 5% 65%; /* dark-muted #A1A1AA */
 
-  --accent: 42 100% 60%;
-  --accent-foreground: 0 0% 9%;
+  --accent: 240 5% 15%;
+  --accent-foreground: 0 0% 96%;
 
-  --destructive: 0 84% 60%;
+  --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 240 4% 28%;
-  --ring: 4 82% 54%;
-  
-  --chart-1: 4 82% 54%;
-  --chart-2: 42 100% 60%;
-  --chart-3: 203 100% 50%;
-  --chart-4: 280 60% 60%;
-  --chart-5: 160 60% 50%;
+  --success: 142 72% 37%;
+  --warning: 38 92% 50%;
+
+  --input: 240 4% 16%;
+  --ring: 0 72% 51%;
+
+  --chart-1: 0 72% 51%;
+  --chart-2: 221 83% 53%;
+  --chart-3: 142 72% 37%;
+  --chart-4: 38 92% 50%;
+  --chart-5: 240 5% 65%;
 
   --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.4);
   --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.5);

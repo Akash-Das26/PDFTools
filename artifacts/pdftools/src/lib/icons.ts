@@ -13,6 +13,9 @@ import {
   ListOrdered,
   Lock,
   LucideIcon,
+  // NOTE: lucide-react@0.545.0 does not export a "Compress" icon. Minimize2
+  // (arrows converging inward) is the standardized compress glyph — used for
+  // the compress tool everywhere (UI-NON-REGRESSION-RULES §2).
   Minimize2,
   RotateCw,
   ScanText,

@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"dark-border":"#27272A","on-secondary-container":"#cdd7ff","primary":"#ffb4ab","tertiary-fixed":"#7ffc97","on-tertiary-fixed":"#002109","warning-subtle":"rgba(217,119,6,0.15)","tertiary-fixed-dim":"#62df7d","light-muted":"#A1A1AA","dark-surface-elevated":"#27272A","secondary-fixed-dim":"#b4c5ff","outline":"#3F3F46","inverse-primary":"#bf0715","dark-bg":"#0B0B0C","primary-container":"#DC2626","on-secondary-fixed":"#00174b","surface-container-high":"#2a2a2d","destructive-hover":"#b91c1c","on-surface":"#F4F4F5","tertiary":"#90cdff","surface-container-lowest":"#0B0B0C","surface-dim":"#131316","secondary":"#b4c5ff","on-tertiary-container":"#f3f8ff","primary-fixed":"#ffdad6","surface-container":"#1f1f22","on-background":"#F4F4F5","warning":"#F59E0B","light-bg":"#0B0B0C","surface-bright":"#39393c","surface-container-low":"#18181B","secondary-hover":"#3b82f6","on-tertiary-fixed-variant":"#004b71","primary-hover":"#EF4444","on-primary-container":"#fff6f5","on-primary":"#ffffff","dark-foreground":"#F4F4F5","destructive":"#DC2626","on-secondary":"#002a78","on-error":"#690005","on-secondary-fixed-variant":"#003ea8","light-surface":"#18181B","secondary-fixed":"#dbe1ff","on-primary-fixed-variant":"#93000b","primary-fixed-dim":"#ffb4ab","light-foreground":"#F4F4F5","inverse-on-surface":"#303033","success-subtle":"rgba(22,163,74,0.15)","tertiary-container":"#0078b2","surface":"#0B0B0C","secondary-container":"#0053db","inverse-surface":"#e4e1e6","surface-tint":"#ffb4ab","surface-container-highest":"#353438","error":"#ffb4ab","dark-muted":"#A1A1AA","success":"#22C55E","on-error-container":"#ffdad6","dark-surface":"#18181B","background":"#0B0B0C","on-primary-fixed":"#410002","surface-variant":"#27272A","error-container":"#93000a","outline-variant":"#27272A","on-tertiary":"#003450","on-surface-variant":"#A1A1AA","light-border":"#27272A"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-sm":"0.5rem",gutter:"1.5rem","space-lg":"1.5rem","space-xl":"2rem",margin:"1.5rem","space-xs":"0.25rem","gutter-sm":"1rem","space-md":"1rem","margin-lg":"3rem"},fontFamily:{"label-sm":["JetBrains Mono","monospace"],"code-sm":["JetBrains Mono","monospace"],"body-md":["Inter","sans-serif"],"headline-xl-mobile":["Inter","sans-serif"],"body-lg":["Inter","sans-serif"],"body-sm":["Inter","sans-serif"],"headline-xl":["Inter","sans-serif"],"headline-lg":["Inter","sans-serif"],"headline-md":["Inter","sans-serif"],"label-md":["JetBrains Mono","monospace"],"headline-lg-mobile":["Inter","sans-serif"],"headline-sm":["Inter","sans-serif"]},fontSize:{"label-sm":["0.75rem",{lineHeight:"1rem",letterSpacing:"0.02em",fontWeight:"500"}],"code-sm":["0.75rem",{lineHeight:"1rem",letterSpacing:"0.03em",fontWeight:"500"}],"body-md":["1rem",{lineHeight:"1.5rem",letterSpacing:"0em",fontWeight:"400"}],"headline-xl-mobile":["2rem",{lineHeight:"2.5rem",letterSpacing:"-0.02em",fontWeight:"700"}],"body-lg":["1.125rem",{lineHeight:"1.75rem",letterSpacing:"0em",fontWeight:"400"}],"body-sm":["0.875rem",{lineHeight:"1.25rem",letterSpacing:"0em",fontWeight:"400"}],"headline-xl":["3rem",{lineHeight:"3.5rem",letterSpacing:"-0.025em",fontWeight:"700"}],"headline-lg":["2rem",{lineHeight:"2.5rem",letterSpacing:"-0.02em",fontWeight:"700"}],"headline-md":["1.25rem",{lineHeight:"1.75rem",letterSpacing:"-0.015em",fontWeight:"600"}],"label-md":["0.875rem",{lineHeight:"1.25rem",letterSpacing:"0.01em",fontWeight:"600"}],"headline-lg-mobile":["1.5rem",{lineHeight:"2rem",letterSpacing:"-0.015em",fontWeight:"700"}],"headline-sm":["1rem",{lineHeight:"1.5rem",letterSpacing:"-0.01em",fontWeight:"600"}]}}}};</script></head><body class="bg-[#0B0B0C] font-body-md text-[#F4F4F5] antialiased selection:bg-red-950 selection:text-red-200"><header class="fixed top-0 left-0 right-0 z-50 bg-[#18181B]/90 backdrop-blur-xl border-b border-[#27272A]"><div class="h-16 max-w-7xl mx-auto px-gutter flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><a class="flex items-center gap-space-sm" data-path="explore-tools" href="#"><img alt="PDFTools Logo" class="h-8 w-auto object-contain brightness-110" src="https://lh3.googleusercontent.com/aida/AEtjO1VrTuHk-rZN7iFmjKSeakdMjcDtuVUb0chthamt5saEdcLWqlf221nUUNR8XRn1MgBw8Z9HHELCDCGFSv0aOOhCRF9kARCwhN8ehk_lifj9zZMvE2bMNuwxw_9CW92ID5q4VGPocHWto6EaCX6rVRLm6wNc348vNILaKEclGdfutNnUJSFr28oOIfuk3sJPRRKDsv7x8mujlLqFYU-xTC0JgiWx6DoZDbOHxS-DNhu0pLK20_C_20Hpmz0"/><span class="font-headline-md text-headline-md text-[#F4F4F5] tracking-tight">PDFTools</span></a><nav class="hidden md:flex items-center gap-space-xs"><a class="px-space-sm py-space-xs text-[#F4F4F5] bg-[#27272A] rounded-lg font-label-md text-label-md transition-colors" data-path="organize" href="#">Organize</a><a class="px-space-sm py-space-xs text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#27272A] rounded-lg font-label-md text-label-md transition-colors" data-path="convert" href="#">Convert</a><a class="px-space-sm py-space-xs text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#27272A] rounded-lg font-label-md text-label-md transition-colors" data-path="edit" href="#">Edit</a><a class="px-space-sm py-space-xs text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#27272A] rounded-lg font-label-md text-label-md transition-colors" data-path="security" href="#">Security</a><a class="px-space-sm py-space-xs text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#27272A] rounded-lg font-label-md text-label-md transition-colors" data-path="ai" href="#">AI</a></nav></div><div class="flex items-center gap-space-sm"><button class="flex items-center justify-between gap-space-md px-space-sm py-space-xs h-9 bg-[#18181B] hover:bg-[#27272A] border border-[#27272A] rounded-lg text-[#A1A1AA] hover:text-[#F4F4F5] transition-all w-48 md:w-56 text-left" type="button"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[#A1A1AA] text-[18px]">search</span><span class="font-body-sm text-body-sm">Search tools...</span></div><kbd class="hidden sm:inline-flex items-center px-space-xs py-0.5 bg-[#0B0B0C] border border-[#27272A] rounded text-[11px] font-medium text-[#A1A1AA] font-code-sm">⌘K</kbd></button><button aria-label="Toggle theme mode" class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#27272A] bg-[#18181B] hover:bg-[#27272A] text-[#F4F4F5] hover:text-white transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">dark_mode</span></button><div class="w-8 h-8 rounded-full bg-[#DC2626] flex items-center justify-center shrink-0 shadow-sm"><span class="material-symbols-outlined text-white text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-[#0B0B0C]"><div class="flex flex-col w-full pb-32">
+<!-- Top Tool Header & Dynamic Context Stepper -->
+<section class="w-full bg-[#0B0B0C] border-b border-[#27272A]">
+<div class="max-w-7xl mx-auto px-gutter py-space-lg flex flex-col gap-space-lg">
+<!-- Breadcrumbs & Status Capsule -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex flex-wrap items-center justify-between gap-space-sm">
+<nav class="flex items-center gap-space-xs font-label-sm text-label-sm text-[#71717A]">
+<a class="hover:text-[#F4F4F5] transition-colors" href="#">PDFTools</a>
+<span>/</span>
+<a class="hover:text-[#F4F4F5] transition-colors" href="#">Organize</a>
+<span>/</span>
+<span class="text-[#F4F4F5] font-medium">Organize &amp; Extract Pages</span>
+</nav>
+<div class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-[#18181B] border border-[#27272A] text-[#A1A1AA] shadow-sm">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="font-code-sm text-code-sm font-medium tracking-tight text-[#F4F4F5]">WASM Core Active</span>
+<span class="text-[#71717A] text-code-sm">•</span>
+<span class="font-label-sm text-label-sm text-[#A1A1AA]">Client-Side Sandbox</span>
+</div>
+</div>
+<!-- Upper Navigation & Action Indicator -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md mt-space-xs">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-red-950/60 border border-red-900/50 flex items-center justify-center text-[#DC2626] shadow-sm shrink-0">
+<span class="material-symbols-outlined text-[26px]">auto_stories</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-code-sm text-code-sm text-[#71717A] uppercase tracking-wider">Document Utility</span>
+<span class="text-[#71717A] font-body-sm">•</span>
+<span class="font-label-sm text-label-sm text-[#DC2626] bg-red-950/80 border border-red-900/50 px-2 py-0.5 rounded-full font-medium">Organize Mode</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-[#F4F4F5] tracking-tight">Organize &amp; Extract Pages</h1>
+</div>
+</div>
+<!-- Document File Pill & Replace -->
+<div class="flex items-center gap-space-sm bg-[#18181B] border border-[#27272A] px-space-md py-space-sm rounded-xl shadow-sm">
+<div class="w-9 h-9 rounded-lg bg-red-950/60 border border-red-900/40 flex items-center justify-center text-[#ffb4ab] shrink-0">
+<span class="material-symbols-outlined text-lg">description</span>
+</div>
+<div class="flex flex-col min-w-0 pr-space-sm">
+<span class="font-label-md text-label-md text-[#F4F4F5] truncate max-w-[210px]">Annual_Report_2024_Final.pdf</span>
+<span class="font-code-sm text-code-sm text-[#71717A]">32 pages • 14.2 MB</span>
+</div>
+<button class="px-space-sm py-1 rounded-lg bg-[#27272A] hover:bg-[#3F3F46] font-label-sm text-label-sm text-[#F4F4F5] transition-colors flex items-center gap-1 border border-[#3F3F46]" type="button">
+<span class="material-symbols-outlined text-[15px]">swap_horiz</span>
+            Replace
+          </button>
+</div>
+</div>
+</div>
+<!-- 3-Step Execution Chamber Stepper -->
+<div class="w-full bg-[#18181B] border border-[#27272A] p-space-sm rounded-xl shadow-sm">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm">
+<!-- Step 1: Upload (Complete) -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-[#141416] border border-[#27272A]/70">
+<div class="w-7 h-7 rounded-full bg-[#064E3B] border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-base">check</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-emerald-400 font-medium uppercase tracking-wider">Step 1 • Completed</span>
+<span class="font-headline-sm text-headline-sm text-[#F4F4F5] truncate">Document Ingested</span>
+</div>
+</div>
+<!-- Step 2: Select & Organize (Active) -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-[#27272A]/70 border border-[#DC2626]/50 shadow-md">
+<div class="w-7 h-7 rounded-full bg-[#DC2626] text-white flex items-center justify-center font-headline-sm text-headline-sm shrink-0 shadow-sm shadow-[#DC2626]/40">
+            2
+          </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-[#ffb4ab] font-semibold uppercase tracking-wider">Step 2 • Active Stage</span>
+<span class="font-headline-sm text-headline-sm text-white truncate">Select &amp; Curate Pages</span>
+</div>
+</div>
+<!-- Step 3: Process & Download (Queued) -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-[#141416]/50 border border-[#27272A]/40 opacity-70">
+<div class="w-7 h-7 rounded-full bg-[#27272A] text-[#71717A] flex items-center justify-center font-headline-sm text-headline-sm shrink-0">
+            3
+          </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-[#71717A] uppercase tracking-wider">Step 3 • Queued</span>
+<span class="font-headline-sm text-headline-sm text-[#71717A] truncate">Process &amp; Download</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Sticky Operational Control Bar -->
+<section class="sticky top-16 z-30 w-full bg-[#18181B]/95 backdrop-blur-md border-b border-[#27272A] shadow-sm">
+<div class="max-w-7xl mx-auto px-gutter py-space-sm flex flex-wrap items-center justify-between gap-space-md">
+<!-- Selection Shortcuts -->
+<div class="flex items-center flex-wrap gap-1.5">
+<span class="font-label-sm text-label-sm text-[#71717A] mr-1 hidden sm:inline">Select:</span>
+<button class="px-space-sm py-1 bg-[#27272A] hover:bg-[#3F3F46] border border-[#3F3F46] rounded-lg font-label-sm text-label-sm text-[#F4F4F5] transition-colors flex items-center gap-1 shadow-xs" id="btn-select-all" type="button">
+<span>All (32)</span>
+</button>
+<button class="px-space-sm py-1 bg-[#18181B] hover:bg-[#27272A] border border-[#27272A] rounded-lg font-label-sm text-label-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" id="btn-deselect-all" type="button">
+          None
+        </button>
+<button class="px-space-sm py-1 bg-[#18181B] hover:bg-[#27272A] border border-[#27272A] rounded-lg font-label-sm text-label-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" id="btn-select-odd" type="button">
+          Odd
+        </button>
+<button class="px-space-sm py-1 bg-[#18181B] hover:bg-[#27272A] border border-[#27272A] rounded-lg font-label-sm text-label-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" id="btn-select-even" type="button">
+          Even
+        </button>
+<button class="px-space-sm py-1 bg-[#18181B] hover:bg-[#27272A] border border-[#27272A] rounded-lg font-label-sm text-label-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors flex items-center gap-1" id="btn-invert-selection" type="button">
+<span class="material-symbols-outlined text-[14px]">swap_calls</span>
+          Invert
+        </button>
+</div>
+<!-- Density & View Diagnostics -->
+<div class="flex items-center gap-space-md ml-auto">
+<div class="hidden lg:flex items-center gap-space-xs font-code-sm text-code-sm text-[#71717A]">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="text-[#A1A1AA]">32 total</span>
+<span>•</span>
+<span class="font-semibold text-[#ffb4ab]" id="selected-summary-top">8 selected</span>
+<span class="text-[11px] text-[#71717A] truncate max-w-[180px]">(1, 3, 5, 8, 12, 18, 22, 29)</span>
+</div>
+<!-- View Density Toggle -->
+<div class="flex items-center bg-[#0B0B0C] border border-[#27272A] rounded-lg p-0.5 shadow-inner">
+<button class="px-2 py-1 rounded font-code-sm text-code-sm text-[#71717A] hover:text-[#F4F4F5] transition-all" title="Dense Layout" type="button">S</button>
+<button class="px-2 py-1 rounded bg-[#27272A] font-code-sm text-code-sm font-semibold text-[#F4F4F5] shadow-sm" title="Standard Layout" type="button">M</button>
+<button class="px-2 py-1 rounded font-code-sm text-code-sm text-[#71717A] hover:text-[#F4F4F5] transition-all" title="Spacious Layout" type="button">L</button>
+</div>
+<!-- Quick Rotate All Global Tool -->
+<button class="p-1.5 rounded-lg bg-[#27272A] hover:bg-[#3F3F46] border border-[#3F3F46] text-[#F4F4F5] transition-colors" title="Rotate all 90° Clockwise" type="button">
+<span class="material-symbols-outlined text-lg">rotate_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Interactive 6-Column Page Canvas -->
+<div class="w-full max-w-7xl mx-auto px-gutter pt-space-lg">
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-space-md" id="page-grid">
+<!-- Card Page 1 (Selected) -->
+<div class="page-card group relative bg-[#18181B] border border-[#DC2626] ring-2 ring-[#DC2626]/40 rounded-xl p-space-sm shadow-lg shadow-red-950/20 hover:shadow-xl transition-all duration-150 cursor-pointer flex flex-col" data-page-id="1">
+<!-- Top Toolbar within Card -->
+<div class="flex items-center justify-between w-full mb-space-xs z-10">
+<label class="relative flex items-center justify-center w-5 h-5 cursor-pointer">
+<input checked="" class="page-checkbox sr-only" type="checkbox"/>
+<span class="checkbox-visual w-5 h-5 rounded bg-[#DC2626] text-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</span>
+</label>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[#71717A]">
+<span class="material-symbols-outlined text-[18px] cursor-grab">drag_indicator</span>
+</div>
+</div>
+<!-- Realistic Page Miniature Canvas -->
+<div class="relative w-full aspect-[1/1.414] bg-[#f8f9fc] rounded-lg overflow-hidden p-2 flex flex-col justify-between shadow-inner select-none">
+<div class="flex flex-col gap-1.5">
+<div class="h-2.5 w-3/4 bg-red-200 rounded"></div>
+<div class="h-1.5 w-1/2 bg-slate-300 rounded"></div>
+<div class="mt-2 h-16 w-full rounded bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+<svg class="w-full h-full text-red-500 p-1" viewbox="0 0 100 60">
+<path d="M5,50 Q25,20 50,35 T95,15" fill="none" stroke="currentColor" stroke-width="3"></path>
+<circle cx="50" cy="35" fill="currentColor" r="3"></circle>
+</svg>
+</div>
+<div class="space-y-1 mt-1">
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-5/6 bg-slate-200 rounded"></div>
+<div class="h-1 w-4/6 bg-slate-200 rounded"></div>
+</div>
+</div>
+<div class="flex justify-between items-end pt-1">
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">CONFIDENTIAL</span>
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">01</span>
+</div>
+<!-- Hover Overlay Quick Actions -->
+<div class="absolute inset-0 bg-[#0B0B0C]/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Rotate Clockwise" type="button">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Enlarge Page" type="button">
+<span class="material-symbols-outlined text-[16px]">zoom_in</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#DC2626] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Exclude Page" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Footer Page Indicator -->
+<div class="w-full flex items-center justify-between pt-space-xs text-center">
+<span class="w-full font-label-sm text-label-sm font-semibold text-[#DC2626]">Page 1</span>
+</div>
+</div>
+<!-- Card Page 2 (Unselected) -->
+<div class="page-card group relative bg-[#18181B] border border-[#27272A] rounded-xl p-space-sm shadow-sm hover:shadow-lg hover:border-[#3F3F46] transition-all duration-150 cursor-pointer flex flex-col" data-page-id="2">
+<div class="flex items-center justify-between w-full mb-space-xs z-10">
+<label class="relative flex items-center justify-center w-5 h-5 cursor-pointer">
+<input class="page-checkbox sr-only" type="checkbox"/>
+<span class="checkbox-visual w-5 h-5 rounded bg-[#27272A] border border-[#3F3F46] text-transparent flex items-center justify-center">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</span>
+</label>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[#71717A]">
+<span class="material-symbols-outlined text-[18px] cursor-grab">drag_indicator</span>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.414] bg-[#f8f9fc] rounded-lg overflow-hidden p-2 flex flex-col justify-between shadow-inner select-none opacity-85">
+<div class="flex flex-col gap-1.5">
+<div class="h-2 w-2/3 bg-slate-300 rounded"></div>
+<div class="space-y-1 mt-1">
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-4/5 bg-slate-200 rounded"></div>
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-3/4 bg-slate-200 rounded"></div>
+</div>
+<div class="grid grid-cols-2 gap-1 mt-2">
+<div class="h-8 bg-slate-100 border border-slate-200 rounded"></div>
+<div class="h-8 bg-slate-100 border border-slate-200 rounded"></div>
+</div>
+</div>
+<div class="flex justify-between items-end pt-1">
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">EXECUTIVE SUMMARY</span>
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">02</span>
+</div>
+<!-- Hover Overlay -->
+<div class="absolute inset-0 bg-[#0B0B0C]/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Rotate Clockwise" type="button">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Enlarge Page" type="button">
+<span class="material-symbols-outlined text-[16px]">zoom_in</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#DC2626] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Exclude Page" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</button>
+</div>
+</div>
+<div class="w-full flex items-center justify-between pt-space-xs text-center">
+<span class="w-full font-label-sm text-label-sm text-[#A1A1AA]">Page 2</span>
+</div>
+</div>
+<!-- Card Page 3 (Selected) -->
+<div class="page-card group relative bg-[#18181B] border border-[#DC2626] ring-2 ring-[#DC2626]/40 rounded-xl p-space-sm shadow-lg shadow-red-950/20 hover:shadow-xl transition-all duration-150 cursor-pointer flex flex-col" data-page-id="3">
+<div class="flex items-center justify-between w-full mb-space-xs z-10">
+<label class="relative flex items-center justify-center w-5 h-5 cursor-pointer">
+<input checked="" class="page-checkbox sr-only" type="checkbox"/>
+<span class="checkbox-visual w-5 h-5 rounded bg-[#DC2626] text-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</span>
+</label>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[#71717A]">
+<span class="material-symbols-outlined text-[18px] cursor-grab">drag_indicator</span>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.414] bg-[#f8f9fc] rounded-lg overflow-hidden p-2 flex flex-col justify-between shadow-inner select-none">
+<div class="flex flex-col gap-1.5">
+<div class="h-2 w-1/2 bg-slate-300 rounded"></div>
+<!-- Financial Data Table Representation -->
+<div class="space-y-1 mt-1 bg-white p-1 rounded border border-slate-200">
+<div class="h-1.5 w-full bg-red-100 rounded"></div>
+<div class="h-1 w-full bg-slate-100 rounded"></div>
+<div class="h-1 w-full bg-slate-100 rounded"></div>
+<div class="h-1 w-full bg-slate-100 rounded"></div>
+<div class="h-1 w-full bg-slate-100 rounded"></div>
+</div>
+<div class="h-10 w-full rounded bg-slate-100 border border-slate-200 flex items-center justify-center mt-1">
+<svg class="w-full h-8 text-blue-500 px-1" viewbox="0 0 80 30">
+<rect fill="currentColor" height="18" width="8" x="5" y="10"></rect>
+<rect fill="currentColor" height="23" width="8" x="18" y="5"></rect>
+<rect fill="currentColor" height="16" width="8" x="31" y="12"></rect>
+<rect fill="currentColor" height="26" width="8" x="44" y="2"></rect>
+<rect fill="currentColor" height="20" width="8" x="57" y="8"></rect>
+</svg>
+</div>
+</div>
+<div class="flex justify-between items-end pt-1">
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">FINANCIAL AUDIT</span>
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">03</span>
+</div>
+<div class="absolute inset-0 bg-[#0B0B0C]/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Rotate Clockwise" type="button">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Enlarge Page" type="button">
+<span class="material-symbols-outlined text-[16px]">zoom_in</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#DC2626] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Exclude Page" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</button>
+</div>
+</div>
+<div class="w-full flex items-center justify-between pt-space-xs text-center">
+<span class="w-full font-label-sm text-label-sm font-semibold text-[#DC2626]">Page 3</span>
+</div>
+</div>
+<!-- Card Page 4 (Unselected) -->
+<div class="page-card group relative bg-[#18181B] border border-[#27272A] rounded-xl p-space-sm shadow-sm hover:shadow-lg hover:border-[#3F3F46] transition-all duration-150 cursor-pointer flex flex-col" data-page-id="4">
+<div class="flex items-center justify-between w-full mb-space-xs z-10">
+<label class="relative flex items-center justify-center w-5 h-5 cursor-pointer">
+<input class="page-checkbox sr-only" type="checkbox"/>
+<span class="checkbox-visual w-5 h-5 rounded bg-[#27272A] border border-[#3F3F46] text-transparent flex items-center justify-center">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</span>
+</label>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[#71717A]">
+<span class="material-symbols-outlined text-[18px] cursor-grab">drag_indicator</span>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.414] bg-[#f8f9fc] rounded-lg overflow-hidden p-2 flex flex-col justify-between shadow-inner select-none opacity-85">
+<div class="flex flex-col gap-1.5">
+<div class="h-2 w-3/4 bg-slate-300 rounded"></div>
+<div class="space-y-1">
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-5/6 bg-slate-200 rounded"></div>
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-2/3 bg-slate-200 rounded"></div>
+</div>
+<div class="h-12 w-full bg-white rounded p-1 flex items-center gap-1 border border-slate-200">
+<div class="w-10 h-full bg-slate-100 rounded"></div>
+<div class="flex-1 space-y-1">
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-3/4 bg-slate-200 rounded"></div>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-end pt-1">
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">GOVERNANCE</span>
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">04</span>
+</div>
+<div class="absolute inset-0 bg-[#0B0B0C]/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Rotate Clockwise" type="button">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Enlarge Page" type="button">
+<span class="material-symbols-outlined text-[16px]">zoom_in</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#DC2626] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Exclude Page" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</button>
+</div>
+</div>
+<div class="w-full flex items-center justify-between pt-space-xs text-center">
+<span class="w-full font-label-sm text-label-sm text-[#A1A1AA]">Page 4</span>
+</div>
+</div>
+<!-- Card Page 5 (Selected) -->
+<div class="page-card group relative bg-[#18181B] border border-[#DC2626] ring-2 ring-[#DC2626]/40 rounded-xl p-space-sm shadow-lg shadow-red-950/20 hover:shadow-xl transition-all duration-150 cursor-pointer flex flex-col" data-page-id="5">
+<div class="flex items-center justify-between w-full mb-space-xs z-10">
+<label class="relative flex items-center justify-center w-5 h-5 cursor-pointer">
+<input checked="" class="page-checkbox sr-only" type="checkbox"/>
+<span class="checkbox-visual w-5 h-5 rounded bg-[#DC2626] text-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</span>
+</label>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[#71717A]">
+<span class="material-symbols-outlined text-[18px] cursor-grab">drag_indicator</span>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.414] bg-[#f8f9fc] rounded-lg overflow-hidden p-2 flex flex-col justify-between shadow-inner select-none">
+<div class="flex flex-col gap-1.5">
+<div class="h-2 w-4/5 bg-slate-300 rounded"></div>
+<!-- Pie Chart Representation -->
+<div class="h-20 w-full rounded bg-white border border-slate-200 flex items-center justify-center relative">
+<div class="w-14 h-14 rounded-full border-4 border-red-500 border-t-blue-500 border-r-emerald-500"></div>
+</div>
+<div class="space-y-1">
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-3/4 bg-slate-200 rounded"></div>
+</div>
+</div>
+<div class="flex justify-between items-end pt-1">
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">MARKET SHARE</span>
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">05</span>
+</div>
+<div class="absolute inset-0 bg-[#0B0B0C]/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Rotate Clockwise" type="button">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Enlarge Page" type="button">
+<span class="material-symbols-outlined text-[16px]">zoom_in</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#DC2626] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Exclude Page" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</button>
+</div>
+</div>
+<div class="w-full flex items-center justify-between pt-space-xs text-center">
+<span class="w-full font-label-sm text-label-sm font-semibold text-[#DC2626]">Page 5</span>
+</div>
+</div>
+<!-- Card Page 6 (Unselected) -->
+<div class="page-card group relative bg-[#18181B] border border-[#27272A] rounded-xl p-space-sm shadow-sm hover:shadow-lg hover:border-[#3F3F46] transition-all duration-150 cursor-pointer flex flex-col" data-page-id="6">
+<div class="flex items-center justify-between w-full mb-space-xs z-10">
+<label class="relative flex items-center justify-center w-5 h-5 cursor-pointer">
+<input class="page-checkbox sr-only" type="checkbox"/>
+<span class="checkbox-visual w-5 h-5 rounded bg-[#27272A] border border-[#3F3F46] text-transparent flex items-center justify-center">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</span>
+</label>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[#71717A]">
+<span class="material-symbols-outlined text-[18px] cursor-grab">drag_indicator</span>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.414] bg-[#f8f9fc] rounded-lg overflow-hidden p-2 flex flex-col justify-between shadow-inner select-none opacity-85">
+<div class="flex flex-col gap-1.5">
+<div class="h-2 w-1/2 bg-slate-300 rounded"></div>
+<div class="space-y-1">
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-5/6 bg-slate-200 rounded"></div>
+</div>
+<div class="h-14 w-full bg-slate-100 border border-slate-200 rounded p-1 flex flex-col justify-around">
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-4/5 bg-slate-200 rounded"></div>
+<div class="h-1 w-2/3 bg-slate-200 rounded"></div>
+</div>
+</div>
+<div class="flex justify-between items-end pt-1">
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">STRATEGY 2025</span>
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">06</span>
+</div>
+<div class="absolute inset-0 bg-[#0B0B0C]/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Rotate Clockwise" type="button">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Enlarge Page" type="button">
+<span class="material-symbols-outlined text-[16px]">zoom_in</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#DC2626] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Exclude Page" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</button>
+</div>
+</div>
+<div class="w-full flex items-center justify-between pt-space-xs text-center">
+<span class="w-full font-label-sm text-label-sm text-[#A1A1AA]">Page 6</span>
+</div>
+</div>
+<!-- Card Page 7 (Unselected) -->
+<div class="page-card group relative bg-[#18181B] border border-[#27272A] rounded-xl p-space-sm shadow-sm hover:shadow-lg hover:border-[#3F3F46] transition-all duration-150 cursor-pointer flex flex-col" data-page-id="7">
+<div class="flex items-center justify-between w-full mb-space-xs z-10">
+<label class="relative flex items-center justify-center w-5 h-5 cursor-pointer">
+<input class="page-checkbox sr-only" type="checkbox"/>
+<span class="checkbox-visual w-5 h-5 rounded bg-[#27272A] border border-[#3F3F46] text-transparent flex items-center justify-center">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</span>
+</label>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[#71717A]">
+<span class="material-symbols-outlined text-[18px] cursor-grab">drag_indicator</span>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.414] bg-[#f8f9fc] rounded-lg overflow-hidden p-2 flex flex-col justify-between shadow-inner select-none opacity-85">
+<div class="flex flex-col gap-1.5">
+<div class="h-2 w-3/5 bg-slate-300 rounded"></div>
+<div class="space-y-1">
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-4/5 bg-slate-200 rounded"></div>
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-3/4 bg-slate-200 rounded"></div>
+</div>
+<div class="h-12 w-full bg-white border border-slate-200 rounded p-1 flex items-center justify-center">
+<div class="w-12 h-6 bg-slate-100 rounded-sm"></div>
+</div>
+</div>
+<div class="flex justify-between items-end pt-1">
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">OPERATIONS</span>
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">07</span>
+</div>
+<div class="absolute inset-0 bg-[#0B0B0C]/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Rotate Clockwise" type="button">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Enlarge Page" type="button">
+<span class="material-symbols-outlined text-[16px]">zoom_in</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#DC2626] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Exclude Page" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</button>
+</div>
+</div>
+<div class="w-full flex items-center justify-between pt-space-xs text-center">
+<span class="w-full font-label-sm text-label-sm text-[#A1A1AA]">Page 7</span>
+</div>
+</div>
+<!-- Card Page 8 (Selected) -->
+<div class="page-card group relative bg-[#18181B] border border-[#DC2626] ring-2 ring-[#DC2626]/40 rounded-xl p-space-sm shadow-lg shadow-red-950/20 hover:shadow-xl transition-all duration-150 cursor-pointer flex flex-col" data-page-id="8">
+<div class="flex items-center justify-between w-full mb-space-xs z-10">
+<label class="relative flex items-center justify-center w-5 h-5 cursor-pointer">
+<input checked="" class="page-checkbox sr-only" type="checkbox"/>
+<span class="checkbox-visual w-5 h-5 rounded bg-[#DC2626] text-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</span>
+</label>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[#71717A]">
+<span class="material-symbols-outlined text-[18px] cursor-grab">drag_indicator</span>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.414] bg-[#f8f9fc] rounded-lg overflow-hidden p-2 flex flex-col justify-between shadow-inner select-none">
+<div class="flex flex-col gap-1.5">
+<div class="h-2 w-2/3 bg-slate-300 rounded"></div>
+<div class="h-16 w-full rounded bg-white border border-slate-200 p-1 flex flex-col justify-between">
+<div class="flex gap-1">
+<span class="w-2 h-2 rounded bg-red-500"></span>
+<span class="w-2 h-2 rounded bg-blue-500"></span>
+<span class="w-2 h-2 rounded bg-emerald-500"></span>
+</div>
+<div class="h-1.5 w-full bg-slate-100 rounded"></div>
+<div class="h-1.5 w-4/5 bg-slate-100 rounded"></div>
+<div class="h-1.5 w-3/5 bg-slate-100 rounded"></div>
+</div>
+<div class="h-1 w-full bg-slate-200 rounded mt-1"></div>
+</div>
+<div class="flex justify-between items-end pt-1">
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">METRICS Q4</span>
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">08</span>
+</div>
+<div class="absolute inset-0 bg-[#0B0B0C]/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Rotate Clockwise" type="button">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Enlarge Page" type="button">
+<span class="material-symbols-outlined text-[16px]">zoom_in</span>
+</button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#DC2626] border border-[#27272A] flex items-center justify-center shadow-md transition-colors" title="Exclude Page" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</button>
+</div>
+</div>
+<div class="w-full flex items-center justify-between pt-space-xs text-center">
+<span class="w-full font-label-sm text-label-sm font-semibold text-[#DC2626]">Page 8</span>
+</div>
+</div>
+<!-- Card Page 9 -->
+<div class="page-card group relative bg-[#18181B] border border-[#27272A] rounded-xl p-space-sm shadow-sm hover:shadow-lg hover:border-[#3F3F46] transition-all duration-150 cursor-pointer flex flex-col" data-page-id="9">
+<div class="flex items-center justify-between w-full mb-space-xs z-10">
+<label class="relative flex items-center justify-center w-5 h-5 cursor-pointer">
+<input class="page-checkbox sr-only" type="checkbox"/>
+<span class="checkbox-visual w-5 h-5 rounded bg-[#27272A] border border-[#3F3F46] text-transparent flex items-center justify-center">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</span>
+</label>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[#71717A]">
+<span class="material-symbols-outlined text-[18px] cursor-grab">drag_indicator</span>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.414] bg-[#f8f9fc] rounded-lg overflow-hidden p-2 flex flex-col justify-between shadow-inner select-none opacity-85">
+<div class="flex flex-col gap-1.5">
+<div class="h-2 w-1/2 bg-slate-300 rounded"></div>
+<div class="space-y-1">
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-full bg-slate-200 rounded"></div>
+<div class="h-1 w-2/3 bg-slate-200 rounded"></div>
+</div>
+<div class="h-12 w-full bg-slate-100 border border-slate-200 rounded mt-1"></div>
+</div>
+<div class="flex justify-between items-end pt-1">
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">COMPLIANCE</span>
+<span class="text-[8px] font-code-sm text-slate-400 font-medium">09</span>
+</div>
+<div class="absolute inset-0 bg-[#0B0B0C]/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md" type="button"><span class="material-symbols-outlined text-[16px]">rotate_right</span></button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md" type="button"><span class="material-symbols-outlined text-[16px]">zoom_in</span></button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#DC2626] border border-[#27272A] flex items-center justify-center shadow-md" type="button"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+</div>
+</div>
+<div class="w-full flex items-center justify-between pt-space-xs text-center"><span class="w-full font-label-sm text-label-sm text-[#A1A1AA]">Page 9</span></div>
+</div>
+<!-- Page 10 -->
+<div class="page-card group relative bg-[#18181B] border border-[#27272A] rounded-xl p-space-sm shadow-sm hover:shadow-lg hover:border-[#3F3F46] transition-all duration-150 cursor-pointer flex flex-col" data-page-id="10">
+<div class="flex items-center justify-between w-full mb-space-xs z-10">
+<label class="relative flex items-center justify-center w-5 h-5 cursor-pointer">
+<input class="page-checkbox sr-only" type="checkbox"/>
+<span class="checkbox-visual w-5 h-5 rounded bg-[#27272A] border border-[#3F3F46] text-transparent flex items-center justify-center">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</span>
+</label>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[#71717A]"><span class="material-symbols-outlined text-[18px] cursor-grab">drag_indicator</span></div>
+</div>
+<div class="relative w-full aspect-[1/1.414] bg-[#f8f9fc] rounded-lg overflow-hidden p-2 flex flex-col justify-between shadow-inner select-none opacity-85">
+<div class="flex flex-col gap-1.5">
+<div class="h-2 w-3/4 bg-slate-300 rounded"></div>
+<div class="space-y-1"><div class="h-1 w-full bg-slate-200 rounded"></div><div class="h-1 w-full bg-slate-200 rounded"></div><div class="h-1 w-4/5 bg-slate-200 rounded"></div></div>
+</div>
+<div class="flex justify-between items-end pt-1"><span class="text-[8px] font-code-sm text-slate-400 font-medium">RISK ANALYSIS</span><span class="text-[8px] font-code-sm text-slate-400 font-medium">10</span></div>
+<div class="absolute inset-0 bg-[#0B0B0C]/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md" type="button"><span class="material-symbols-outlined text-[16px]">rotate_right</span></button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md" type="button"><span class="material-symbols-outlined text-[16px]">zoom_in</span></button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#DC2626] border border-[#27272A] flex items-center justify-center shadow-md" type="button"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+</div>
+</div>
+<div class="w-full flex items-center justify-between pt-space-xs text-center"><span class="w-full font-label-sm text-label-sm text-[#A1A1AA]">Page 10</span></div>
+</div>
+<!-- Page 11 -->
+<div class="page-card group relative bg-[#18181B] border border-[#27272A] rounded-xl p-space-sm shadow-sm hover:shadow-lg hover:border-[#3F3F46] transition-all duration-150 cursor-pointer flex flex-col" data-page-id="11">
+<div class="flex items-center justify-between w-full mb-space-xs z-10">
+<label class="relative flex items-center justify-center w-5 h-5 cursor-pointer">
+<input class="page-checkbox sr-only" type="checkbox"/>
+<span class="checkbox-visual w-5 h-5 rounded bg-[#27272A] border border-[#3F3F46] text-transparent flex items-center justify-center"><span class="material-symbols-outlined text-[15px]">check</span></span>
+</label>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[#71717A]"><span class="material-symbols-outlined text-[18px] cursor-grab">drag_indicator</span></div>
+</div>
+<div class="relative w-full aspect-[1/1.414] bg-[#f8f9fc] rounded-lg overflow-hidden p-2 flex flex-col justify-between shadow-inner select-none opacity-85">
+<div class="flex flex-col gap-1.5"><div class="h-2 w-1/3 bg-slate-300 rounded"></div><div class="space-y-1"><div class="h-1 w-full bg-slate-200 rounded"></div><div class="h-1 w-2/3 bg-slate-200 rounded"></div></div></div>
+<div class="flex justify-between items-end pt-1"><span class="text-[8px] font-code-sm text-slate-400 font-medium">APPENDIX</span><span class="text-[8px] font-code-sm text-slate-400 font-medium">11</span></div>
+<div class="absolute inset-0 bg-[#0B0B0C]/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md" type="button"><span class="material-symbols-outlined text-[16px]">rotate_right</span></button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md" type="button"><span class="material-symbols-outlined text-[16px]">zoom_in</span></button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#DC2626] border border-[#27272A] flex items-center justify-center shadow-md" type="button"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+</div>
+</div>
+<div class="w-full flex items-center justify-between pt-space-xs text-center"><span class="w-full font-label-sm text-label-sm text-[#A1A1AA]">Page 11</span></div>
+</div>
+<!-- Page 12 (Selected) -->
+<div class="page-card group relative bg-[#18181B] border border-[#DC2626] ring-2 ring-[#DC2626]/40 rounded-xl p-space-sm shadow-lg shadow-red-950/20 hover:shadow-xl transition-all duration-150 cursor-pointer flex flex-col" data-page-id="12">
+<div class="flex items-center justify-between w-full mb-space-xs z-10">
+<label class="relative flex items-center justify-center w-5 h-5 cursor-pointer">
+<input checked="" class="page-checkbox sr-only" type="checkbox"/>
+<span class="checkbox-visual w-5 h-5 rounded bg-[#DC2626] text-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</span>
+</label>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[#71717A]"><span class="material-symbols-outlined text-[18px] cursor-grab">drag_indicator</span></div>
+</div>
+<div class="relative w-full aspect-[1/1.414] bg-[#f8f9fc] rounded-lg overflow-hidden p-2 flex flex-col justify-between shadow-inner select-none">
+<div class="flex flex-col gap-1.5">
+<div class="h-2 w-3/5 bg-slate-300 rounded"></div>
+<div class="h-16 w-full rounded bg-slate-100 border border-slate-200 flex items-center justify-center">
+<span class="material-symbols-outlined text-red-500/60 text-2xl">bar_chart</span>
+</div>
+</div>
+<div class="flex justify-between items-end pt-1"><span class="text-[8px] font-code-sm text-slate-400 font-medium">CONSOLIDATED</span><span class="text-[8px] font-code-sm text-slate-400 font-medium">12</span></div>
+<div class="absolute inset-0 bg-[#0B0B0C]/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md" type="button"><span class="material-symbols-outlined text-[16px]">rotate_right</span></button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#ffb4ab] border border-[#27272A] flex items-center justify-center shadow-md" type="button"><span class="material-symbols-outlined text-[16px]">zoom_in</span></button>
+<button class="w-7 h-7 rounded bg-[#18181B] text-[#F4F4F5] hover:text-[#DC2626] border border-[#27272A] flex items-center justify-center shadow-md" type="button"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+</div>
+</div>
+<div class="w-full flex items-center justify-between pt-space-xs text-center"><span class="w-full font-label-sm text-label-sm font-semibold text-[#DC2626]">Page 12</span></div>
+</div>
+</div>
+<!-- Expansion Anchor / Remaining Pages Indicator -->
+<div class="mt-space-lg flex flex-col items-center justify-center p-space-lg rounded-2xl bg-[#18181B] border border-[#27272A] shadow-sm text-center">
+<div class="flex items-center gap-space-sm text-[#71717A] mb-space-xs">
+<span class="material-symbols-outlined text-xl text-[#A1A1AA]">layers</span>
+<span class="font-body-sm text-body-sm text-[#A1A1AA]">Showing 12 of 32 pages in initial viewport</span>
+</div>
+<button class="px-space-md py-1.5 rounded-lg bg-[#27272A] hover:bg-[#3F3F46] border border-[#3F3F46] shadow-sm font-label-md text-label-md text-[#F4F4F5] transition-colors flex items-center gap-1.5" type="button">
+<span>Load all 32 page thumbnails</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+</div>
+<!-- High-Density Floating Bottom Execution Dock -->
+<footer class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl z-40 bg-[#18181B]/95 backdrop-blur-xl border border-[#3F3F46] rounded-2xl p-space-sm sm:p-space-md shadow-2xl flex flex-col md:flex-row items-center justify-between gap-space-md">
+<!-- Left: Context Summary -->
+<div class="flex items-center gap-space-sm w-full md:w-auto justify-between md:justify-start">
+<div class="w-9 h-9 rounded-xl bg-red-950/70 border border-red-900/60 flex items-center justify-center text-[#DC2626] shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-xl">folder_zip</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-[#F4F4F5]" id="dock-selected-count">8 pages selected</span>
+<span class="font-code-sm text-code-sm text-[#ffb4ab] font-semibold">for extraction</span>
+</div>
+<span class="font-body-sm text-body-sm text-[#71717A]">Estimated output size: ~3.8 MB (Cleaned streams)</span>
+</div>
+</div>
+<!-- Center: Fast Batch Modifiers -->
+<div class="flex items-center gap-1 sm:gap-1.5">
+<button class="px-2.5 py-1.5 rounded-lg bg-[#27272A] hover:bg-[#3F3F46] text-[#F4F4F5] border border-[#3F3F46] font-label-sm text-label-sm transition-colors flex items-center gap-1 shadow-xs" title="Rotate Selected Pages 90°" type="button">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+<span class="hidden sm:inline">Rotate 90°</span>
+</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-[#27272A] hover:bg-[#3F3F46] text-[#F4F4F5] border border-[#3F3F46] font-label-sm text-label-sm transition-colors flex items-center gap-1 shadow-xs" title="Duplicate selected pages" type="button">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+<span class="hidden sm:inline">Duplicate</span>
+</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-[#27272A] hover:bg-red-950/80 hover:text-red-400 hover:border-red-900/60 text-[#A1A1AA] border border-[#3F3F46] font-label-sm text-label-sm transition-colors flex items-center gap-1" title="Delete selected pages" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+<span class="hidden sm:inline">Exclude</span>
+</button>
+</div>
+<!-- Right: Client-side Engine Execution Triggers -->
+<div class="flex items-center gap-space-sm w-full md:w-auto justify-end">
+<button class="px-space-md py-2 rounded-lg hover:bg-[#27272A] font-label-md text-label-md text-[#71717A] hover:text-[#F4F4F5] transition-colors" type="button">
+        Cancel
+      </button>
+<button class="relative group px-space-lg py-2.5 rounded-lg bg-[#DC2626] hover:bg-[#B91C1C] active:scale-[0.98] font-label-md text-label-md text-white shadow-lg shadow-[#DC2626]/25 transition-all flex items-center gap-2" id="btn-execute" type="button">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+<span id="btn-label-text">Extract 8 Pages</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+<!-- Tooltip Hover badge indicating Client-side WASM engine speed -->
+<span class="absolute -top-8 right-0 bg-[#0B0B0C] border border-[#3F3F46] text-[#F4F4F5] font-code-sm text-code-sm px-2 py-0.5 rounded shadow pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          ⚡ ~0.8s client-side WASM
+        </span>
+</button>
+</div>
+</footer>
+</div>
+<script>
+  // Simple micro-interactions for realistic dynamic page selection
+  document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.page-card');
+    const dockCount = document.getElementById('dock-selected-count');
+    const topSummary = document.getElementById('selected-summary-top');
+    const btnText = document.getElementById('btn-label-text');
+
+    function updateState() {
+      const selected = document.querySelectorAll('.page-card input:checked');
+      const count = selected.length;
+      
+      if (dockCount) dockCount.textContent = `${count} pages selected`;
+      if (topSummary) topSummary.textContent = `${count} selected`;
+      if (btnText) btnText.textContent = `Extract ${count} Pages`;
+    }
+
+    cards.forEach(card => {
+      card.addEventListener('click', (e) => {
+        // Prevent toggle if clicking inner action buttons
+        if (e.target.closest('button')) return;
+
+        const checkbox = card.querySelector('.page-checkbox');
+        const visual = card.querySelector('.checkbox-visual');
+        const pageLabel = card.querySelector('span[class*="font-label-sm"]');
+        
+        checkbox.checked = !checkbox.checked;
+
+        if (checkbox.checked) {
+          card.classList.add('border-[#DC2626]', 'ring-2', 'ring-[#DC2626]/40', 'shadow-lg', 'shadow-red-950/20');
+          card.classList.remove('border-[#27272A]', 'shadow-sm');
+          visual.classList.remove('bg-[#27272A]', 'border-[#3F3F46]', 'text-transparent');
+          visual.classList.add('bg-[#DC2626]', 'text-white', 'shadow-sm');
+          if (pageLabel) {
+            pageLabel.classList.remove('text-[#A1A1AA]');
+            pageLabel.classList.add('text-[#DC2626]', 'font-semibold');
+          }
+        } else {
+          card.classList.remove('border-[#DC2626]', 'ring-2', 'ring-[#DC2626]/40', 'shadow-lg', 'shadow-red-950/20');
+          card.classList.add('border-[#27272A]', 'shadow-sm');
+          visual.classList.remove('bg-[#DC2626]', 'text-white', 'shadow-sm');
+          visual.classList.add('bg-[#27272A]', 'border-[#3F3F46]', 'text-transparent');
+          if (pageLabel) {
+            pageLabel.classList.remove('text-[#DC2626]', 'font-semibold');
+            pageLabel.classList.add('text-[#A1A1AA]');
+          }
+        }
+        updateState();
+      });
+    });
+
+    // Quick Selector handlers
+    const btnAll = document.getElementById('btn-select-all');
+    const btnNone = document.getElementById('btn-deselect-all');
+    const btnOdd = document.getElementById('btn-select-odd');
+    const btnEven = document.getElementById('btn-select-even');
+    const btnInvert = document.getElementById('btn-invert-selection');
+
+    function applySelection(filterFn) {
+      cards.forEach((card, index) => {
+        const checkbox = card.querySelector('.page-checkbox');
+        const shouldSelect = filterFn(index + 1, checkbox.checked);
+        if (checkbox.checked !== shouldSelect) {
+          card.click();
+        }
+      });
+    }
+
+    if (btnAll) btnAll.addEventListener('click', () => applySelection(() => true));
+    if (btnNone) btnNone.addEventListener('click', () => applySelection(() => false));
+    if (btnOdd) btnOdd.addEventListener('click', () => applySelection(num => num % 2 !== 0));
+    if (btnEven) btnEven.addEventListener('click', () => applySelection(num => num % 2 === 0));
+    if (btnInvert) btnInvert.addEventListener('click', () => applySelection((_, isChecked) => !isChecked));
+  });
+</script></main><footer class="w-full border-t border-[#27272A] bg-[#18181B] py-margin"><div class="max-w-7xl mx-auto px-gutter flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm"><img alt="PDFTools Logo" class="h-6 w-auto object-contain brightness-110 opacity-80" src="https://lh3.googleusercontent.com/aida/AEtjO1VrTuHk-rZN7iFmjKSeakdMjcDtuVUb0chthamt5saEdcLWqlf221nUUNR8XRn1MgBw8Z9HHELCDCGFSv0aOOhCRF9kARCwhN8ehk_lifj9zZMvE2bMNuwxw_9CW92ID5q4VGPocHWto6EaCX6rVRLm6wNc348vNILaKEclGdfutNnUJSFr28oOIfuk3sJPRRKDsv7x8mujlLqFYU-xTC0JgiWx6DoZDbOHxS-DNhu0pLK20_C_20Hpmz0"/><span class="font-headline-sm text-headline-sm text-[#F4F4F5]">PDFTools</span><span class="font-body-sm text-body-sm text-[#71717A]">— Frictionless document utility.</span></div><div class="flex items-center gap-space-md"><a class="font-body-sm text-body-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" data-path="organize" href="#">Organize</a><a class="font-body-sm text-body-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" data-path="convert" href="#">Convert</a><a class="font-body-sm text-body-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" data-path="edit" href="#">Edit</a><a class="font-body-sm text-body-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" data-path="security" href="#">Security</a><a class="font-body-sm text-body-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" data-path="ai" href="#">AI</a></div></div></footer></body></html>

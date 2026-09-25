@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"dark-border":"#27272A","on-secondary-container":"#cdd7ff","primary":"#ffb4ab","tertiary-fixed":"#7ffc97","on-tertiary-fixed":"#002109","warning-subtle":"rgba(217,119,6,0.15)","tertiary-fixed-dim":"#62df7d","light-muted":"#A1A1AA","dark-surface-elevated":"#27272A","secondary-fixed-dim":"#b4c5ff","outline":"#3F3F46","inverse-primary":"#bf0715","dark-bg":"#0B0B0C","primary-container":"#DC2626","on-secondary-fixed":"#00174b","surface-container-high":"#2a2a2d","destructive-hover":"#b91c1c","on-surface":"#F4F4F5","tertiary":"#90cdff","surface-container-lowest":"#0B0B0C","surface-dim":"#131316","secondary":"#b4c5ff","on-tertiary-container":"#f3f8ff","primary-fixed":"#ffdad6","surface-container":"#1f1f22","on-background":"#F4F4F5","warning":"#F59E0B","light-bg":"#0B0B0C","surface-bright":"#39393c","surface-container-low":"#18181B","secondary-hover":"#3b82f6","on-tertiary-fixed-variant":"#004b71","primary-hover":"#EF4444","on-primary-container":"#fff6f5","on-primary":"#ffffff","dark-foreground":"#F4F4F5","destructive":"#DC2626","on-secondary":"#002a78","on-error":"#690005","on-secondary-fixed-variant":"#003ea8","light-surface":"#18181B","secondary-fixed":"#dbe1ff","on-primary-fixed-variant":"#93000b","primary-fixed-dim":"#ffb4ab","light-foreground":"#F4F4F5","inverse-on-surface":"#303033","success-subtle":"rgba(22,163,74,0.15)","tertiary-container":"#0078b2","surface":"#0B0B0C","secondary-container":"#0053db","inverse-surface":"#e4e1e6","surface-tint":"#ffb4ab","surface-container-highest":"#353438","error":"#ffb4ab","dark-muted":"#A1A1AA","success":"#22C55E","on-error-container":"#ffdad6","dark-surface":"#18181B","background":"#0B0B0C","on-primary-fixed":"#410002","surface-variant":"#27272A","error-container":"#93000a","outline-variant":"#27272A","on-tertiary":"#003450","on-surface-variant":"#A1A1AA","light-border":"#27272A"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-sm":"0.5rem",gutter:"1.5rem","space-lg":"1.5rem","space-xl":"2rem",margin:"1.5rem","space-xs":"0.25rem","gutter-sm":"1rem","space-md":"1rem","margin-lg":"3rem"},fontFamily:{"label-sm":["JetBrains Mono","monospace"],"code-sm":["JetBrains Mono","monospace"],"body-md":["Inter","sans-serif"],"headline-xl-mobile":["Inter","sans-serif"],"body-lg":["Inter","sans-serif"],"body-sm":["Inter","sans-serif"],"headline-xl":["Inter","sans-serif"],"headline-lg":["Inter","sans-serif"],"headline-md":["Inter","sans-serif"],"label-md":["JetBrains Mono","monospace"],"headline-lg-mobile":["Inter","sans-serif"],"headline-sm":["Inter","sans-serif"]},fontSize:{"label-sm":["0.75rem",{lineHeight:"1rem",letterSpacing:"0.02em",fontWeight:"500"}],"code-sm":["0.75rem",{lineHeight:"1rem",letterSpacing:"0.03em",fontWeight:"500"}],"body-md":["1rem",{lineHeight:"1.5rem",letterSpacing:"0em",fontWeight:"400"}],"headline-xl-mobile":["2rem",{lineHeight:"2.5rem",letterSpacing:"-0.02em",fontWeight:"700"}],"body-lg":["1.125rem",{lineHeight:"1.75rem",letterSpacing:"0em",fontWeight:"400"}],"body-sm":["0.875rem",{lineHeight:"1.25rem",letterSpacing:"0em",fontWeight:"400"}],"headline-xl":["3rem",{lineHeight:"3.5rem",letterSpacing:"-0.025em",fontWeight:"700"}],"headline-lg":["2rem",{lineHeight:"2.5rem",letterSpacing:"-0.02em",fontWeight:"700"}],"headline-md":["1.25rem",{lineHeight:"1.75rem",letterSpacing:"-0.015em",fontWeight:"600"}],"label-md":["0.875rem",{lineHeight:"1.25rem",letterSpacing:"0.01em",fontWeight:"600"}],"headline-lg-mobile":["1.5rem",{lineHeight:"2rem",letterSpacing:"-0.015em",fontWeight:"700"}],"headline-sm":["1rem",{lineHeight:"1.5rem",letterSpacing:"-0.01em",fontWeight:"600"}]}}}};</script></head><body class="bg-[#0B0B0C] font-body-md text-[#F4F4F5] antialiased selection:bg-red-950 selection:text-red-200"><header class="fixed top-0 left-0 right-0 z-50 bg-[#18181B]/90 backdrop-blur-xl border-b border-[#27272A]"><div class="h-16 max-w-7xl mx-auto px-gutter flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><a class="flex items-center gap-space-sm" data-path="explore-tools" href="#"><img alt="PDFTools Logo" class="h-8 w-auto object-contain brightness-110" src="https://lh3.googleusercontent.com/aida/AEtjO1VrTuHk-rZN7iFmjKSeakdMjcDtuVUb0chthamt5saEdcLWqlf221nUUNR8XRn1MgBw8Z9HHELCDCGFSv0aOOhCRF9kARCwhN8ehk_lifj9zZMvE2bMNuwxw_9CW92ID5q4VGPocHWto6EaCX6rVRLm6wNc348vNILaKEclGdfutNnUJSFr28oOIfuk3sJPRRKDsv7x8mujlLqFYU-xTC0JgiWx6DoZDbOHxS-DNhu0pLK20_C_20Hpmz0"/><span class="font-headline-md text-headline-md text-[#F4F4F5] tracking-tight">PDFTools</span></a><nav class="hidden md:flex items-center gap-space-xs"><a class="px-space-sm py-space-xs text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#27272A] rounded-lg font-label-md text-label-md transition-colors" data-path="organize" href="#">Organize</a><a class="px-space-sm py-space-xs text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#27272A] rounded-lg font-label-md text-label-md transition-colors" data-path="convert" href="#">Convert</a><a class="px-space-sm py-space-xs text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#27272A] rounded-lg font-label-md text-label-md transition-colors" data-path="edit" href="#">Edit</a><a class="px-space-sm py-space-xs text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#27272A] rounded-lg font-label-md text-label-md transition-colors" data-path="security" href="#">Security</a><a class="px-space-sm py-space-xs text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#27272A] rounded-lg font-label-md text-label-md transition-colors" data-path="ai" href="#">AI</a></nav></div><div class="flex items-center gap-space-sm"><button class="flex items-center justify-between gap-space-md px-space-sm py-space-xs h-9 bg-[#18181B] hover:bg-[#27272A] border border-[#27272A] rounded-lg text-[#A1A1AA] hover:text-[#F4F4F5] transition-all w-48 md:w-56 text-left" type="button"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[#A1A1AA] text-[18px]">search</span><span class="font-body-sm text-body-sm">Search tools...</span></div><kbd class="hidden sm:inline-flex items-center px-space-xs py-0.5 bg-[#0B0B0C] border border-[#27272A] rounded text-[11px] font-medium text-[#A1A1AA] font-code-sm">⌘K</kbd></button><button aria-label="Toggle theme mode" class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#27272A] bg-[#18181B] hover:bg-[#27272A] text-[#F4F4F5] hover:text-white transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">dark_mode</span></button><div class="w-8 h-8 rounded-full bg-[#DC2626] flex items-center justify-center shrink-0 shadow-sm"><span class="material-symbols-outlined text-white text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-[#0B0B0C]"><div class="flex flex-col w-full">
+<!-- Top Subtle Ambient Light Glow -->
+<div class="relative w-full overflow-hidden">
+<div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[850px] h-96 bg-red-950/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<div class="absolute top-10 right-1/4 w-72 h-72 bg-blue-950/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<!-- Section 1: Hero & Command Dropzone -->
+<section class="max-w-7xl mx-auto px-gutter pt-space-xl pb-space-lg w-full flex flex-col items-center text-center">
+<!-- Minimalist Status Capsule -->
+<div class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-[#18181B] border border-[#27272A] text-[#A1A1AA] mb-space-md shadow-sm">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="font-code-sm text-code-sm font-medium tracking-tight text-[#F4F4F5]">v2.4 Engine Active</span>
+<span class="text-[#71717A] text-code-sm">/</span>
+<span class="font-label-sm text-label-sm text-[#A1A1AA]">Private Client-Side Sandbox</span>
+</div>
+<!-- Main Headline -->
+<h1 class="font-headline-xl text-headline-xl text-[#F4F4F5] max-w-4xl tracking-tight leading-none mb-space-sm">
+        High-performance PDF utilities. <span class="text-[#DC2626]">Zero friction.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-[#A1A1AA] max-w-2xl mb-space-xl">
+        Deterministic, bank-grade document operations right in your browser. Reorder, compress, convert, and sign without server uploads.
+      </p>
+<!-- Universal Interactive Dropzone (Execution Step 1) -->
+<div class="w-full max-w-3xl rounded-xl bg-[#18181B] border-2 border-dashed border-[#3F3F46] hover:border-[#DC2626]/80 p-space-xl relative transition-all duration-200 cursor-pointer shadow-lg hover:shadow-red-950/20 group" id="universal-dropzone">
+<input accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,image/*" class="hidden" id="hero-file-input" multiple="" type="file"/>
+<div class="flex flex-col items-center justify-center pointer-events-none">
+<div class="w-14 h-14 rounded-full bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#DC2626] mb-space-md group-hover:scale-110 transition-transform duration-200 shadow-sm">
+<span class="material-symbols-outlined text-[28px]">upload_file</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-[#F4F4F5] mb-space-xs tracking-tight">
+            Drop any PDF here to auto-detect operation
+          </h3>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] mb-space-lg max-w-md">
+            Smart-engine recognizes passwords, scanned pages, or oversized streams to suggest instant actions.
+          </p>
+<div class="flex flex-wrap items-center justify-center gap-space-sm pointer-events-auto">
+<button class="h-10 px-space-lg rounded-lg bg-[#DC2626] hover:bg-[#b91c1c] text-white font-label-md text-label-md transition-all shadow-md active:scale-95 flex items-center gap-space-xs" onclick="document.getElementById('hero-file-input').click()" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>Browse Files</span>
+</button>
+<div class="flex items-center gap-space-xs px-space-sm py-2 rounded-lg bg-[#0B0B0C] border border-[#27272A] text-[#A1A1AA] shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-emerald-400">verified_user</span>
+<span class="font-label-sm text-label-sm">Up to 250MB / 256-bit AES</span>
+</div>
+</div>
+</div>
+<!-- Dynamic Drop-State Indicator (Hidden by default) -->
+<div class="absolute inset-0 bg-red-950/40 backdrop-blur-xs rounded-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200 border-2 border-[#DC2626]" id="drop-active-overlay">
+<div class="px-space-lg py-space-sm rounded-lg bg-[#18181B] border border-[#27272A] shadow-xl text-[#DC2626] font-label-md text-label-md flex items-center gap-space-xs">
+<span class="material-symbols-outlined animate-bounce">arrow_downward</span>
+<span class="text-white">Release to auto-inspect document</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Command & Category Filter Ribbon -->
+<section class="max-w-7xl mx-auto px-gutter w-full mb-space-lg">
+<div class="bg-[#18181B] border border-[#27272A] rounded-xl p-space-sm flex flex-col md:flex-row items-center justify-between gap-space-md shadow-sm">
+<!-- Filter Tabs / Segmented Controller -->
+<div class="flex items-center gap-1 overflow-x-auto w-full md:w-auto p-1 bg-[#0B0B0C] rounded-lg border border-[#27272A]" id="category-tabs">
+<button class="tab-btn px-space-md py-1.5 rounded-lg font-label-md text-label-md bg-[#27272A] text-[#F4F4F5] shadow-sm transition-colors whitespace-nowrap" data-cat="all">
+            All Tools
+          </button>
+<button class="tab-btn px-space-md py-1.5 rounded-lg font-label-md text-label-md text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#18181B] transition-colors whitespace-nowrap" data-cat="organize">
+            Organize
+          </button>
+<button class="tab-btn px-space-md py-1.5 rounded-lg font-label-md text-label-md text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#18181B] transition-colors whitespace-nowrap" data-cat="convert-to">
+            Convert to PDF
+          </button>
+<button class="tab-btn px-space-md py-1.5 rounded-lg font-label-md text-label-md text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#18181B] transition-colors whitespace-nowrap" data-cat="convert-from">
+            Convert from PDF
+          </button>
+<button class="tab-btn px-space-md py-1.5 rounded-lg font-label-md text-label-md text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#18181B] transition-colors whitespace-nowrap" data-cat="edit">
+            Edit
+          </button>
+<button class="tab-btn px-space-md py-1.5 rounded-lg font-label-md text-label-md text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#18181B] transition-colors whitespace-nowrap" data-cat="security">
+            Security
+          </button>
+<button class="tab-btn px-space-md py-1.5 rounded-lg font-label-md text-label-md text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#18181B] transition-colors whitespace-nowrap flex items-center gap-1.5" data-cat="ai">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+            AI Studio
+          </button>
+</div>
+<!-- Quick Filter Search Box -->
+<div class="relative w-full md:w-72 shrink-0">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#A1A1AA]">filter_list</span>
+<input class="w-full h-10 pl-9 pr-9 bg-[#0B0B0C] border border-[#27272A] rounded-lg font-body-sm text-body-sm text-[#F4F4F5] placeholder:text-[#71717A] focus:outline-none focus:ring-2 focus:ring-[#DC2626] focus:border-[#DC2626] shadow-sm" id="tool-search" placeholder="Type to filter 28+ tools..." type="text"/>
+<button class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-[#A1A1AA] hover:text-[#F4F4F5] text-[14px]" id="clear-search">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Section 3: Bento Grid Layout of Tools -->
+<section class="max-w-7xl mx-auto px-gutter w-full pb-margin-lg">
+<!-- Bento Tier 1: Large Featured Showcase Cards -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter mb-gutter" id="featured-bento">
+<!-- Bento Card 1: Merge PDF (Span 5) -->
+<div class="lg:col-span-5 bg-[#18181B] border border-[#27272A] hover:border-[#3F3F46] hover:bg-[#27272A]/70 rounded-xl p-space-lg flex flex-col justify-between hover:shadow-lg transition-all group relative overflow-hidden">
+<div class="flex items-start justify-between gap-space-sm mb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-red-950/60 border border-red-900/50 flex items-center justify-center text-[#DC2626] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">call_merge</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-headline-sm text-headline-sm text-[#F4F4F5]">Merge PDF</h3>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-sm bg-red-950/80 border border-red-800/60 text-red-300 font-semibold">POPULAR</span>
+</div>
+<p class="font-body-sm text-body-sm text-[#A1A1AA]">Combine files in exact visual page sequence</p>
+</div>
+</div>
+<kbd class="font-code-sm text-code-sm text-[#A1A1AA] bg-[#0B0B0C] border border-[#27272A] px-2 py-1 rounded shadow-xs">M</kbd>
+</div>
+<!-- Mini Visual Visualizer Deck -->
+<div class="h-32 w-full bg-[#0B0B0C] border border-[#27272A] rounded-lg p-space-sm flex items-center justify-center gap-space-xs relative overflow-hidden mb-space-md">
+<div class="w-20 h-24 bg-[#18181B] border border-[#27272A] rounded shadow-md flex flex-col p-2 transform -rotate-6 transition-transform group-hover:-rotate-12 duration-200">
+<div class="w-8 h-1.5 bg-[#DC2626] rounded mb-1"></div>
+<div class="w-12 h-1 bg-[#3F3F46] rounded mb-1"></div>
+<div class="w-10 h-1 bg-[#3F3F46] rounded"></div>
+<div class="mt-auto text-[9px] font-code-sm text-[#71717A] text-right">01.pdf</div>
+</div>
+<div class="w-6 h-6 rounded-full bg-[#DC2626] text-white flex items-center justify-center shadow-md z-10">
+<span class="material-symbols-outlined text-[14px]">add</span>
+</div>
+<div class="w-20 h-24 bg-[#18181B] border border-[#27272A] rounded shadow-md flex flex-col p-2 transform rotate-6 transition-transform group-hover:rotate-12 duration-200">
+<div class="w-8 h-1.5 bg-blue-500 rounded mb-1"></div>
+<div class="w-12 h-1 bg-[#3F3F46] rounded mb-1"></div>
+<div class="w-14 h-1 bg-[#3F3F46] rounded"></div>
+<div class="mt-auto text-[9px] font-code-sm text-[#71717A] text-right">02.pdf</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<span class="font-label-sm text-label-sm text-[#A1A1AA] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-emerald-400">bolt</span>
+              Lossless stream concatenation
+            </span>
+<a class="font-label-md text-label-md text-[#DC2626] hover:text-red-400 flex items-center gap-0.5" href="#">
+              Launch tool <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Bento Card 2: Compress PDF with Savings Gauge (Span 4) -->
+<div class="lg:col-span-4 bg-[#18181B] border border-[#27272A] hover:border-[#3F3F46] hover:bg-[#27272A]/70 rounded-xl p-space-lg flex flex-col justify-between hover:shadow-lg transition-all group relative overflow-hidden">
+<div class="flex items-start justify-between gap-space-sm mb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">compress</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-headline-sm text-headline-sm text-[#F4F4F5]">Compress PDF</h3>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-sm bg-emerald-950/80 border border-emerald-800/60 text-emerald-400 font-semibold">-86% AVG</span>
+</div>
+<p class="font-body-sm text-body-sm text-[#A1A1AA]">Shrink file weight while safeguarding DPI</p>
+</div>
+</div>
+<kbd class="font-code-sm text-code-sm text-[#A1A1AA] bg-[#0B0B0C] border border-[#27272A] px-2 py-1 rounded shadow-xs">C</kbd>
+</div>
+<!-- Savings Gauge Visualizer -->
+<div class="h-32 w-full bg-[#0B0B0C] border border-[#27272A] rounded-lg p-space-sm flex items-center justify-around mb-space-md">
+<div class="flex flex-col items-center">
+<span class="font-code-sm text-code-sm text-[#71717A] line-through">14.8 MB</span>
+<span class="font-label-sm text-label-sm text-[#A1A1AA] font-medium mt-1">Raw File</span>
+</div>
+<div class="relative flex items-center justify-center">
+<!-- Inline SVG Gauge Chart -->
+<svg class="w-20 h-20 transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-[#27272A]" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-emerald-500 transition-all duration-1000" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="86, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="font-headline-sm text-headline-sm text-emerald-400 font-bold leading-none">-86%</span>
+</div>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-code-sm text-code-sm text-emerald-400 font-bold">2.1 MB</span>
+<span class="font-label-sm text-label-sm text-[#A1A1AA] font-medium mt-1">Optimized</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<span class="font-label-sm text-label-sm text-[#A1A1AA] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">tune</span>
+              Selectable DPI profile
+            </span>
+<a class="font-label-md text-label-md text-[#DC2626] hover:text-red-400 flex items-center gap-0.5" href="#">
+              Launch tool <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Bento Card 3: PDF to Word (Span 3) -->
+<div class="lg:col-span-3 bg-[#18181B] border border-[#27272A] hover:border-[#3F3F46] hover:bg-[#27272A]/70 rounded-xl p-space-lg flex flex-col justify-between hover:shadow-lg transition-all group relative overflow-hidden">
+<div class="flex items-start justify-between gap-space-sm mb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-blue-950/60 border border-blue-900/50 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">description</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-[#F4F4F5]">PDF to Word</h3>
+<p class="font-body-sm text-body-sm text-[#A1A1AA]">Flawless typography matching</p>
+</div>
+</div>
+<kbd class="font-code-sm text-code-sm text-[#A1A1AA] bg-[#0B0B0C] border border-[#27272A] px-2 py-1 rounded shadow-xs">W</kbd>
+</div>
+<!-- Office Visual Block -->
+<div class="h-32 w-full bg-[#0B0B0C] border border-[#27272A] rounded-lg p-space-sm flex flex-col justify-center items-center text-center mb-space-md">
+<div class="flex items-center gap-2 mb-2">
+<span class="px-2 py-1 bg-[#18181B] border border-red-900/50 text-[#DC2626] font-code-sm text-code-sm rounded shadow-xs">.PDF</span>
+<span class="material-symbols-outlined text-[14px] text-[#71717A]">arrow_forward</span>
+<span class="px-2 py-1 bg-blue-600 text-white font-code-sm text-code-sm rounded shadow-xs">.DOCX</span>
+</div>
+<p class="font-code-sm text-code-sm text-[#A1A1AA]">Keeps nested tables &amp; vectors</p>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<span class="font-label-sm text-label-sm text-[#A1A1AA] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-blue-400">spellcheck</span>
+              OCR Engine Ready
+            </span>
+<a class="font-label-md text-label-md text-[#DC2626] hover:text-red-400 flex items-center gap-0.5" href="#">
+              Convert <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+<!-- Bento Tier 2: Categorized Dense 4-Column Grid -->
+<div class="space-y-space-xl" id="tools-container">
+<!-- 1. Organize Category -->
+<div class="category-section" data-section="organize">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[#DC2626] text-[20px]">sort</span>
+<h2 class="font-headline-md text-headline-md text-[#F4F4F5] tracking-tight">Organize &amp; Structure</h2>
+<span class="font-code-sm text-code-sm text-[#71717A] ml-2">6 tools</span>
+</div>
+<span class="text-[#71717A] font-label-sm text-label-sm hidden sm:inline">Page assembly &amp; sequence</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Merge PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="merge split combine" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-red-950/60 border border-red-900/50 flex items-center justify-center text-[#DC2626] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">merge</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A] bg-[#0B0B0C] border border-[#27272A] px-1.5 py-0.5 rounded">⌘M</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Merge PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Stitch multiple PDF files into a single structured sequence.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Drag &amp; drop arrange</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Split PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="split pages separate" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">call_split</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A] bg-[#0B0B0C] border border-[#27272A] px-1.5 py-0.5 rounded">⌘S</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Split PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Isolate page ranges or burst single pages into separate docs.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Custom bounds</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Remove Pages -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="remove delete pages cut" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">delete_sweep</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A] bg-[#0B0B0C] border border-[#27272A] px-1.5 py-0.5 rounded">⌘D</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Remove Pages</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Quick visual picker to delete unnecessary blank or error leaves.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">One-click strip</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Extract Pages -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="extract export pull pages" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">file_open</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A] bg-[#0B0B0C] border border-[#27272A] px-1.5 py-0.5 rounded">⌘E</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Extract Pages</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Carve out specific exhibits, tables, or sections into clean outputs.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Range or batch</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Organize PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="organize reorder canvas rearrange" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A] bg-[#0B0B0C] border border-[#27272A] px-1.5 py-0.5 rounded">⌘O</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Visual Organize</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Interactive drag-and-drop workspace for high-volume document rearrangement.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Bento canvas</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Rotate PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="rotate orientation 90 degrees" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">rotate_right</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A] bg-[#0B0B0C] border border-[#27272A] px-1.5 py-0.5 rounded">⌘R</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Rotate PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Fix orientation issues by 90°, 180°, or selective landscape normalization.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Batch rotation</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+</div>
+</div>
+<!-- 2. Convert to PDF Category -->
+<div class="category-section" data-section="convert-to">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-blue-400 text-[20px]">input</span>
+<h2 class="font-headline-md text-headline-md text-[#F4F4F5] tracking-tight">Convert to PDF</h2>
+<span class="font-code-sm text-code-sm text-[#71717A] ml-2">5 tools</span>
+</div>
+<span class="text-[#71717A] font-label-sm text-label-sm hidden sm:inline">Raster &amp; vector rasterization to standard PDF/A</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Word to PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="word doc docx to pdf" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-blue-950/60 border border-blue-900/50 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">article</span>
+</div>
+<span class="font-code-sm text-code-sm text-blue-400 font-semibold">DOCX</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Word to PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Preserve exact Microsoft Word typography, line wraps, and headings.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">DOC, DOCX, ODT</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- PPT to PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="powerpoint ppt pptx presentation slides to pdf" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-amber-950/60 border border-amber-900/50 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">co_present</span>
+</div>
+<span class="font-code-sm text-code-sm text-amber-400 font-semibold">PPTX</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">PPT to PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Convert presentation slide decks into printable, presentation-ready vector PDFs.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">16:9 &amp; 4:3 canvas</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Excel to PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="excel xls xlsx spreadsheet to pdf" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-emerald-950/60 border border-emerald-900/50 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">table_chart</span>
+</div>
+<span class="font-code-sm text-code-sm text-emerald-400 font-semibold">XLSX</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Excel to PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Lock spreadsheet cells, pivot charts, and calculations into unalterable formats.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Fit to single width</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Image to PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="image jpg png webp heic to pdf" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">image</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A]">JPG/PNG</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Image to PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Compile single or multiple raster graphics into clean printable booklets.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Auto-margin crop</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Scan to PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="scan scanner camera ocr to pdf" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">document_scanner</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A]">CAMERA</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Scan to PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Turn physical papers into searchable PDFs via camera capture or flatbed driver.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Edge deskew</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+</div>
+</div>
+<!-- 3. Convert from PDF Category -->
+<div class="category-section" data-section="convert-from">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[#DC2626] text-[20px]">output</span>
+<h2 class="font-headline-md text-headline-md text-[#F4F4F5] tracking-tight">Convert from PDF</h2>
+<span class="font-code-sm text-code-sm text-[#71717A] ml-2">5 tools</span>
+</div>
+<span class="text-[#71717A] font-label-sm text-label-sm hidden sm:inline">High-fidelity decompression into editable formats</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- PDF to Word -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="pdf to word docx text" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-blue-950/60 border border-blue-900/50 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">description</span>
+</div>
+<span class="font-code-sm text-code-sm text-blue-400 font-semibold">→ DOCX</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">PDF to Word</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Convert complex layouts into editable .docx documents without losing styling.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Paragraph reflow</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- PDF to PPT -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="pdf to ppt pptx slides powerpoint" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-amber-950/60 border border-amber-900/50 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">slideshow</span>
+</div>
+<span class="font-code-sm text-code-sm text-amber-400 font-semibold">→ PPTX</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">PDF to PPT</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Extract slide sequences back into native PowerPoint presentation shapes.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Master slide reconstruct</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- PDF to Excel -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="pdf to excel xls xlsx tables csv" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-emerald-950/60 border border-emerald-900/50 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">dataset</span>
+</div>
+<span class="font-code-sm text-code-sm text-emerald-400 font-semibold">→ XLSX</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">PDF to Excel</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Detect tabular data boundaries and extract clean columns to .xlsx.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Auto table border detector</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- PDF to JPG -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="pdf to jpg png images pictures photo" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">collections</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A]">→ JPG</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">PDF to JPG</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Export high-resolution raster images of all pages or embedded photos.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Up to 600 DPI</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- PDF to Markdown -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="pdf to markdown md llm developer code" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#DC2626] font-semibold">→ MD</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">PDF to Markdown</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Clean semantic markdown with structural tags ideal for LLM ingestion.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Token-efficient layout</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+</div>
+</div>
+<!-- 4. Edit Category -->
+<div class="category-section" data-section="edit">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[#DC2626] text-[20px]">draw</span>
+<h2 class="font-headline-md text-headline-md text-[#F4F4F5] tracking-tight">Edit &amp; Annotate</h2>
+<span class="font-code-sm text-code-sm text-[#71717A] ml-2">5 tools</span>
+</div>
+<span class="text-[#71717A] font-label-sm text-label-sm hidden sm:inline">Modify content, stamp annotations, or adjust boundaries</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Edit PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="edit text modify content typo" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-red-950/60 border border-red-900/50 flex items-center justify-center text-[#DC2626] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">edit_note</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A]">INLINE</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Edit PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Direct text replacement, vector markup, shapes, and inline font alignment.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Direct DOM editor</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Page Numbers -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="add page numbers bates stamp numbering" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">pin</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A]">HEADER/FOOTER</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Add Page Numbers</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Stamp automated pagination, roman numerals, or legal Bates numbering.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Bates stamps ready</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Watermark -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="watermark stamp text confidential draft" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">branding_watermark</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A]">STAMP</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Watermark</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Imprint text or logos with controlled opacity, angle, and layer depth.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Diagonal / Tile</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Crop PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="crop trim margins box bleed" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">crop</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A]">BOX</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Crop PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Trim white margins, trim boxes, and bleed lines across specific page ranges.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Millimeter precision</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Fill Forms -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="fill forms acroforms fields interactive inputs" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">check_box</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A]">FORMS</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Fill Forms</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Type directly into AcroForm fields, checkboxes, radio groups, and flatten results.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">AcroForm / XFA</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+</div>
+</div>
+<!-- 5. Security Category -->
+<div class="category-section" data-section="security">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[#DC2626] text-[20px]">lock</span>
+<h2 class="font-headline-md text-headline-md text-[#F4F4F5] tracking-tight">Security &amp; Compliance</h2>
+<span class="font-code-sm text-code-sm text-[#71717A] ml-2">4 tools</span>
+</div>
+<span class="text-[#71717A] font-label-sm text-label-sm hidden sm:inline">Bank-grade cryptography &amp; legally valid signing</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Protect PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="protect password encrypt aes lock pdf" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-red-950/60 border border-red-900/50 flex items-center justify-center text-[#DC2626] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">shield_lock</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#DC2626] font-semibold">256-AES</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Protect PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Encrypt with user and owner passwords, blocking unauthorized printing or editing.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Zero-knowledge keying</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Unlock PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="unlock decrypt remove password security" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">lock_open</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A]">DECRYPT</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Unlock PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Permanently remove permissions and master password restrictions from your files.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Instant permission strip</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Sign PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="sign signature esign e-sign certificate contract" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-red-950/60 border border-red-900/50 flex items-center justify-center text-[#DC2626] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">ink_pen</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#DC2626] font-semibold">eIDAS</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Sign PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Draw or upload your legal handwritten signature or embed PKCS#7 digital certs.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Legally binding</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Redact PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="redact black out censor private pii ssn privacy" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">ink_highlighter</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A]">BLACKOUT</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Redact PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Permanently purge sensitive text, metadata, and underlying vector elements.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">True vector sanitization</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+</div>
+</div>
+<!-- 6. AI Category -->
+<div class="category-section" data-section="ai">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-blue-400 text-[20px]">auto_awesome</span>
+<h2 class="font-headline-md text-headline-md text-[#F4F4F5] tracking-tight">AI Document Intelligence</h2>
+<span class="font-code-sm text-code-sm text-[#71717A] ml-2">4 tools</span>
+</div>
+<span class="text-[#71717A] font-label-sm text-label-sm hidden sm:inline">Semantic vector analysis &amp; multi-lingual synthesis</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- AI Summarize -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="ai summarize tl;dr digest outline intelligence" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-blue-950/60 border border-blue-900/50 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+</div>
+<span class="font-code-sm text-code-sm text-blue-400 font-semibold">LLM</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">AI Summarize</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Generate executive takeaways, bullet point recaps, and action items in seconds.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Key takeaway extraction</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- AI Translate -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="ai translate languages spanish french german japanese" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">translate</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A]">100+ LANG</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">AI Translate</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Translate entire documents while rigorously keeping the original layout and graphics.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Preserves formatting</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Compare PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="compare diff changes redline legal contrast" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#F4F4F5] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">difference</span>
+</div>
+<span class="font-code-sm text-code-sm text-[#71717A]">DIFF</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Compare PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Run semantic diffs across contract versions to spot alterations and clauses.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Side-by-side redline</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+<!-- Chat with PDF -->
+<a class="tool-card group bg-[#18181B] border border-[#27272A] rounded-xl p-space-lg flex flex-col justify-between hover:bg-[#27272A] hover:border-[#3F3F46] transition-all shadow-sm" data-name="chat with pdf ask questions rag search" href="#">
+<div>
+<div class="flex items-start justify-between mb-space-md">
+<div class="w-10 h-10 rounded-lg bg-blue-950/60 border border-blue-900/50 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">chat</span>
+</div>
+<span class="font-code-sm text-code-sm text-blue-400 font-semibold">RAG</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1 group-hover:text-[#DC2626] transition-colors">Chat with PDF</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] line-clamp-2">Ask conversational questions, query tables, and receive sourced answers.</p>
+</div>
+<div class="pt-space-md flex items-center justify-between text-[#71717A]">
+<span class="font-code-sm text-code-sm">Source citation links</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 group-hover:text-[#DC2626] transition-all">arrow_forward</span>
+</div>
+</a>
+</div>
+</div>
+</div>
+<!-- Empty Filter State (Hidden by default) -->
+<div class="hidden py-space-xl flex-col items-center justify-center text-center" id="no-results">
+<div class="w-12 h-12 rounded-full bg-[#18181B] border border-[#27272A] flex items-center justify-center text-[#71717A] mb-space-sm">
+<span class="material-symbols-outlined text-[24px]">search_off</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1">No tools matched your query</h3>
+<p class="font-body-sm text-body-sm text-[#A1A1AA] mb-space-md">Try searching for keywords like "merge", "word", or "sign"</p>
+<button class="h-9 px-space-md rounded-lg bg-[#27272A] hover:bg-[#3F3F46] text-[#F4F4F5] font-label-md text-label-md transition-colors" id="reset-filter-btn">
+          Reset search
+        </button>
+</div>
+</section>
+<!-- Section 4: Engineered Reliability & Trust Strip -->
+<section class="w-full bg-[#18181B] border-t border-[#27272A] py-margin">
+<div class="max-w-7xl mx-auto px-gutter grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-[#0B0B0C] border border-[#27272A] flex items-center justify-center text-[#DC2626] shrink-0 shadow-xs">
+<span class="material-symbols-outlined text-[20px]">encrypted</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1">Zero Cloud Data Retention</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA]">WebAssembly executes directly in your local thread. Your files never hit third-party servers.</p>
+</div>
+</div>
+<div class="flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-[#0B0B0C] border border-[#27272A] flex items-center justify-center text-[#DC2626] shrink-0 shadow-xs">
+<span class="material-symbols-outlined text-[20px]">speed</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1">Multi-Threaded Wasm Core</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA]">100-page compressions finish under 400ms without queuing or throttle limits.</p>
+</div>
+</div>
+<div class="flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-[#0B0B0C] border border-[#27272A] flex items-center justify-center text-[#DC2626] shrink-0 shadow-xs">
+<span class="material-symbols-outlined text-[20px]">verified</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-[#F4F4F5] mb-1">ISO 32000-2 Certified</h4>
+<p class="font-body-sm text-body-sm text-[#A1A1AA]">Strict compliance with international PDF standards guarantees universal Acrobat compatibility.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+<script>
+  // Filter tabs and search interaction
+  const tabs = document.querySelectorAll('.tab-btn');
+  const sections = document.querySelectorAll('.category-section');
+  const featuredBento = document.getElementById('featured-bento');
+  const searchInput = document.getElementById('tool-search');
+  const clearSearchBtn = document.getElementById('clear-search');
+  const toolCards = document.querySelectorAll('.tool-card');
+  const noResults = document.getElementById('no-results');
+  const resetFilterBtn = document.getElementById('reset-filter-btn');
+
+  let activeCategory = 'all';
+
+  function applyFilters() {
+    const query = searchInput.value.trim().toLowerCase();
+    let visibleCount = 0;
+
+    // Show/hide clear search button
+    if (query.length > 0) {
+      clearSearchBtn.classList.remove('hidden');
+    } else {
+      clearSearchBtn.classList.add('hidden');
+    }
+
+    // Handle bento visibility: hide featured if searching or filtering specific category
+    if (activeCategory !== 'all' || query.length > 0) {
+      featuredBento.classList.add('hidden');
+    } else {
+      featuredBento.classList.remove('hidden');
+    }
+
+    // Filter categories & cards
+    sections.forEach(section => {
+      const sectionCat = section.getAttribute('data-section');
+      const matchesCategory = (activeCategory === 'all' || activeCategory === sectionCat);
+
+      if (!matchesCategory) {
+        section.classList.add('hidden');
+        return;
+      }
+
+      let sectionHasVisibleCards = false;
+      const cards = section.querySelectorAll('.tool-card');
+
+      cards.forEach(card => {
+        const textContent = (card.textContent + ' ' + (card.getAttribute('data-name') || '')).toLowerCase();
+        const matchesQuery = query === '' || textContent.includes(query);
+
+        if (matchesQuery) {
+          card.classList.remove('hidden');
+          sectionHasVisibleCards = true;
+          visibleCount++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      if (sectionHasVisibleCards) {
+        section.classList.remove('hidden');
+      } else {
+        section.classList.add('hidden');
+      }
+    });
+
+    if (visibleCount === 0) {
+      noResults.classList.remove('hidden');
+      noResults.classList.add('flex');
+    } else {
+      noResults.classList.add('hidden');
+      noResults.classList.remove('flex');
+    }
+  }
+
+  // Tab click handler
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => {
+        t.classList.remove('bg-[#27272A]', 'text-[#F4F4F5]', 'shadow-sm');
+        t.classList.add('text-[#A1A1AA]');
+      });
+      tab.classList.add('bg-[#27272A]', 'text-[#F4F4F5]', 'shadow-sm');
+      tab.classList.remove('text-[#A1A1AA]');
+
+      activeCategory = tab.getAttribute('data-cat');
+      applyFilters();
+    });
+  });
+
+  // Search input handler
+  searchInput.addEventListener('input', applyFilters);
+
+  clearSearchBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    applyFilters();
+    searchInput.focus();
+  });
+
+  resetFilterBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    activeCategory = 'all';
+    tabs.forEach((t, i) => {
+      if (i === 0) {
+        t.classList.add('bg-[#27272A]', 'text-[#F4F4F5]', 'shadow-sm');
+        t.classList.remove('text-[#A1A1AA]');
+      } else {
+        t.classList.remove('bg-[#27272A]', 'text-[#F4F4F5]', 'shadow-sm');
+        t.classList.add('text-[#A1A1AA]');
+      }
+    });
+    applyFilters();
+  });
+
+  // Drag and drop interaction on Hero dropzone
+  const dropzone = document.getElementById('universal-dropzone');
+  const overlay = document.getElementById('drop-active-overlay');
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropzone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      overlay.classList.remove('opacity-0');
+      overlay.classList.add('opacity-100');
+    }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropzone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      overlay.classList.add('opacity-0');
+      overlay.classList.remove('opacity-100');
+    }, false);
+  });
+
+  dropzone.addEventListener('drop', (e) => {
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      // Simulate quick auto-inspection feedback
+      alert(`Inspected "${files[0].name}" (${(files[0].size / 1024 / 1024).toFixed(2)} MB). Recommended: Compress PDF or OCR Scan.`);
+    }
+  });
+
+  // Hotkey listener for Quick Navigation (M, C, W, /)
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+    if (e.key === '/') {
+      e.preventDefault();
+      searchInput.focus();
+    }
+  });
+</script></main><footer class="w-full border-t border-[#27272A] bg-[#18181B] py-margin"><div class="max-w-7xl mx-auto px-gutter flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm"><img alt="PDFTools Logo" class="h-6 w-auto object-contain brightness-110 opacity-80" src="https://lh3.googleusercontent.com/aida/AEtjO1VrTuHk-rZN7iFmjKSeakdMjcDtuVUb0chthamt5saEdcLWqlf221nUUNR8XRn1MgBw8Z9HHELCDCGFSv0aOOhCRF9kARCwhN8ehk_lifj9zZMvE2bMNuwxw_9CW92ID5q4VGPocHWto6EaCX6rVRLm6wNc348vNILaKEclGdfutNnUJSFr28oOIfuk3sJPRRKDsv7x8mujlLqFYU-xTC0JgiWx6DoZDbOHxS-DNhu0pLK20_C_20Hpmz0"/><span class="font-headline-sm text-headline-sm text-[#F4F4F5]">PDFTools</span><span class="font-body-sm text-body-sm text-[#71717A]">— Frictionless document utility.</span></div><div class="flex items-center gap-space-md"><a class="font-body-sm text-body-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" data-path="organize" href="#">Organize</a><a class="font-body-sm text-body-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" data-path="convert" href="#">Convert</a><a class="font-body-sm text-body-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" data-path="edit" href="#">Edit</a><a class="font-body-sm text-body-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" data-path="security" href="#">Security</a><a class="font-body-sm text-body-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" data-path="ai" href="#">AI</a></div></div></footer></body></html>
