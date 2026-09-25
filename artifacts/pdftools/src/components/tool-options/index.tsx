@@ -1,6 +1,11 @@
 import type { ComponentType } from "react";
 import { CompressOptions } from "@/components/tool-options/compress";
+import { ExtractPagesOptions } from "@/components/tool-options/extract-pages";
+import { MergeOptions } from "@/components/tool-options/merge";
+import { OrganizePagesOptions } from "@/components/tool-options/organize-pages";
 import { RemovePagesOptions } from "@/components/tool-options/remove-pages";
+import { RotateOptions } from "@/components/tool-options/rotate";
+import { SplitOptions } from "@/components/tool-options/split";
 import type { ToolOptionsProps } from "@/components/tool-options/types";
 import { uiIcons } from "@/lib/icons";
 
@@ -28,7 +33,12 @@ function NoOptionsPanel({ note }: { note: string }) {
 
 export const OPTION_PANELS: Record<string, ComponentType<ToolOptionsProps>> = {
   compress: CompressOptions,
+  merge: MergeOptions,
+  split: SplitOptions,
   "remove-pages": RemovePagesOptions,
+  "extract-pages": ExtractPagesOptions,
+  "organize-pages": OrganizePagesOptions,
+  rotate: RotateOptions,
   "ai-summarize": NoOptionsPanel({
     note: "Runs with the default summarizer settings — a short summary plus key points. No options to set.",
   }),

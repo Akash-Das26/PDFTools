@@ -159,6 +159,18 @@ export default function Tool() {
   const buildOptions = useCallback((): Record<string, unknown> => {
     if (!tool) return options;
 
+    if (tool.id === "rotate") {
+      // The endpoint requires an explicit angle; default to 90° rather than
+      // sending an empty field the server would reject.
+      return {
+        ...options,
+        rotation:
+          options.rotation === 180 || options.rotation === 270
+            ? options.rotation
+            : 90,
+      };
+    }
+
     if (tool.workspace !== "page-picker") return options;
 
     const plan = pagePlan;
@@ -190,6 +202,15 @@ export default function Tool() {
 
   const process = useCallback(async () => {
     if (!tool) return;
+    if (tool.id === "merge" && files.length < 2) {
+      setPhase("error");
+      setError({
+        title: "Two PDFs or more are required",
+        message:
+          "Merging combines at least two documents. Add another PDF — or remove files from the list — and run it again.",
+      });
+      return;
+    }
     if (tool.workspace === "page-picker" && tool.id === "extract-pages") {
       const active = (pagePlan?.selected ?? []).filter(
         (page) => !(pagePlan?.removed ?? []).includes(page),
@@ -276,6 +297,7 @@ export default function Tool() {
       abortRef.current = null;
     }
   }, [buildOptions, files, pagePlan, tool]);
+  // `files` is listed for the merge guard above.
 
   const cancel = useCallback(() => {
     abortRef.current?.abort();
@@ -292,9 +314,11 @@ export default function Tool() {
         options={options}
         onChange={(patch) => setOptions((current) => ({ ...current, ...patch }))}
         pagePlan={pagePlan}
+        files={files}
+        onFilesChange={setFiles}
       />
     );
-  }, [options, pagePlan, tool]);
+  }, [options, pagePlan, tool, files]);
 
   if (isLoading) {
     return (

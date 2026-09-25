@@ -1,7 +1,9 @@
 import {
   Archive,
+  ArrowDown,
   ArrowLeft,
   ArrowRight,
+  ArrowUp,
   Check,
   ChevronDown,
   ChevronRight,
@@ -111,14 +113,17 @@ export function iconForTool(tool: Pick<Tool, "icon">): LucideIcon {
 
 /** Shared chrome/nav glyphs used outside the tool registry. */
 export const uiIcons = {
+  arrowDown: ArrowDown,
   arrowLeft: ArrowLeft,
   arrowRight: ArrowRight,
+  arrowUp: ArrowUp,
   check: Check,
   chevronDown: ChevronDown,
   chevronRight: ChevronRight,
   circleAlert: CircleAlert,
   circleCheck: CircleCheck,
   download: Download,
+  fileText: FileText,
   folderOpen: FolderOpen,
   gripVertical: GripVertical,
   info: Info,

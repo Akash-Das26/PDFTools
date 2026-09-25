@@ -14,4 +14,8 @@ export interface ToolOptionsProps {
   onChange: (patch: Record<string, unknown>) => void;
   /** Present for page-picker tools; absent for stepper tools. */
   pagePlan?: PagePlan;
+  /** The selected files. Present so panels like Merge can render and reorder them. */
+  files?: File[];
+  /** Replace the tool page's file list (merge reordering, removing a file). */
+  onFilesChange?: (files: File[]) => void;
 }

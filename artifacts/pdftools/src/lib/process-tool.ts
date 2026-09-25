@@ -39,17 +39,31 @@ export interface ProcessOutcome {
   json?: unknown;
 }
 
+/**
+ * Endpoints backed by `upload.array("files")` — see routes/pdf.ts. They accept
+ * one-or-many through the `files` field, so a single document must NOT be
+ * renamed to `file` (the server would see no upload at all).
+ */
+const MULTI_FILE_ROUTES = new Set([
+  "/api/pdf/merge",
+  "/api/pdf/rotate",
+  "/api/pdf/compare",
+  "/api/pdf/images-to-pdf",
+]);
+
 /** Build multipart form data from the selected files plus the tool's options. */
 export function buildFormData(
   files: File[],
   options: Record<string, unknown>,
+  route?: string,
 ): FormData {
   const form = new FormData();
+  const useFilesField = files.length > 1 || (route !== undefined && MULTI_FILE_ROUTES.has(route));
 
-  if (files.length === 1) {
-    form.append("file", files[0]!);
-  } else {
+  if (useFilesField) {
     files.forEach((file) => form.append("files", file));
+  } else {
+    form.append("file", files[0]!);
   }
 
   for (const [key, value] of Object.entries(options)) {
@@ -80,7 +94,7 @@ export async function postTool(
 ): Promise<ProcessOutcome> {
   const response = await fetch(route, {
     method: "POST",
-    body: buildFormData(files, options),
+    body: buildFormData(files, options, route),
     signal,
   });
 
