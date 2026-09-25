@@ -45,8 +45,11 @@
 **Confidence:** High (every change above cites the command or suite run against it)
 **Result:** Verified working
 **Follow-ups opened:** Items 13 (rotate per-page product decision), 14 (unused deps + connectors-sdk platform coupling), 15 (README refresh) in Open Items.
-**Follow-ups closed:** **Item 1** — closed: 3 logical commits on `feat/frontend-rebuild`, typecheck+builds verified on the branch, tree clean; **Item 2** — closed: knip + depcheck run and cross-checked, Items 5/6/7 each decided with evidence and executed; **Item 5** — closed: mockup-sandbox deleted after the zero-consumer proof; **Item 6** — closed: zip/.design/logo deleted (recoverable in git history), Stitch folder + prompts kept with reasons; **Item 7** — closed: branch deleted after the 13-pair tree-identity proof; **Item 8** — closed: rules file corrected (icon claim + dark-override annotation); **Item 11** — closed: FEATURES.md reconciliation note added; **Item 4** — partially closed: Batch 1 done and verified, batches 2–6 remain (item reworded, stays open).
-*Session-boundary rule:* (a) gap > 4 h since the previous session's last change; this entry covers one continuous session (all steps within it are gaps of minutes, one task thread).
+**Follow-ups closed:** **Item 1** — closed: 3 logical commits on `feat/frontend-rebuild`, typecheck+builds verified on the branch, tree clean; **Item 2** — closed: knip + depcheck run and cross-checked, Items 5/6/7 each decided with evidence and executed; **Item 5** — closed: mockup-sandbox deleted after the zero-consumer proof; **Item 6** — closed: zip/.design/logo deleted (recoverable in git history), Stitch folder + prompts kept with reasons; **Item 7** — closed: branch deleted after the 13-pair tree-identity proof; **Item 8** — closed: rules file corrected (icon claim + dark-override annotation); **Item 11** — closed: FEATURES.md reconciliation note added; **Item 4** — partially closed: Batch 1 done and verified, batches 2–6 remain (item reworded, stays open).*Session-boundary rule:* (a) gap > 4 h since the previous session's last change; this entry covers one continuous session (all steps within it are gaps of minutes, one task thread).
+
+---
+
+## 2026-09-26 — Created REVIEW.md audit log + agent protocol
 **Commits:** none (no code change this session)
 **Type:** Audit / Planning
 **Trigger:** User brief: create a running audit log of every change, its verified result, and a protocol forcing future sessions to append to it.
