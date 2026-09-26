@@ -48,6 +48,26 @@
 
 ---
 
+## 2026-09-26 (push proof) — drizzle-kit push verified against a fresh, correctly-credentialed Postgres
+**Commits:** see this commit (README.md + REVIEW.md only; no code or config changed).
+**Type:** Verification / Documentation
+**Trigger:** User follow-up: the README's `db push` step was the only install step labelled sourced-only (the authoring machine's local Postgres rejected the `.env` credentials). Close that gap.
+**Changes made:**
+- `sudo -n` was no longer cached, so instead of touching the machine's Postgres, spun up a **throwaway PostgreSQL 18.6 cluster under `/tmp` as the unprivileged user** (`initdb -U postgres --pwfile … --auth-host=md5`, `pg_ctl … -o "-p 5433"`) — a genuinely fresh server, i.e. a stricter test than reusing the local instance. Created an empty `pdftools` database, ran the README's exact command, then **stopped and deleted the cluster**. The machine's existing Postgres (port 5432) was never touched.
+- README updated from "executed with one exception" to fully executed: execution-status note (now cites the fresh-DB end-to-end proof), Database setup block (⚠️ caveat replaced by a **Verified** paragraph: `[✓] Changes applied`, exit 0, `jobs` table per `schema/jobs.ts`, idempotent re-run `No changes detected`, plus the retained silent-exit sharp edge), troubleshooting bullet (same failure mode, now framed as reproduced-and-diagnosed rather than suspected), prerequisites row ("Latest tested: 18.6 (fresh scratch server, full install flow) and 16 (Replit's module)").
+**Verification performed:**
+- `pnpm --filter @workspace/db run push` with `DATABASE_URL` pointing at the empty scratch database: **exit 0**, output `[✓] Changes applied` (first run) and `[i] No changes detected` (second run — idempotent). `\d jobs` showed the table with exactly the `schema/jobs.ts` columns (serial pk, tool, original_filename, input/output_size_bytes, status default 'completed', created_at timestamptz default now()).
+- End-to-end through the built API against that same fresh DB: `GET /api/healthz` → `{"status":"ok"}`; `GET /api/stats` → all-zero counters and `popularTool: null` (proving the database was genuinely empty); `POST /api/jobs` → created `id: 1`; `GET /api/jobs?limit=5` → returned it. API process killed afterwards.
+- Edited README re-verified with both layers: static checker **ALL CHECKS PASS**; rendered headless-Chrome preview **14/14 assertions**.
+- Scratch-cluster cleanup confirmed (`server stopped`, data dir removed). One garbled shell command in this session was rejected by bash at parse time (exit 2) and had **no effect**; the intended command was re-run cleanly and is what the results above reflect.
+**Confidence:** High (every step directly observed; exit codes captured without pipes masking them)
+**Result:** Verified working — the install guide now has **no sourced-only steps**.
+**Follow-ups opened:** none.
+**Follow-ups closed:** none formally (no Open Item covered this; it strengthens the Item-15 closure from the README session).
+*Session-boundary rule:* (b) new task thread (verification follow-up to the README work); gap < 4 h.
+
+---
+
 ## 2026-09-26 (render pass) — README rendered in headless Chrome; ASCII diagram realigned
 **Commits:** diagram-fix commit (README.md only) following `c0e6d54` (the README rewrite).
 **Type:** Documentation / Verification

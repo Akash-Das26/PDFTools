@@ -206,9 +206,10 @@ any source file (same).
 
 ## 5. Installation
 
-> **Execution status:** the sequence below was **executed** in the authoring session on a Linux checkout
-> (Node 22.22.1, pnpm 10.26.1, local PostgreSQL 16 server) with one exception — see the
-> [Database setup](#database-setup) note and [Troubleshooting](#troubleshooting).
+> **Execution status:** every step below was **executed** in the authoring sessions on a Linux checkout
+> (Node 22.22.1, pnpm 10.26.1) — including Database setup, which was proven end-to-end against a fresh
+> PostgreSQL 18 server (empty `pdftools` database → `push` → tables created → API stored and listed a job).
+> See [Troubleshooting](#troubleshooting) for the failure modes encountered along the way.
 
 ### Prerequisites
 
@@ -216,7 +217,7 @@ any source file (same).
 |---|---|---|
 | Node.js | ≥ 20 | Latest tested: 22.22.1 (this session). Replit provisions Node 24. The project ships no `engines` field or `.nvmrc`. Vite 7 supports Node 20.19+/22.12+ |
 | pnpm | 10.26.1 (pinned) | Enforced: root `packageManager` field + a `preinstall` hook that exits with *"Use pnpm instead"* under npm or yarn |
-| PostgreSQL | ≥ 14 | Latest tested: server 16 (Replit's module); client tools 18.6 on the test machine. Required at API startup |
+| PostgreSQL | ≥ 14 | Latest tested: 18.6 (fresh scratch server, full install flow) and 16 (Replit's module); client tools 18.6. Required at API startup |
 | OS | Linux / macOS / Windows | Linux x64 assumed by the `pnpm-workspace.yaml` platform overrides (Replit heritage); they remove non-linux-x64 `esbuild`/`rollup`/`lightningcss`/`@tailwindcss/oxide` optional packages |
 
 ### Clone and install
@@ -272,12 +273,12 @@ set -a; source .env; set +a   # drizzle-kit reads DATABASE_URL from the environm
 pnpm --filter @workspace/db run push
 ```
 
-⚠️ **Honest status:** on this session's test machine, `drizzle-kit push` **exited 1 with no actionable
-output** ("Pulling schema from database…" then silence) because the local Postgres rejected the
-`DATABASE_URL` credentials — a **machine-side credentials issue**, not a script defect (the API server
-was still able to connect later only because the auth failure was reproduced independently with `pg`;
-`drizzle-kit` simply swallowed the error). Run it interactively once; if it dies silently, check the
-credentials in `DATABASE_URL` first.
+**Verified:** against a fresh PostgreSQL 18 server with an empty `pdftools` database, this command reports
+`[✓] Changes applied` (exit 0) and creates the `jobs` table exactly as defined in `lib/db/src/schema/jobs.ts`;
+a second run reports `No changes detected` (idempotent). An API server pointed at that database then served
+`/api/stats` and stored + listed a job through `/api/jobs`. One sharp edge: `drizzle-kit` exits 1 **silently**
+when it cannot connect — bad credentials in `DATABASE_URL` are the usual cause (reproduced and diagnosed in
+this repo) — see [Troubleshooting](#troubleshooting).
 
 ### Verify the installation
 
@@ -301,9 +302,11 @@ Only failure modes actually observed or structurally expected in this repo:
   scripts by default). Harmless for non-OCR tools; see the note above if you need OCR.
 - **API exits immediately, log ends with `Error: DATABASE_URL must be set. Did you forget to provision a
   database?`** — `.env` was not created or not sourced. This throw was reproduced on purpose in this session.
-- **`drizzle-kit push` dies silently after "Pulling schema from database…"** — almost always a credential
-  or connectivity problem with `DATABASE_URL`; drizzle-kit 0.31.10 exits 1 without printing the underlying
-  error. Test the URL directly (any Postgres client) before assuming the schema step is broken.
+- **`drizzle-kit push` dies silently after "Pulling schema from database…"** — this is what a failed
+  connection looks like: drizzle-kit 0.31.10 exits 1 without printing the underlying error. Reproduced here
+  with wrong credentials, and the identical command **passes on a correctly-credentialed fresh database** —
+  so on a silent exit, test `DATABASE_URL` directly (`psql "$DATABASE_URL" -c 'select 1'`) before assuming
+  the schema step is broken.
 - **Port conflicts (8080 / 5173)** — Vite runs with `strictPort: true`, so a busy 5173 aborts the dev server
   rather than drifting to 5174. Free the port or set `WEB_PORT`/`API_PORT` in `.env`. The error surfaces as
   `Invalid PORT value` only if a non-numeric value is set.
