@@ -48,6 +48,26 @@
 
 ---
 
+## 2026-09-26 (render pass) — README rendered in headless Chrome; ASCII diagram realigned
+**Commits:** diagram-fix commit (README.md only) following `c0e6d54` (the README rewrite).
+**Type:** Documentation / Verification
+**Trigger:** User brief: render the README in a Markdown preview and fix any visual issues (tables, ASCII diagram, anchors).
+**Changes made:**
+- The render check found exactly one README defect: the architecture diagram's outer border was ragged — rows 1–10 sat at 79 columns, rows 11–37 at 78 (everything right of column 3 shifted one left; caught by a width-per-line script, confirmed by a per-line column dump).
+- Fixed by **regenerating the whole 27-row block programmatically** (`/tmp/make_diagram.py`: every row padded to exactly 79 columns, box borders and connector glyphs asserted by script before splicing). The rewrite also improved the diagram: the web→API arrow is now a single labeled `/api/* ──▶` into the routes box, and both artifact boxes are titled on their first line.
+- No other README changes: tables, anchors, headings, favicon link, and code fences all passed as authored (details below). The `#12-testing--verification` double-hyphen anchor was flagged by the local renderer but is **correct per GitHub's slugger** (`&` is deleted, both surrounding spaces become hyphens) — verified against the algorithm, fixed in the local harness, not in the file.
+**Verification performed:**
+- Static checker over README.md (GitHub-accurate slug algorithm, fence balance, table pipe consistency, HTML tag balance, diagram border widths): **ALL CHECKS PASS** after the fix (before: one diagram defect).
+- Real render: python-markdown → GitHub-styled standalone HTML (GitHub-accurate heading ids injected; favicon src absolutized for the local `file://` context) loaded in headless Chrome via CDP — **14/14 assertions**: zero console/exception errors; one h1; 13 h2 sections; 11 tables, all uniform column counts; favicon renders (`naturalWidth > 0`); no element overflows the 1280px viewport and no page-level horizontal scroll; diagram renders monospace, 27 uniform-width rows of exactly 79 chars, fits without horizontal scroll; **every in-page anchor resolves to a heading id**. Screenshots `/tmp/pdfcheck/readme-top.png`, `readme-diagram.png`.
+- 5 of the initial 14 assertions failed; all were chased down: 1 real (the diagram), 4 harness bugs (wrong expected counts, a double-counting table selector, and the local slugger's `&` handling divergence from GitHub's). None papered over.
+**Confidence:** High (render assertions executed against a real browser DOM; the only caveat is the preview uses python-markdown with GitHub-faithful slugs, not GFM itself — heading ids, not GFM's autolink/mention quirks, are what the assertions depend on)
+**Result:** Verified working
+**Follow-ups opened:** none.
+**Follow-ups closed:** none (the render-preview harness lives in `/tmp/pdfcheck/` alongside the other disposable suites — folded into Open Item 10's scope if the harnesses are ever committed).
+*Session-boundary rule:* (b) new task thread (render verification of the just-authored README, distinct user-approved task); gap < 4 h from the previous entry.
+
+---
+
 ## 2026-09-26 (later) — Baseline committed · cleanup decisions executed · Batch 1 built and verified
 **Commits:** `4f68893` (catalog+spec+clients) → `809df37` (frontend rebuild) → `cfc3f96` (REVIEW.md+AGENTS.md) → `f6b7a41` (remove mockup-sandbox) → `6a44299` (remove design exports + @assets alias) → `a5ac67c` (Batch 1 panels + multipart fix) → `87075fb` (Alt+Arrow a11y fix) → `a711d0a` (docs reconciliation) → `5ab2db8` (remove 5 alternate Stitch screens) — all on new branch `feat/frontend-rebuild`; `main` untouched.
 **Type:** Code change / Cleanup

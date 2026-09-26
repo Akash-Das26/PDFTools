@@ -48,43 +48,32 @@ README was exercised on a plain Linux checkout with Node 22 and pnpm 10.
 ## 2. Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  pnpm workspace (pnpm@10.26.1 · TypeScript 5.9 · MIT)                       │
+│  pnpm workspace — pnpm@10.26.1 · TypeScript 5.9 · MIT                       │
 │                                                                             │
 │  artifacts/                                                                 │
 │  ┌──────────────────────────────┐      ┌─────────────────────────────────┐  │
-│  │  @workspace/pdftools (web)   │      │  @workspace/api-server (API)    │  │
-│  │  React 19 + Vite 7           │      │  Express 5 + multer 2           │  │
-│  │  Tailwind CSS 4 (CSS-first)  │      │  pino logging · Zod validation  │  │
-│  │  wouter routing              │      │                                 │  │
-│  │  :5173  ──── /api proxy ───┐ │      │  ┌───────────────────────────┐  │  │
-│  └───────────────────────────┼─┘      │  │ routes/                   │  │  │
-│                              │        │  │  health   GET  /healthz   │  │  │
-│                              │        │  │  tools    GET  /tools     │  │  │
-│                              │        │  │  jobs     /stats /jobs    │  │  │
-│                              ▼        │  │  pdf      21 POST /pdf/*  │  │  │
-│                    ┌────────────────┐ │  └────────────┬──────────────┘  │  │
-│                    │ Vite dev proxy │ │               │                 │  │
-│                    │  /api → :8080  │ │      ┌────────▼──────────────┐  │  │
-│                    └────────────────┘ │      │ services/pdf/*        │  │  │
-│                                       │      │ @cantoo/pdf-lib       │  │  │
-│  lib/                                 │      │ tesseract.js (17 lng) │  │  │
-│  ┌──────────────────────────────┐     │      │ pdf-parse · archiver  │  │  │
-│  │  @workspace/api-spec         │     │      │ OpenAI (optional AI)  │  │  │
-│  │  openapi.yaml — 25 paths     │     │      └────────┬──────────────┘  │  │
-│  │  orval codegen ──────────────┼──┐  │               │                 │  │
-│  └──────────────────────────────┘  │  │      ┌────────▼──────────────┐  │  │
-│  ┌──────────────────────────────┐  │  │      │ @workspace/db         │  │  │
-│  │  @workspace/api-zod          │◄─┘  │      │ Drizzle ORM + pg      │  │  │
-│  │  generated Zod schemas       │     │      └────────┬──────────────┘  │  │
-│  └──────────────────────────────┘     │               │                 │  │
-│  ┌──────────────────────────────┐     └───────────────┼─────────────────┘  │
-│  │  @workspace/api-client-react │                     │                    │
-│  │  generated TanStack Query    │                     ▼                    │
-│  │  hooks                       │           ┌──────────────────────┐       │
-│  └──────────────────────────────┘           │ PostgreSQL (jobs +   │       │
-│                                             │ usage stats)         │       │
-│  scripts/  dev-local.mjs · build-all.mjs    └──────────────────────┘       │
+│  │ @workspace/pdftools (web)    │      │ @workspace/api-server (API)     │  │
+│  │ React 19 · Vite · Tailwind 4 │      │ Express 5 · multer 2 · pino     │  │
+│  │ wouter · TanStack Query      │      │ Zod-validated · JSON errors     │  │
+│  │ dev :5173 · proxy /api→:8080 │      │ routes/  (mounted at /api)      │  │
+│  │ /api/* ──────────────────────┼─────▶│ health    GET /healthz          │  │
+│  └──────────────────────────────┘      │ tools     GET /tools            │  │
+│  lib/                                  │ jobs      /stats · /jobs        │  │
+│  ┌──────────────────────────────┐      │ pdf       21 × POST /pdf/*      │  │
+│  │ @workspace/api-spec          │      │ services/pdf/                   │  │
+│  │ openapi.yaml — 25 paths      │      │ @cantoo/pdf-lib · tesseract.js  │  │
+│  └──────────────┬───────────────┘      │ pdf-parse · archiver · openai   │  │
+│                 │  orval codegen       │ pino-http request logging       │  │
+│                 ▼                      │ jobs · stats via @workspace/db  │  │
+│  ┌──────────────────────────────┐      └────────────────┬────────────────┘  │
+│  │ @workspace/api-zod           │                       │                   │
+│  │ generated Zod schemas        │                       ▼                   │
+│  └──────────────────────────────┘      ┌─────────────────────────────────┐  │
+│  ┌──────────────────────────────┐      │ PostgreSQL 14+                  │  │
+│  │ @workspace/api-client-react  │      │ jobs table · usage stats        │  │
+│  │ generated React Query hooks  │      │ (drizzle-kit push creates it)   │  │
+│  └──────────────────────────────┘      └─────────────────────────────────┘  │
+│  scripts/  dev-local.mjs · build-all.mjs                                    │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
