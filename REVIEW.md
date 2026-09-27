@@ -6,7 +6,7 @@
 > - Entries are **newest-first**. Every entry states which session-boundary rule placed it (see *Session-boundary rules* below).
 > - **"Result: Verified working" requires "Verification performed" to cite actual evidence** — a command that was run, a screenshot compared, a test that passed. A session that only claims success gets `Unverified (claimed only)`. No exceptions — including for the session that created this file.
 > - Check the **Open Items** section every session: move items you closed out of it (and say how you confirmed closure in your entry), add items you opened.
-> - Ground-truth caveat: git history in this repo is **best-available-but-incomplete** (see *Part 0 — History quality* at the bottom). *Updated 2026-09-26 (later session):* the rebuild and accent/spec work is now **committed on `feat/frontend-rebuild`** (`4f68893`–`a711d0a`) — `main` is untouched and still ends at `3f3e87a`.
+> - Ground-truth caveat: git history in this repo is **best-available-but-incomplete** (see *Part 0 — History quality* at the bottom). *Updated 2026-09-27 (merge session):* the rebuild + docs + verification work was committed on `feat/frontend-rebuild` (17 commits; rewritten once to strip agent-attribution footers — see the 2026-09-27 entry for the old→new hash map) and **merged to `main` as PR #1 (`ac17f1e`)**; `main` and `origin/main` both end there.
 
 ---
 
@@ -25,26 +25,22 @@
 
 ---
 
-## 2026-09-26 (later still) — README.md rewritten from verified ground truth (closes Item 15)
-**Commits:** see this commit (README.md + REVIEW.md only; no code or config changed).
-**Type:** Documentation
-**Trigger:** User brief: replace the pre-rebuild README with a full README modeled on four reference READMEs' *structure* (badge row, ASCII diagram, heavy tables, testing section, roadmap), with every fact re-verified against the live repo (Step 1) before writing (Step 2), and every claim traced to a source.
+## 2026-09-27 (merge) — feat/frontend-rebuild merged to main as PR #1; log ordering repaired
+**Commits:** `ac17f1e` (GitHub-side merge of PR #1 — no agent session authored it) + this entry's commit (REVIEW.md only).
+**Type:** Audit / Bookkeeping
+**Trigger:** User brief: report the repo's real state (post-merge) before any further work; then: fix the log-ordering defect that audit found.
 **Changes made:**
-- Replaced `README.md` (pre-rebuild run-notes only) with a 16-section README: mark/tagline, TOC, problem statement, ASCII workspace-architecture diagram, feature catalog (32 tools / 6 categories, 17 implemented / 1 partial / 14 backend-pending, per-category 7/6/6/5/4/4), tech stack from the package.json files, complete Installation guide (prerequisites with exact versions, env-var table, codegen, DB setup, verify-install, troubleshooting limited to observed/structural failures), Quickstart cross-linked to it, 28-row API reference, project-structure tree, plain-spoken testing section, Known limitations from the Open Items, roadmap from the open items, MIT license.
-- **Catalog counts were re-grepped, not trusted from the log:** `routes/tools.ts` → 32 tools; statuses 17 `implemented` / 1 `partial` (`pdf-to-markdown`) / 14 `pending`; per-category 7/6/6/5/4/4. Matches the rebuild entry's figures.
+- No code changes. Reordered the six newest entries into true newest-first order — the "later still" (README rewrite), history-rewrite, commit-hygiene, badges, push-proof, and render-pass entries had been left mutually out of order by this log's own session-insertion anchors; the README-rewrite entry now sits directly above the render-pass entry it followed chronologically.
+- Added this entry recording the merge and the reorder.
 **Verification performed:**
-- Currency check: newest REVIEW.md entry covers through `9ef1a7a` = HEAD; `git status --porcelain | wc -l` → 0. Proceeded.
-- Routes: grep across `routes/{health,tools,jobs,pdf}.ts` → 21 `POST /pdf/*` + `GET /healthz`, `GET /tools`, `GET /stats`, `GET /jobs`, `POST /jobs`; `openapi.yaml` has exactly those 25 paths; `app.ts` mounts the router at `/api`; multer limits 50 MB/file, 20 files in `src/lib/upload.ts`; watermark takes `file`+`image` fields (multer `fields`).
-- Versions/meta: root package.json (MIT, `pnpm@10.26.1` + preinstall guard), catalog versions in `pnpm-workspace.yaml`; **no `engines` field in any package.json, no `.nvmrc`, no `.github/` directory** (no CI) — all stated plainly in the README.
-- Env vars: grep `process.env` across api-server, pdftools (+ vite config), and scripts; cross-checked against `.env.example`. `DATABASE_URL` required was **proven**: started the built server with it unset → immediate exit with `Error: DATABASE_URL must be set. Did you forget to provision a database?`. `OPENAI_API_KEY` optional was confirmed in `services/pdf/summarize.ts` (JSON error telling the user to set it).
-- **Install sequence executed** on this machine (Node 22.22.1, pnpm 10.26.1): moved `node_modules` aside → `pnpm install --frozen-lockfile` (1.8 s; observed the `Ignored build scripts: tesseract.js` warning now documented in troubleshooting) → `pnpm run typecheck` 3/3 → `pnpm build` exit 0 → `pnpm --filter @workspace/api-spec run codegen` exit 0 with the tree staying clean (committed clients are exactly what the spec generates) → started the built API → `curl /api/healthz` → **HTTP 200 `{"status":"ok"}`**; `/api/tools` returned the catalog.
-- **`pnpm --filter @workspace/db run push` did not succeed here** (exits 1 silently after "Pulling schema from database…"). Independently reproduced the cause with a raw `pg` connection: the local Postgres rejects the `.env` credentials (`password authentication failed for user "postgres"`) — a **machine-side credentials issue, not a repo defect**; drizzle-kit 0.31.10 swallows the underlying error. The README labels this step honestly (silent-exit warning + credential check) instead of claiming a pass.
-- Logo: no committed banner/logo raster exists (`git ls-files` images → `favicon.svg` + Stitch reference `screen.png`s only); the README uses `artifacts/pdftools/public/favicon.svg` (flat `#FF3C00` mark) and says plainly that no banner asset exists. `stitch_pdftools_web_application_ui/pdftools_logo/screen.png` noted as design reference, not a web asset.
-**Confidence:** High (every README number cites a grep or command above; the one step not green on this machine — `db push` — is explicitly labeled with its reproduced cause rather than claimed as passing)
-**Result:** Verified working (README content); `db push` success on a correctly-credentialed machine remains sourced-only.
+- State audit this session: local `main` = `origin/main` = `ac17f1e` (merge of the 17-commit `feat/frontend-rebuild` chain: frontend rebuild, REVIEW.md, README overhaul, LICENSE + CI, history rewrite); tree clean; remote-tracking reflog shows a successful `fetch origin: fast-forward` at 2026-09-27 18:18 (a later re-fetch timed out — github.com intermittently unreachable from this shell; origin state is as of that 18:18 fetch).
+- Brief checks against the live tree: rebuilt README present (distinct Installation/Quickstart sections, env-var table, 32/17/1/14 feature catalog, §13 Known limitations, 4 badges); rebuild present (stepper + page-picker templates, Batch 1 panels, 6 categories 7/6/6/5/4/4, Minimize2 for Compress, ACCENT_BADGE, #ffb4ab dark override); `pnpm run typecheck` 3/3 green.
+- After the reorder: entry headings re-grepped — strictly newest-first down to 2026-07-28; heading count 20 → 21 (with this entry).
+**Confidence:** High (direct observation of refs and files)
+**Result:** Verified working
 **Follow-ups opened:** none.
-**Follow-ups closed:** **Item 15** — closed: README fully rewritten against the rebuilt app with re-verified facts; drift-risk caveat moved into the README's own Known-limitations list.
-*Session-boundary rule:* (b) new task thread (documentation authoring, distinct from the frontend-rebuild thread); same calendar day as the previous entry.
+**Follow-ups closed:** log-ordering defect (found during the state audit).
+*Session-boundary rule:* (a) >4 h gap from the previous entry's work; (b) distinct task thread (state audit + bookkeeping).
 
 ---
 
@@ -143,6 +139,29 @@
 **Follow-ups opened:** none.
 **Follow-ups closed:** none (the render-preview harness lives in `/tmp/pdfcheck/` alongside the other disposable suites — folded into Open Item 10's scope if the harnesses are ever committed).
 *Session-boundary rule:* (b) new task thread (render verification of the just-authored README, distinct user-approved task); gap < 4 h from the previous entry.
+
+---
+
+## 2026-09-26 (later still) — README.md rewritten from verified ground truth (closes Item 15)
+**Commits:** see this commit (README.md + REVIEW.md only; no code or config changed).
+**Type:** Documentation
+**Trigger:** User brief: replace the pre-rebuild README with a full README modeled on four reference READMEs' *structure* (badge row, ASCII diagram, heavy tables, testing section, roadmap), with every fact re-verified against the live repo (Step 1) before writing (Step 2), and every claim traced to a source.
+**Changes made:**
+- Replaced `README.md` (pre-rebuild run-notes only) with a 16-section README: mark/tagline, TOC, problem statement, ASCII workspace-architecture diagram, feature catalog (32 tools / 6 categories, 17 implemented / 1 partial / 14 backend-pending, per-category 7/6/6/5/4/4), tech stack from the package.json files, complete Installation guide (prerequisites with exact versions, env-var table, codegen, DB setup, verify-install, troubleshooting limited to observed/structural failures), Quickstart cross-linked to it, 28-row API reference, project-structure tree, plain-spoken testing section, Known limitations from the Open Items, roadmap from the open items, MIT license.
+- **Catalog counts were re-grepped, not trusted from the log:** `routes/tools.ts` → 32 tools; statuses 17 `implemented` / 1 `partial` (`pdf-to-markdown`) / 14 `pending`; per-category 7/6/6/5/4/4. Matches the rebuild entry's figures.
+**Verification performed:**
+- Currency check: newest REVIEW.md entry covers through `9ef1a7a` = HEAD; `git status --porcelain | wc -l` → 0. Proceeded.
+- Routes: grep across `routes/{health,tools,jobs,pdf}.ts` → 21 `POST /pdf/*` + `GET /healthz`, `GET /tools`, `GET /stats`, `GET /jobs`, `POST /jobs`; `openapi.yaml` has exactly those 25 paths; `app.ts` mounts the router at `/api`; multer limits 50 MB/file, 20 files in `src/lib/upload.ts`; watermark takes `file`+`image` fields (multer `fields`).
+- Versions/meta: root package.json (MIT, `pnpm@10.26.1` + preinstall guard), catalog versions in `pnpm-workspace.yaml`; **no `engines` field in any package.json, no `.nvmrc`, no `.github/` directory** (no CI) — all stated plainly in the README.
+- Env vars: grep `process.env` across api-server, pdftools (+ vite config), and scripts; cross-checked against `.env.example`. `DATABASE_URL` required was **proven**: started the built server with it unset → immediate exit with `Error: DATABASE_URL must be set. Did you forget to provision a database?`. `OPENAI_API_KEY` optional was confirmed in `services/pdf/summarize.ts` (JSON error telling the user to set it).
+- **Install sequence executed** on this machine (Node 22.22.1, pnpm 10.26.1): moved `node_modules` aside → `pnpm install --frozen-lockfile` (1.8 s; observed the `Ignored build scripts: tesseract.js` warning now documented in troubleshooting) → `pnpm run typecheck` 3/3 → `pnpm build` exit 0 → `pnpm --filter @workspace/api-spec run codegen` exit 0 with the tree staying clean (committed clients are exactly what the spec generates) → started the built API → `curl /api/healthz` → **HTTP 200 `{"status":"ok"}`**; `/api/tools` returned the catalog.
+- **`pnpm --filter @workspace/db run push` did not succeed here** (exits 1 silently after "Pulling schema from database…"). Independently reproduced the cause with a raw `pg` connection: the local Postgres rejects the `.env` credentials (`password authentication failed for user "postgres"`) — a **machine-side credentials issue, not a repo defect**; drizzle-kit 0.31.10 swallows the underlying error. The README labels this step honestly (silent-exit warning + credential check) instead of claiming a pass.
+- Logo: no committed banner/logo raster exists (`git ls-files` images → `favicon.svg` + Stitch reference `screen.png`s only); the README uses `artifacts/pdftools/public/favicon.svg` (flat `#FF3C00` mark) and says plainly that no banner asset exists. `stitch_pdftools_web_application_ui/pdftools_logo/screen.png` noted as design reference, not a web asset.
+**Confidence:** High (every README number cites a grep or command above; the one step not green on this machine — `db push` — is explicitly labeled with its reproduced cause rather than claimed as passing)
+**Result:** Verified working (README content); `db push` success on a correctly-credentialed machine remains sourced-only.
+**Follow-ups opened:** none.
+**Follow-ups closed:** **Item 15** — closed: README fully rewritten against the rebuilt app with re-verified facts; drift-risk caveat moved into the README's own Known-limitations list.
+*Session-boundary rule:* (b) new task thread (documentation authoring, distinct from the frontend-rebuild thread); same calendar day as the previous entry.
 
 ---
 
