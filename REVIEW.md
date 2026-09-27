@@ -48,6 +48,22 @@
 
 ---
 
+## 2026-09-26 (commit hygiene) — rule added: no agent-attribution footers in commit messages
+**Commits:** see this commit (AGENTS.md + REVIEW.md only).
+**Type:** Protocol / Policy
+**Trigger:** User instruction: future commits must not add "Co-Authored-By: Codebuff" (or any agent) trailers.
+**Changes made:**
+- `AGENTS.md`: added the rule — commit messages stay plain (subject + body, no generated-attribution footers, no generated-with badges). Every future agent session reads this file first, so the rule persists across sessions.
+- Applied immediately: this session's own commits from now on follow it (the entry you are reading is logged in a footer-free commit).
+**Verification performed:** read back `AGENTS.md` after the edit; confirmed the rule text is present and unambiguous.
+**Confidence:** High (direct observation)
+**Result:** Verified working
+**Follow-ups opened:** none.
+**Follow-ups closed:** none.
+*Session-boundary rule:* (b) new task thread (policy change); gap < 4 h.
+
+---
+
 ## 2026-09-26 (badges) — MIT LICENSE + CI workflow added; README badges wired to the live repo
 **Commits:** see this commit (LICENSE, `.github/workflows/ci.yml`, README.md, REVIEW.md).
 **Type:** Code change (repo infra) / Documentation
