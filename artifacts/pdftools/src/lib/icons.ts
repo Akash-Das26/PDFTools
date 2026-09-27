@@ -126,6 +126,7 @@ export const uiIcons = {
   fileText: FileText,
   folderOpen: FolderOpen,
   gripVertical: GripVertical,
+  image: Image,
   info: Info,
   loader: LoaderCircle,
   moon: Moon,

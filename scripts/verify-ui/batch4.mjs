@@ -11,6 +11,7 @@ const BASE = "http://127.0.0.1:5173";
 const API = "http://127.0.0.1:8080";
 const FIXTURE = OUT + "fixtures/fixture.pdf";
 const MARK_PNG = "/tmp/batch4-mark.png";
+const MARK_PNG2 = "/tmp/batch4-mark2.png";
 const PROFILE = "/tmp/pdfcheck-ui-profile-batch4";
 rmSync(PROFILE, { recursive: true, force: true });
 // 4×4 PNG — a real image for images-to-pdf (a 1×1 would be an odd page size).
@@ -18,6 +19,17 @@ writeFileSync(
   MARK_PNG,
   Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAFUlEQVR4nGP8z8Dwn4EIwESMolGFAAqpAgVJ0H0MAAAAAElFTkSuQmCC",
+    "base64",
+  ),
+);
+// A second, differently sized image so the reorder assertions can tell the two
+// rows apart by name. (A hand-written IDAT will not do: pdf-lib rejects a PNG
+// whose zlib stream is corrupt, which is exactly how the first version of this
+// fixture failed — generated with a real encoder instead.)
+writeFileSync(
+  MARK_PNG2,
+  Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAEklEQVR42mO4o6b2Hx9mGBkKAP8CicFFwifrAAAAAElFTkSuQmCC",
     "base64",
   ),
 );
@@ -209,13 +221,20 @@ check("landing: no wired Convert tool is badged pending",
 
 /* ── 2. IMAGES TO PDF: panel fields, conditional orientation, real run ────── */
 await openThemed(`${BASE}/tools/images-to-pdf`, '[data-testid="upload-dropzone"]', "light");
-await uploadFiles([MARK_PNG]);
+await uploadFiles([MARK_PNG, MARK_PNG2]);
 await waitFor('[data-testid="images-to-pdf-margin"]');
 check("images-to-pdf: fit is the checked default", await checked('[data-testid="option-pageSize-fit"]'), true);
 check("images-to-pdf: orientation hidden while fit",
       await evaluate(`!document.querySelector('[data-testid="option-orientation-portrait"]')`), true);
-check("images-to-pdf: order line counts the queued image",
-      await evaluate(`document.querySelector('[data-testid="images-to-pdf-order"]').textContent.includes("1 image queued")`), true);
+check("images-to-pdf: order line counts the queued images",
+      await evaluate(`document.querySelector('[data-testid="images-to-pdf-order"]').textContent.includes("2 images queued")`), true);
+check("images-to-pdf: one reorder row per image",
+      await evaluate(`document.querySelectorAll('[data-testid^="images-to-pdf-row-"]').length`), 2);
+check("images-to-pdf: row 0 is the first uploaded image",
+      await evaluate(`document.querySelector('[data-testid="images-to-pdf-row-0"]').textContent.includes("mark.png")`), true);
+await click('[data-testid="button-file-up-1"]');
+check("images-to-pdf: up arrow swaps the rows",
+      await evaluate(`document.querySelector('[data-testid="images-to-pdf-row-0"]').textContent.includes("mark2.png")`), true);
 await click('[data-testid="option-pageSize-a4"]');
 await waitFor('[data-testid="option-orientation-portrait"]');
 check("images-to-pdf: orientation appears for a fixed page size", true, true);
@@ -228,6 +247,18 @@ check("images-to-pdf: real run produces a result", true, true);
 check("images-to-pdf: download enabled",
       await evaluate(`!document.querySelector('[data-testid="button-download"]').disabled`), true);
 await shot("images-to-pdf-complete");
+
+// Remove is asserted on a fresh load: after a successful run the Configure step
+// is no longer mounted, so the rows would not exist to click.
+await openThemed(`${BASE}/tools/images-to-pdf`, '[data-testid="upload-dropzone"]', "light");
+await uploadFiles([MARK_PNG, MARK_PNG2]);
+await waitFor('[data-testid="images-to-pdf-row-1"]');
+await click('[data-testid="button-file-remove-0"]');
+await sleep(500);
+check("images-to-pdf: remove drops a row",
+      await evaluate(`document.querySelectorAll('[data-testid^="images-to-pdf-row-"]').length`), 1);
+check("images-to-pdf: order line follows the removal",
+      await evaluate(`document.querySelector('[data-testid="images-to-pdf-order"]').textContent.includes("1 image queued")`), true);
 
 /* ── 3. PDF TO JPG: format cards, JPG-only quality, width, real run ──────── */
 await openThemed(`${BASE}/tools/pdf-to-images`, '[data-testid="upload-dropzone"]', "light");

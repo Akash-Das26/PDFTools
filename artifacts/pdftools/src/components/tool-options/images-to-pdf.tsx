@@ -1,6 +1,8 @@
+import { FileOrderList } from "@/components/tool-options/file-order";
 import { OptionField, OptionRadioGroup } from "@/components/tool-options/parts";
 import type { ToolOptionsProps } from "@/components/tool-options/types";
 import { Input } from "@/components/ui/input";
+import { uiIcons } from "@/lib/icons";
 
 /**
  * JPG/PNG to PDF — Configure panel for `POST /pdf/images-to-pdf`.
@@ -13,10 +15,16 @@ import { Input } from "@/components/ui/input";
  * which is what the endpoint does with it there.
  *
  * The endpoint composes uploads in order and rejects any file that is not a
- * JPG or PNG by name, so the panel states the order and leaves the per-file
- * rejection to the server's own message.
+ * JPG or PNG by name, so the per-file rejection is left to the server's own
+ * message while the order is made editable here — the same row list Merge PDF
+ * uses, since the upload array *is* the page order.
  */
-export function ImagesToPdfOptions({ options, onChange, files = [] }: ToolOptionsProps) {
+export function ImagesToPdfOptions({
+  options,
+  onChange,
+  files = [],
+  onFilesChange,
+}: ToolOptionsProps) {
   const pageSize =
     options.pageSize === "a4" || options.pageSize === "letter"
       ? options.pageSize
@@ -90,11 +98,24 @@ export function ImagesToPdfOptions({ options, onChange, files = [] }: ToolOption
         />
       </OptionField>
 
-      <p data-testid="images-to-pdf-order" className="text-body-sm text-muted-foreground">
-        {files.length === 0
-          ? "Select images to convert — each becomes one page."
-          : `${files.length} image${files.length === 1 ? "" : "s"} queued — pages follow upload order.`}
-      </p>
+      <OptionField label="Page order" hint="One page per image, top to bottom">
+        <FileOrderList
+          files={files}
+          onFilesChange={onFilesChange}
+          rowTestId="images-to-pdf-row"
+          icon={uiIcons.image}
+          hint={
+            <p
+              data-testid="images-to-pdf-order"
+              className="text-body-sm text-muted-foreground"
+            >
+              {files.length === 0
+                ? "Select images to convert — each becomes one page."
+                : `${files.length} image${files.length === 1 ? "" : "s"} queued — reorder with the arrows to change the page order.`}
+            </p>
+          }
+        />
+      </OptionField>
     </div>
   );
 }
