@@ -25,6 +25,31 @@
 
 ---
 
+## 2026-09-27 (README corrections) — all six stale README claims fixed, each re-verified against the live tree
+**Commits:** `6c27275` (README.md only), this entry's commit (REVIEW.md only).
+**Type:** Documentation fix (no code change)
+**Trigger:** User brief: fix the 6 flagged README inaccuracies — the flags opened by the 2026-09-27 README verification audit.
+**Changes made:**
+1. **Merge PDF output** — §3's row claimed "ZIP output for multi-file results". `services/pdf/merge.ts` imports no archiver and its only response is `sendPdf(res, …, "merged.pdf")`, so the row now reads "Multi-file with reorder rows; document order preserved; always one `merged.pdf` result".
+2. **CI badge branch pin** — the shields URL carried `?branch=feat/frontend-rebuild`; `git ls-remote --heads origin` returns exactly one head (`refs/heads/main`), so the badge could never report on the merged-and-deleted branch. Pin and its now-spent `drop ?branch=… once merged` comment both removed.
+3. **`pdf-parse` scope (two places)** — §3's PDF-to-Excel note said the CSV form was "buildable with `pdf-parse` tables" and §4 labelled the dep "(text/tables)". `pdfjs.ts` wraps `PDFParse` into `ExtractedText.pages[{num,text}]` and no table-extraction code exists anywhere under `services/pdf/` (the only "table" identifiers are the LCS diff matrix in `compare.ts`). Now: "per-page text" in §4, and "buildable by parsing the per-page text `pdf-parse` returns; no table model exists today" in §3.
+4. **Dangling transport cross-reference** — §2 linked "raw `fetch` transport" to `#10-known-limitations`, which never mentioned it. The parenthetical is replaced by a factual description of the one helper (`src/lib/process-tool.ts`: `file`-vs-`files` field rule, option-bag stringification, secondary upload parts such as the watermark image, document-vs-JSON normalisation into `ProcessOutcome`), with no pointer at all.
+5. **Replit plugin gating** — §4 said the `@replit/vite-plugin-*` packages were "gated behind `REPL_ID`". `vite.config.ts` gates them differently: `runtime-error-modal` on `mode === 'development'`, while `cartographer` and `dev-banner` need `mode !== 'production'` **and** `REPL_ID !== undefined`. The note now states both rules.
+6. **Structure tree** — §8 listed `FEATURES.md / UI-NON-REGRESSION-RULES.md` but omitted the root `PDFTools-Frontend-Design.md`, which exists on disk; it is now a line of its own, padded to the block's column. (§2's diagram already gained `verify-ui/` in the Batch 4 session, so that half of the drift flag was already closed.)
+- Also updated: §10.8's provenance note records the claim-by-claim audit, and roadmap item 2 is repointed — it had listed these six claims, which are now fixed, so it carries the `on-tertiary-container` measurement (Known limitation 4 / Open Item 9) instead. That supersedes the previous entry's line about item 2 holding the claim list; recorded here rather than editing a dated entry.
+**Verification performed:**
+- Every claim re-derived by command **before** editing, not from the audit text: `grep -n` on `merge.ts` (single `sendPdf(…, "merged.pdf")`, no archiver/ZIP); `git ls-remote --heads origin` (one head, `main`); `grep -rn pdf-parse artifacts/api-server/src` plus a repo-wide `table` sweep (per-page text only); `process-tool.ts` lines 55–101 (`buildFormData` + `fetch`); `vite.config.ts` lines 19–40 (the two distinct gates); `ls -1 *.md` (all six root docs present, including `PDFTools-Frontend-Design.md`).
+- One correction made during the edit: my first replacement for §2 asserted the generated hooks "do not stream" uploads, but `lib/api-client-react/src/generated/api.ts` **does** build `FormData` for these routes (`mergePdfs`), and `custom-fetch.ts` even supports `responseType: "blob"`. The reasoning was unverifiable, so it was replaced with the transport's actual responsibilities only.
+- Post-edit scan: `grep` for all six old phrasings (`ZIP output for multi-file`, `branch=feat/frontend-rebuild`, `text/tables`, `gated behind \`REPL_ID\``, `raw \`fetch\` transport`, `pdf-parse\` tables`) returns **zero** hits in README.md; the only remaining mentions repo-wide are inside dated REVIEW.md entries, which are history and left alone.
+- Anchor audit re-run (script, not eyeball): 27 headings, 14 in-document targets, **0 unresolved**. Structure-block column check: the new §8 line's comment starts at column 35, matching the dominant alignment.
+- `git diff --stat` → README.md only (19 insertions, 16 deletions), so no suite or typecheck run was warranted (no source file touched).
+**Confidence:** High (each of the six fixes is backed by a command run this session, including the one that contradicted my own first attempt)
+**Result:** Verified working. All six flags from the README verification audit are closed; nothing else in the README asserts them.
+**Follow-ups opened:** none. **Follow-ups closed:** the six audit flags, and roadmap item 2 as previously written (it listed them).
+*Session-boundary rule:* (b) distinct task thread (README corrections per new brief).
+
+---
+
 ## 2026-09-27 (batch 4 follow-up) — JPG/PNG to PDF gets Merge PDF's reorder controls; the last panel-parity gap closed
 **Commits:** `581e37f` (shared row list + both panels + icon + batch4.mjs), `0b33640` (README §9/§11 + harness README), this entry's commit (REVIEW.md only).
 **Type:** Feature (UI parity between two multi-file panels) + test coverage
