@@ -25,6 +25,31 @@
 
 ---
 
+## 2026-09-27 (README refresh) — §12/§13/§14 realigned to Batches 1–3
+**Commits:** `713af3d` (README.md + scripts/verify-ui/README.md), this entry's commit (REVIEW.md only).
+**Type:** Documentation
+**Trigger:** User request after the Batch 3 session: refresh the stale README roadmap and known-limitations sections to match Batches 1–3.
+**Changes made:**
+- §12 Testing & verification: replaced "there is no committed test suite" / "harnesses live in `/tmp` and are not committed" with the committed reality — a table of all seven suites with assertion counts (verify 127 · accent 38 · batch1 21 · batch2 48 · batch3 59 · compare — · contrast —), the `bash scripts/verify-ui/drive.sh <suite>.mjs` / `pnpm verify:ui <suite>.mjs` instructions, prerequisites (built API + Chrome), and the honest note that **CI does not run them** (Chrome + two live servers on fixed ports).
+- §13.2: now "Batches 4–6 not built", with fresh counts — **18 tools without a full Configure panel** = 14 backend-pending + 4 wired-but-panel-less (`images-to-pdf`, `pdf-to-images`, `pdf-to-pdfa`, `pdf-to-markdown`) — and the crop page-picker panel removed (closed in Batch 3). This also fixes an internal contradiction: §3 already said 14 pending while §13.2 said 13.
+- §13.5: "No test framework" → "No test runner" (suites committed; still no vitest/jest/playwright; CI remains build-only).
+- §13.8: provenance line updated (refreshed 2026-09-27 against `main` @ `8fed014`).
+- §14.1–2: Batch 4 (Convert) is next; the old "commit the verification harnesses" item is reworded to "wire the committed suites into CI".
+- §8: the `scripts/` line now mentions `verify-ui/`.
+- `scripts/verify-ui/README.md`: run block gained batch2/batch3/contrast; the "adding a batch" note records that a wired-but-panel-less tool is the right `options-not-built` example (pdf-to-images since Batch 3).
+- Noted but deliberately not changed: the heading numbers jump (§8 → §12 → §13 → §14 → §16) while the TOC counts 1–12. The anchors are internally consistent and renumbering would break cross-document references (including REVIEW.md's own "§13"/"§14" citations), so it stays as a known cosmetic leftover.
+**Verification performed:**
+- Counts re-derived from ground truth, not copied: `grep -c '^    status: "pending"' artifacts/api-server/src/routes/tools.ts` → **14**; `"implemented"` → **17**; `"partial"` → **1** (32 total). §3's catalog table already matched and was left untouched.
+- Stale-claim scan: `grep -n "/tmp\|Batches 2–6\|13 backend-pending\|not committed\|disposable\|no committed test suite" README.md` → exactly one hit, the intentional historical clause ("They were disposable `/tmp` harnesses; they are not any more").
+- Markdown integrity: 16 code fences (balanced); TOC entries and anchors unchanged.
+- Docs-only change: `git diff --stat` for `713af3d` = README.md + scripts/verify-ui/README.md only. No code or suites re-run (the Batch 3 entry's evidence at `86a9995` still stands: batch3 59/59, verify 127/127, batch1 21/21, batch2 48/48, accent 38/38, compare exit 0).
+**Confidence:** High
+**Result:** Verified working (documentation). Open Items 3, 9, 12, 13, 14 and Item 4's remaining scope are still described accurately; no item changed status.
+**Follow-ups opened:** none. **Follow-ups closed:** none.
+*Session-boundary rule:* (b) distinct task thread (README refresh requested separately from the Batch 3 build).
+
+---
+
 ## 2026-09-27 (batch 3) — Batch 3 Edit-category panels built and verified (Watermark, Add Page Numbers, Crop)
 **Commits:** `86a9995` (Batch 3 panels + suite + harness hardening), this entry's commit (REVIEW.md only).
 **Type:** Feature (Batch 3: Watermark, Add Page Numbers, Crop)
@@ -43,7 +68,7 @@
 - Ground truth read first, not assumed: catalog Edit rows (edit-pdf pending · add-page-numbers, watermark, crop implemented · pdf-form-filler pending; crop is the page-picker workspace), the three zod schemas, `routes/pdf.ts` (watermark's two upload parts), the three services, and `openapi.yaml`, which already models the `image` part — so no spec change was needed (Item 12 holds).
 - Catalog recount for Item 4: 32 tools = 17 implemented + 1 partial + **14 pending** (earlier entries said 13); 18 tools still lack full panels.
 - Session incident (flagged, then resolved by user decision): mid-session an out-of-band move relocated the six root `.md` files into an untracked `docs/` directory and corrupted `docs/FEATURES.md` (its table interleaved with an unrelated document). Commit `86a9995` contains only its 9 intended files — no deletions. The move was undone (`git checkout` of the six files + `rm -rf docs/`) and the tree verified clean, so no trace of it is in history.
-- README drift flagged, not edited (its own Known-limitations #8 defers refresh to REVIEW.md as source of truth): §13.2 and §14.1 still describe Batch 2 as upcoming.
+- README drift found this session (§12 still called the suites disposable `/tmp` harnesses; §13.2/§14.1 still described Batch 2 as upcoming): flagged here, then fixed in the follow-up entry below.
 **Confidence:** High (every count and result above from a command run this session)
 **Result:** Verified working. Batch 3 (Edit category) complete; Batch 4 (Convert) is next. Item 4 updated; the crop page-picker panel note under it is closed. Items 3, 9, 13, 14 untouched per the discipline.
 **Follow-ups opened:** none. **Follow-ups closed:** Item 4's "page-picker Configure panel for crop still open" note.
