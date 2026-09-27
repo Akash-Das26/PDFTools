@@ -1,42 +1,22 @@
+import { DOMMatrix, ImageData, Path2D } from "@napi-rs/canvas";
 import type { PDFParse as PDFParseClass } from "pdf-parse";
 
-// Polyfill browser globals that pdfjs-dist requires even in Node.js text-extraction mode
-// (DOMMatrix, ImageData, Path2D are not available in Node.js but pdfjs initialises them at module load).
-// This module must be imported before `pdf-parse` is required anywhere in the API server.
-if (typeof (globalThis as Record<string, unknown>).DOMMatrix === "undefined") {
-  (globalThis as Record<string, unknown>).DOMMatrix = class DOMMatrix {
-    a=1;b=0;c=0;d=1;e=0;f=0;
-    m11=1;m12=0;m13=0;m14=0;
-    m21=0;m22=1;m23=0;m24=0;
-    m31=0;m32=0;m33=1;m34=0;
-    m41=0;m42=0;m43=0;m44=1;
-    is2D=true;isIdentity=true;
-    constructor(_init?: unknown) {}
-    multiply(_other?: unknown) { return this; }
-    translate(_tx?: number, _ty?: number, _tz?: number) { return this; }
-    scale(_sx?: number, _sy?: number, _sz?: number, _ox?: number, _oy?: number, _oz?: number) { return this; }
-    rotate(_angle?: number) { return this; }
-    rotateAxisAngle(_x?: number, _y?: number, _z?: number, _angle?: number) { return this; }
-    skewX(_angle?: number) { return this; }
-    skewY(_angle?: number) { return this; }
-    flipX() { return this; }
-    flipY() { return this; }
-    inverse() { return this; }
-    transformPoint(_point?: unknown) { return { x: 0, y: 0, z: 0, w: 1 }; }
-    toFloat32Array() { return new Float32Array(16); }
-    toFloat64Array() { return new Float64Array(16); }
-    toString() { return "matrix(1, 0, 0, 1, 0, 0)"; }
-  };
-}
-if (typeof (globalThis as Record<string, unknown>).ImageData === "undefined") {
-  (globalThis as Record<string, unknown>).ImageData = class ImageData {
-    width: number; height: number; data: Uint8ClampedArray;
-    constructor(w: number, h: number) { this.width=w; this.height=h; this.data=new Uint8ClampedArray(w*h*4); }
-  };
-}
-if (typeof (globalThis as Record<string, unknown>).Path2D === "undefined") {
-  (globalThis as Record<string, unknown>).Path2D = class Path2D {};
-}
+// Polyfill the browser globals pdfjs-dist expects to find on the global object.
+//
+// The canvas package (already a dependency of the image tools) supplies real
+// implementations, and real ones are required: pdfjs's *renderer* builds content
+// paths with `Path2D` and transforms them with `DOMMatrix`, so bare stubs are
+// only enough for text extraction. With a stubbed `Path2D` any page that draws
+// vector paths — which is every page produced by a word processor, including a
+// PDF this API converted itself — dies in `moveTo is not a function`, breaking
+// page-info thumbnails, PDF to JPG and OCR.
+//
+// This module must be imported before `pdf-parse` is required anywhere in the
+// API server, because pdfjs-dist reads these globals at module load.
+const pdfGlobals = globalThis as Record<string, unknown>;
+if (pdfGlobals.DOMMatrix === undefined) pdfGlobals.DOMMatrix = DOMMatrix;
+if (pdfGlobals.ImageData === undefined) pdfGlobals.ImageData = ImageData;
+if (pdfGlobals.Path2D === undefined) pdfGlobals.Path2D = Path2D;
 
 type PDFParseInstance = InstanceType<typeof PDFParseClass>;
 
