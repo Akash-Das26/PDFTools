@@ -4,6 +4,13 @@
   <img src="artifacts/pdftools/public/favicon.svg" width="72" alt="PDFTools mark" /><br/>
   <strong>PDFTools</strong> — a self-hosted PDF toolkit: 32 tools, an Express API, and a React workspace UI.
 </p>
+<p align="center">
+  <!-- Badge is pinned to this branch; drop ?branch=… once merged to the default branch. -->
+  <a href="https://github.com/Akash-Das26/PDFTools/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Akash-Das26/PDFTools/ci.yml?branch=feat/frontend-rebuild&amp;label=CI&amp;logo=github" alt="CI status" /></a>
+  <a href="https://github.com/Akash-Das26/PDFTools/blob/HEAD/LICENSE"><img src="https://img.shields.io/github/license/Akash-Das26/PDFTools?label=license" alt="MIT license" /></a>
+  <img src="https://img.shields.io/badge/node-%E2%89%A520-brightgreen?logo=nodedotjs" alt="Node 20+" />
+  <img src="https://img.shields.io/badge/pnpm-10.26.1-orange?logo=pnpm" alt="pnpm 10.26.1" />
+</p>
 
 Every number in this file is traceable to a file in this repository or a command that was run against it — see
 [Testing & verification](#12-testing--verification) and [Known limitations](#13-known-limitations).
@@ -386,6 +393,8 @@ PDFTools/
 ├── package.json                  # workspace root: scripts, MIT license, pnpm pin
 ├── pnpm-workspace.yaml           # packages + dependency catalog + supply-chain guard
 ├── .env.example                  # DATABASE_URL / OPENAI_API_KEY / port template
+├── LICENSE                       # MIT — full license text
+├── .github/workflows/ci.yml      # CI: install → typecheck → build (Node 20 & 22)
 ├── .replit / replit.md           # Replit: nodejs-24 + postgresql-16 modules, port map
 ├── run-local.sh / run-local.bat  # one-command launchers (install + env + run)
 ├── REVIEW.md                     # audit log: every change + its verification evidence
@@ -422,9 +431,14 @@ PDFTools/
 ## 12. Testing & verification
 
 **There is no committed test suite.** No test runner (`vitest`, `jest`, `playwright`, …) is declared in any
-`package.json`, and no `*.test.*`/`*.spec.*` files are tracked. CI does not exist either: there is no
-`.github/workflows/` directory and no other CI configuration. Do not assume `pnpm test` works — there is no
+`package.json`, and no `*.test.*`/`*.spec.*` files are tracked. Do not assume `pnpm test` works — there is no
 such script.
+
+**CI exists and runs the build pipeline.** `.github/workflows/ci.yml` (added 2026-09-26) runs on every push
+and pull request across Node 20 and 22: `pnpm install --frozen-lockfile` → `pnpm run typecheck` → `pnpm build`.
+Those are exactly the steps executed locally while authoring this README, so the workflow encodes an
+already-verified sequence; the badge at the top shows the latest live run. CI running the build is not a
+substitute for the test suite that does not exist yet.
 
 What does exist is a verification log with teeth: [`REVIEW.md`](REVIEW.md) records every change since the
 project's start with the exact command or suite that backs each "verified" claim, plus an open-items list.
@@ -460,8 +474,9 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
    pending: extend the backend, or keep the honest preview-only framing.
 4. **`on-tertiary-container` contrast never measured** — the `tertiary-fixed` token family is ported but used
    by nothing yet; it must be measured before first use.
-5. **No test framework / CI** — the CDP suites live in `/tmp` and are disposable (see
-   [Testing & verification](#12-testing--verification)).
+5. **No test framework** — the CDP suites live in `/tmp` and are disposable (see
+   [Testing & verification](#12-testing--verification)); CI runs install/typecheck/build only — there is
+   no test suite for it to run.
 6. **Spec ↔ multer coupling** — every new `/pdf/*` route must add its binary part(s) to `openapi.yaml` with
    the exact field name (`file`/`files`/`image`), or the generated client cannot upload.
 7. **Unused dependencies** — `cookie-parser` + `@types/cookie-parser` (API server; zero imports) and root
@@ -485,7 +500,8 @@ Ordered by REVIEW.md's actual open items and the queued work they reference — 
    option that tells the truth.
 4. **Rotate per-page decision** — extend the rotate endpoint to per-page angles or reframe the UI.
 5. **Commit the verification harnesses** (e.g. `scripts/verify-ui/`) so the 127/38/21-assertion suites are
-   reproducible by anyone, and consider a minimal CI on top of `pnpm build`.
+   reproducible by anyone. CI now covers install/typecheck/build; wiring the harnesses into it is the
+   natural next step.
 6. **Dependency hygiene** — remove `cookie-parser` if still unused; decide `@replit/connectors-sdk`'s platform
    coupling before touching it.
 7. **Approved backend candidates** (from the feature audit): PDF form fill/flatten, PDF→Excel (CSV), Translate
@@ -498,7 +514,8 @@ is execution of what the UI already promises, not new scope.
 
 ## 16. License
 
-[MIT](package.json) — `"license": "MIT"` in the root `package.json`.
+[MIT](LICENSE) — the [LICENSE](LICENSE) file carries the full text, and `"license": "MIT"` in the root
+`package.json` declares it to tooling.
 
 **PDFTools** — real PDF processing, on your machine, with receipts. Every claim in this file has a paper
 trail: [REVIEW.md](REVIEW.md).

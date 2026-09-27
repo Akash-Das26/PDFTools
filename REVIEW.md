@@ -48,6 +48,29 @@
 
 ---
 
+## 2026-09-26 (badges) — MIT LICENSE + CI workflow added; README badges wired to the live repo
+**Commits:** see this commit (LICENSE, `.github/workflows/ci.yml`, README.md, REVIEW.md).
+**Type:** Code change (repo infra) / Documentation
+**Trigger:** User follow-up: add rendered shields.io version/license/CI badges "once a remote URL exists". A remote now exists (`origin` → `github.com/Akash-Das26/PDFTools`), and shields.io was verified reachable (HTTP 200) while the GitHub API and github.com are blocked from this shell (HTTP 000/timeout).
+**Decisions taken with explicit user approval (ask_user):** (1) add a real LICENSE file — shields' GitHub license badge reads GitHub's license detection, which needs the file (package.json's `"MIT"` alone renders "not specified", confirmed by probe); (2) add a minimal CI workflow — a CI badge needs a real workflow to be truthful.
+**Changes made:**
+- `LICENSE`: canonical MIT text, "Copyright (c) 2026 Akash-Das26" (matches the GitHub owner). Transparency: my first write contained two corrupted words ("is now hereby", "the standard Software"); caught by self-review, fixed, and the full text re-read back against the canonical MIT wording before proceeding.
+- `.github/workflows/ci.yml`: `push` + `pull_request` triggers, `permissions: contents: read`, concurrency cancel, matrix Node **20 & 22** (20 = documented floor, 22 = version verified locally), `pnpm/action-setup@v4` (version from the root `packageManager` field), `setup-node@v4` with pnpm cache, then `pnpm install --frozen-lockfile` → `pnpm run typecheck` → `pnpm build` — exactly the sequence executed and passing locally during the README authoring sessions. No test step: there is no test suite to run (stated in the README).
+- README: 4-badge row under the title (CI status pinned to `?branch=feat/frontend-rebuild` with an HTML comment to drop the pin on merge; license; Node ≥20; pnpm 10.26.1 — the latter two are the repo-verified static facts); Testing section rewritten (CI now exists and runs install/typecheck/build; still **no test suite**, plainly stated); limitation 5 and roadmap 5 updated accordingly; structure tree gained LICENSE + ci.yml lines; License section now points at the LICENSE file.
+**Verification performed:**
+- Workflow YAML parses (`yaml.safe_load`): 1 job, matrix [20, 22], 6 steps.
+- Shields probes: `github/license/…` returns a well-formed response (currently `"not specified"` — **expected until this commit is pushed**; GitHub's detection will flip it to MIT once LICENSE lands on the remote). The CI-status badge cannot show a run yet for the same reason.
+- All four badge URLs **load as real images in the rendered headless-Chrome preview** (remote shields images fetched live; zero broken images).
+- README battery re-run after edits: static checker **ALL CHECKS PASS**; rendered preview **15/15** (new assertions: exactly one favicon img, exactly 4 shields.io badge imgs, plus all prior anchor/table/overflow/diagram checks).
+- Local ground truth for the workflow's commands: `pnpm install --frozen-lockfile`, `pnpm run typecheck`, `pnpm build` all executed and passing earlier this session chain (see README/push-proof/render entries above).
+**Confidence:** High for everything local (files, README, YAML, badge wiring). **Explicitly not verified:** the workflow has never run on GitHub (no push was performed from here — pushing is the user's call), so the CI badge's green state and the license badge's MIT state are **expected-after-push**, not observed.
+**Result:** Verified partial — local artifacts fully verified; remote badge states pending the first push (10-second check afterwards: badges render MIT + passing).
+**Follow-ups opened:** none (post-push badge check noted above; if CI fails on a GitHub-runner quirk this shell cannot see, that becomes a new Open Item).
+**Follow-ups closed:** none.
+*Session-boundary rule:* (b) new task thread (repo infra + badges, follow-up to the README work); gap < 4 h.
+
+---
+
 ## 2026-09-26 (push proof) — drizzle-kit push verified against a fresh, correctly-credentialed Postgres
 **Commits:** see this commit (README.md + REVIEW.md only; no code or config changed).
 **Type:** Verification / Documentation
