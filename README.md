@@ -13,7 +13,7 @@
 </p>
 
 Every number in this file is traceable to a file in this repository or a command that was run against it — see
-[Testing & verification](#12-testing--verification) and [Known limitations](#13-known-limitations).
+[Testing & verification](#9-testing--verification) and [Known limitations](#10-known-limitations).
 
 ## Table of contents
 
@@ -25,10 +25,10 @@ Every number in this file is traceable to a file in this repository or a command
 6. [Quickstart](#6-quickstart)
 7. [API reference](#7-api-reference)
 8. [Project structure](#8-project-structure)
-9. [Testing & verification](#12-testing--verification)
-10. [Known limitations](#13-known-limitations)
-11. [Roadmap](#14-roadmap)
-12. [License](#16-license)
+9. [Testing & verification](#9-testing--verification)
+10. [Known limitations](#10-known-limitations)
+11. [Roadmap](#11-roadmap)
+12. [License](#12-license)
 
 ---
 
@@ -87,7 +87,7 @@ README was exercised on a plain Linux checkout with Node 22 and pnpm 10.
 The contract chain is the point: `openapi.yaml` → **orval** → generated Zod schemas (`@workspace/api-zod`)
 and generated React Query hooks (`@workspace/api-client-react`). The frontend imports types and hooks; it does
 not hand-write API calls. (The PDF-processing page uses a raw `fetch` transport for multipart streaming —
-see [Known limitations](#13-known-limitations).)
+see [Known limitations](#10-known-limitations).)
 
 ---
 
@@ -428,7 +428,7 @@ PDFTools/
 
 ---
 
-## 12. Testing & verification
+## 9. Testing & verification
 
 **There is still no test runner.** No `vitest`, `jest`, `playwright`, … is declared in any `package.json`, and no
 `*.test.*`/`*.spec.*` files are tracked — `pnpm test` does not exist. What does exist is a committed set of
@@ -467,7 +467,7 @@ artifacts — this was run as part of authoring this README) and the `/api/healt
 
 ---
 
-## 13. Known limitations
+## 10. Known limitations
 
 Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
 
@@ -485,7 +485,7 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
 4. **`on-tertiary-container` contrast never measured** — the `tertiary-fixed` token family is ported but used
    by nothing yet; it must be measured before first use.
 5. **No test runner** — the CDP suites are committed and reproducible (see
-   [Testing & verification](#12-testing--verification)), but there is still no framework (`vitest`/`jest`/
+   [Testing & verification](#9-testing--verification)), but there is still no framework (`vitest`/`jest`/
    `playwright`) and CI runs install/typecheck/build only, so no automated run happens on push; the suites
    need Chrome plus live servers on fixed ports.
 6. **Spec ↔ multer coupling** — every new `/pdf/*` route must add its binary part(s) to `openapi.yaml` with
@@ -499,7 +499,7 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
 
 ---
 
-## 14. Roadmap
+## 11. Roadmap
 
 Ordered by REVIEW.md's actual open items and the queued work they reference — not invented phases:
 
@@ -524,7 +524,7 @@ is execution of what the UI already promises, not new scope.
 
 ---
 
-## 16. License
+## 12. License
 
 [MIT](LICENSE) — the [LICENSE](LICENSE) file carries the full text, and `"license": "MIT"` in the root
 `package.json` declares it to tooling.
