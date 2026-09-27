@@ -53,3 +53,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# verify-ui screenshots (written next to the suites at runtime)
+scripts/verify-ui/*.png
