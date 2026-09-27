@@ -628,12 +628,16 @@ paths:
     post:
       operationId: compressPdf
       tags: [pdf]
-      summary: Shrink a PDF by re-serialising it
-      description: Send the document as `file`. The document is re-serialised
-        with object streams and its author/keyword metadata dropped. Caveat - no
-        Ghostscript is available in this environment, so all three `quality`
-        modes currently take this same path; the field is accepted so the
-        request shape stays stable.
+      summary: Shrink a PDF with Ghostscript's PDF presets
+      description: Send the document as `file`. `quality` selects Ghostscript's
+        own preset - extreme=`/screen` (72 dpi images), recommended=`/ebook`
+        (150 dpi), high=`/printer` (300 dpi) - so text stays vector and pages
+        keep their count. Two guarantees: the response is never larger than a
+        plain re-serialisation (the 300 dpi preset inflates text-only documents,
+        in which case the re-serialised bytes are returned instead), and the
+        `X-PDF-Compression-Engine` response header names the engine that
+        produced them (`ghostscript`, or `pdf-lib` when the host has no
+        Ghostscript and only the re-serialisation path is available).
       requestBody:
         required: true
         content:
