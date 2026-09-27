@@ -15,13 +15,39 @@
 | # | Item | Opened by | Status / note |
 |---|---|---|---|
 | 3 | **`/pdf/compress` `quality` option is a no-op** — no Ghostscript in the environment; `extreme`/`recommended`/`high` take the identical re-serialise path, but the Compress panel still offers three choices | 2026-09-26 (accent/spec session) | Either build real compression or collapse the UI to one honest option. Spec now documents the gap. |
-| 4 | **Step 3 tool batches 3–6 not built** — Batch 1 (Organize PDF, 7 tools) and Batch 2 (Protect, Unlock wired; Sign/Redact ship as honest backend-pending workspaces) are done and verified; 23 tools remain, of which **13 are backend-pending** (disabled Process + badge). Page-picker Configure panel for crop still open | 2026-09-26 (rebuild session) | Batch 3 is next per the batch-and-stop discipline. |
+| 4 | **Step 3 tool batches 4–6 not built** — Batch 1 (Organize PDF, 7 tools), Batch 2 (Protect, Unlock wired; Sign/Redact pending) and Batch 3 (Watermark text+image, Add Page Numbers, Crop) are done and verified; **18 tools remain without full panels** — **14 backend-pending** (disabled Process + badge; fresh count from the catalog's `status` fields) and 4 wired-but-panel-less (images-to-pdf, pdf-to-images, pdf-to-pdfa, pdf-to-markdown). The page-picker Configure panel for Crop is **closed** (Batch 3) | 2026-09-26 (rebuild session) | Batch 4 (Convert panels) is next per the batch-and-stop discipline. |
 | 9 | **`on-tertiary-container` contrast never measured**; `tertiary-fixed` family only partially ported (used by nothing yet — badges use `success-subtle-foreground` instead) | 2026-09-26 (accent session) | Measure before first use. |
 | 10 | **No test framework** — the CDP suites lived in `/tmp/pdfcheck/` and were disposable | 2026-09-26 (rebuild session) | **Closed 2026-09-27 (batch-2 session):** all five suites committed under `scripts/verify-ui/` (`ef9f07d`), paths de-hardcoded; reproducible via `bash scripts/verify-ui/drive.sh <suite>` — 127/127, 38/38, 21/21 re-confirmed from the new location, plus the new 48-assertion `batch2.mjs`. |
 | 12 | **Spec ↔ multer coupling** — every new `/pdf/*` route must add its binary part(s) to `lib/api-spec/openapi.yaml` with the exact field name (`file`/`files`/`image`) or the generated client can't upload | 2026-09-26 (spec session) | Now documented in the spec header; keep it true for future tools. |
 | 13 | **Rotate picker rotations are preview-only** — `POST /pdf/rotate` applies ONE angle (optionally scoped by `pages`), so the page-picker's per-page rotate arrows cannot be honoured per-page | 2026-09-26 (batch-1 session) | Product decision needed: extend the backend to per-page rotations, or keep the panel's current honest "preview-only" framing. |
 | 14 | **Unused server dependencies + knip config** — `cookie-parser` + `@types/cookie-parser` (knip AND depcheck agree, zero imports) and root `@replit/connectors-sdk` (zero imports; Replit platform coupling unknown); knip also hints a `knip.json` would quiet its config warnings | 2026-09-26 (cleanup session) | Dependency removals were deliberately deferred — decide on the connectors-sdk platform coupling first. |
 | 15 | **README predates the rebuild** — run instructions remain correct, but no screenshots/structure references have been refreshed | 2026-09-26 (batch-1 session) | **Closed 2026-09-26 (README session):** fully rewritten from re-verified ground truth (see entry below); future refresh cadence is noted in the README's own Known-limitations list. |
+
+---
+
+## 2026-09-27 (batch 3) — Batch 3 Edit-category panels built and verified (Watermark, Add Page Numbers, Crop)
+**Commits:** `86a9995` (Batch 3 panels + suite + harness hardening), this entry's commit (REVIEW.md only).
+**Type:** Feature (Batch 3: Watermark, Add Page Numbers, Crop)
+**Trigger:** User brief: start Batch 3 in a fresh session per the batch-and-stop discipline.
+**Changes made:**
+- Transport: `buildFormData` now appends File-valued options as their own multipart part, which is exactly what `POST /pdf/watermark`'s `upload.fields(["file","image"])` expects — the only way image watermarks can reach the UI without a bespoke path.
+- Panels: `watermark.tsx` (text/image mode cards, the ten-position grid with diagonal default, colour, font size, opacity slider, angle cards, page selection with scope line), `page-numbers.tsx` (five position cards, three format cards, start-number input with a live "numbering starts at N" line), `crop.tsx` (percent/point unit cards, four margin inputs, picker-scoped pages — the page-picker Configure panel Item 4 has carried since the rebuild).
+- Registry: `OPTION_PANELS` gains watermark / add-page-numbers / crop, so all three wired Edit tools leave the `options-not-built` placeholder.
+- Guard: `process()` in pages/tool.tsx blocks watermark image mode without an image, with the error panel, exactly like the protect-password guard.
+- `buildOptions` gained a `case "crop"`: the panel's typed page range wins over the picker mirror when present.
+- Harness: new `batch3.mjs` (59 checks); `verify.mjs`'s unbuilt-panel example re-pointed watermark → pdf-to-images (watermark is panelled now); `compare.mjs` navigation given the same cold-start retry as the other suites after it flaked once.
+**Verification performed:**
+- `bash scripts/verify-ui/drive.sh batch3.mjs` → **59/59, exit 0** — direct API: text watermark 200 + `watermarked.pdf` + output differs from input, image-part watermark 200, page numbers 200 + `numbered.pdf`, crop 10% 200 + `cropped.pdf`, over-crop 400, crop in points 200; UI: text run and image run each reach a download, the image-mode guard shows the error panel with no result, page-number fields and the live range line respond, crop's unit/margins/scope-narrowing work and the real run completes, edit-pdf and pdf-form-filler keep the pending pattern, dark theme checked.
+- Regression: `verify.mjs` **127/127 exit 0**, `batch1.mjs` **21/21 exit 0**, `batch2.mjs` **48/48 exit 0**, `accent.mjs` **38/38 exit 0**, `compare.mjs` exit 0.
+- `pnpm run typecheck` → exit 0 (libs + pdftools + api-server + scripts).
+- Ground truth read first, not assumed: catalog Edit rows (edit-pdf pending · add-page-numbers, watermark, crop implemented · pdf-form-filler pending; crop is the page-picker workspace), the three zod schemas, `routes/pdf.ts` (watermark's two upload parts), the three services, and `openapi.yaml`, which already models the `image` part — so no spec change was needed (Item 12 holds).
+- Catalog recount for Item 4: 32 tools = 17 implemented + 1 partial + **14 pending** (earlier entries said 13); 18 tools still lack full panels.
+- Session incident (flagged, then resolved by user decision): mid-session an out-of-band move relocated the six root `.md` files into an untracked `docs/` directory and corrupted `docs/FEATURES.md` (its table interleaved with an unrelated document). Commit `86a9995` contains only its 9 intended files — no deletions. The move was undone (`git checkout` of the six files + `rm -rf docs/`) and the tree verified clean, so no trace of it is in history.
+- README drift flagged, not edited (its own Known-limitations #8 defers refresh to REVIEW.md as source of truth): §13.2 and §14.1 still describe Batch 2 as upcoming.
+**Confidence:** High (every count and result above from a command run this session)
+**Result:** Verified working. Batch 3 (Edit category) complete; Batch 4 (Convert) is next. Item 4 updated; the crop page-picker panel note under it is closed. Items 3, 9, 13, 14 untouched per the discipline.
+**Follow-ups opened:** none. **Follow-ups closed:** Item 4's "page-picker Configure panel for crop still open" note.
+*Session-boundary rule:* (b) distinct task thread (Batch 3 build per new brief).
 
 ---
 
