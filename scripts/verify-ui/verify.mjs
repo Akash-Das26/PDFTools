@@ -635,8 +635,9 @@ check("pending tool wire status = pending", pendingTool.wire, "pending");
 await shot("pending-tool-sign");
 
 // A wired tool with an unbuilt options panel must also refuse to run, so the
-// endpoint is never called with silently-unset defaults.
-await goto(`${BASE}/tools/protect`, 1200, '[data-testid="upload-dropzone"]');
+// endpoint is never called with silently-unset defaults. (Watermark is the
+// standing example — since Batch 2, protect has a real options panel.)
+await goto(`${BASE}/tools/watermark`, 1200, '[data-testid="upload-dropzone"]');
 await upload();
 await sleep(1200);
 const unbuilt = await evaluate(`(() => ({
@@ -646,7 +647,7 @@ const unbuilt = await evaluate(`(() => ({
 }))()`);
 check("unbuilt options panel is announced", unbuilt.placeholder, true);
 check("unbuilt options panel disables Process", unbuilt.processDisabled, true);
-check("protect is a wired route", unbuilt.wire, "implemented");
+check("watermark is a wired route", unbuilt.wire, "implemented");
 
 /* ═══════════════════════════ REPORT ═══════════════════════════ */
 

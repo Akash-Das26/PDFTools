@@ -202,6 +202,18 @@ export default function Tool() {
 
   const process = useCallback(async () => {
     if (!tool) return;
+    if (tool.id === "protect" &&
+        (typeof options.password !== "string" || options.password.length === 0)) {
+      // The endpoint 400s without a password; surface the requirement before
+      // any request is made, exactly like the merge <2-files guard.
+      setPhase("error");
+      setError({
+        title: "A password is required",
+        message:
+          "Protect encrypts the document with the password you set. Enter one in the Configure step and run it again.",
+      });
+      return;
+    }
     if (tool.id === "merge" && files.length < 2) {
       setPhase("error");
       setError({
