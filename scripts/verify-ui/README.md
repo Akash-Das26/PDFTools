@@ -36,6 +36,11 @@ bash scripts/verify-ui/drive.sh batch4.mjs
 # and the container guards) — needs LibreOffice on PATH, or those tools answer 503
 bash scripts/verify-ui/drive.sh batch5.mjs
 
+# 44-assertion compression suite (Ghostscript profiles, the never-larger guarantee,
+# the engine header, the panel copy) — generate-and-compress, so it needs Ghostscript
+# for the profile assertions (without it they exercise the re-serialise fallback)
+bash scripts/verify-ui/drive.sh compress.mjs
+
 # Reference comparison against the Stitch design screens
 bash scripts/verify-ui/drive.sh compare.mjs
 
@@ -63,6 +68,12 @@ everything down on exit.
 - Batch 5 needs LibreOffice: `soffice` on PATH, or `SOFFICE_BIN=/path/to/soffice` for the API
   process. Without it `batch5.mjs` fails at its first conversion — which is itself the honest
   503 behaviour, so run the suite on a host that has it.
+- `compress.mjs` builds its own input: a 1200×1600 noise PNG (~5.7 MB, written to
+  `/tmp/compress-noise.png`) through `/api/pdf/images-to-pdf`, then compresses it at each
+  profile. Real noise matters — a cheap PRNG's byte stream deflates to 55 KB and hides the
+  difference between the presets entirely. Ghostscript (`gs`, or `GS_BIN`) is needed for the
+  profile assertions; without it the endpoint still answers 200 via the re-serialise fallback
+  and the engine header says `pdf-lib`.
 - When adding a tool batch, add a `batchN.mjs` suite here following the `batch1.mjs` pattern
   and keep the per-suite assertion counts cited in REVIEW.md entries.
 - Landing-state assertions move with each batch: `verify.mjs` counts pending badges (11 after

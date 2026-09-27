@@ -119,7 +119,7 @@ nothing is rounded up.
 | Extract Pages | `POST /pdf/split` | Implemented | Shares the split endpoint (`splitType=pages`) |
 | Organize Pages | `POST /pdf/reorder-pages` | Implemented | Page-picker UI with drag/keyboard reorder |
 | Rotate PDF | `POST /pdf/rotate` | Implemented | Single angle, optionally scoped by `pages` — see limitation 3 |
-| Compress PDF | `POST /pdf/compress` | Implemented | Re-serialisation only — the `quality` option is a **no-op** (limitation 1) |
+| Compress PDF | `POST /pdf/compress` | Implemented | Real Ghostscript presets — images at 72/150/300 dpi; never returns a larger file (see limitation 1 for hosts without Ghostscript) |
 
 ### Convert to PDF — 6 tools, 4 implemented
 
@@ -229,6 +229,7 @@ any source file (same).
 | pnpm | 10.26.1 (pinned) | Enforced: root `packageManager` field + a `preinstall` hook that exits with *"Use pnpm instead"* under npm or yarn |
 | PostgreSQL | ≥ 14 | Latest tested: 18.6 (fresh scratch server, full install flow) and 16 (Replit's module); client tools 18.6. Required at API startup |
 | OS | Linux / macOS / Windows | Linux x64 assumed by the `pnpm-workspace.yaml` platform overrides (Replit heritage); they remove non-linux-x64 `esbuild`/`rollup`/`lightningcss`/`@tailwindcss/oxide` optional packages |
+| Ghostscript (optional) | tested with 10.06 | Powers the Compress profiles; located as `gs` (override with `GS_BIN`). Without it Compress still returns a smaller doc by re-serialising, and says so in `X-PDF-Compression-Engine` |
 | LibreOffice (optional) | any recent release | Only the three Office → PDF tools need it; they are the only feature that shells out to a system binary. Located as `soffice` (override with `SOFFICE_BIN`), cached per process, and reported as an honest `503` when absent — nothing else in the app is affected. Verified here with LibreOffice's `writer_pdf_Export` / `impress_pdf_Export` / `calc_pdf_Export` filters |
 
 ### Clone and install
@@ -381,7 +382,7 @@ responses (413 for oversized files).
 | POST | `/api/pdf/word-to-pdf` | `file` | Convert .doc/.docx via headless LibreOffice; optional PDF/A |
 | POST | `/api/pdf/ppt-to-pdf` | `file` | Convert .ppt/.pptx; same pipeline and PDF/A option |
 | POST | `/api/pdf/excel-to-pdf` | `file` | Convert .xls/.xlsx; PDF/A option plus `fitToPage` |
-| POST | `/api/pdf/compress` | `file` | Rewrite/re-serialise; `quality` presets exist but are a no-op |
+| POST | `/api/pdf/compress` | `file` | Ghostscript presets (`/screen`, `/ebook`, `/printer`); `X-PDF-Compression-Engine` names the engine used |
 | POST | `/api/pdf/repair` | `file` | Strict parse + tolerant recovery pass |
 | POST | `/api/pdf/extract-text` | `file` | Text export (`.txt`/Markdown) |
 | POST | `/api/pdf/ocr` | `file` | OCR (tesseract.js; 17 languages; text or searchable-PDF) |
@@ -453,6 +454,7 @@ not any more, so verification is reproducible by anyone with Chrome and a built 
 | `batch3.mjs` | 59 | Batch 3 — Watermark text and image runs, Add Page Numbers, picker-scoped Crop, the image-part guard, Edit PDF Content / PDF Form Filler pending state |
 | `batch4.mjs` | 54 | Batch 4 — JPG/PNG to PDF, PDF to JPG, PDF to PDF/A and PDF to Markdown through real routes, panel parity, the conditional controls, the download filenames, and the shared move-up/move-down/remove row list |
 | `batch5.mjs` | 65 | Batch 5 — Word/PowerPoint/Excel to PDF: the conversions themselves (text and page counts read back through the API), PDF/A-1b/2b/3b markers, fit-to-page collapsing 3 pages to 1, and the guards that reject a mislabelled or wrong-family upload |
+| `compress.mjs` | 44 | Compression — the three Ghostscript profiles measured on a generated image-heavy document (extreme downsamples to 72 dpi, recommended re-encodes at full size), the never-larger guarantee including the profile that would inflate a text-only file, the engine header, and a real UI run |
 | `compare.mjs` | — | Reference fidelity against the canonical Stitch design screens |
 | `contrast.mjs` | — | Informational WCAG audit (reports ratios; exit code never gates) |
 
@@ -481,11 +483,11 @@ artifacts — this was run as part of authoring this README) and the `/api/healt
 
 Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
 
-1. **`/pdf/compress` `quality` is a no-op** — `extreme`/`recommended`/`high` take the identical
-   re-serialisation path, while the Compress panel still offers three choices. The blocker recorded when this
-   was written was that the environment had no Ghostscript; this host does (`gs --version` → 10.06.0) and the
-   service still does not shell out to it, so the gap is now an implementation choice rather than a missing
-   binary. Fix: wire a real compressor in, or collapse the UI to one honest option.
+1. **Compression profiles need Ghostscript on the host** — the three profiles are real (72/150/300 dpi image
+   downsampling, verified: 5.76 MB → 176 KB at `extreme`), but they are Ghostscript presets. Where `gs` is
+   absent the endpoint still answers 200 and still shrinks a text-heavy file by re-serialising; it just cannot
+   apply the profile, which the `X-PDF-Compression-Engine: pdf-lib` header and the panel note both say. The
+   open part is the UI surfacing that difference instead of only documenting it.
 2. **Batch 6 of the tool UI is not built** — Batches 1–5 are done and verified, so **every one of the 21 wired
    tools has a Configure panel**; the **11 backend-pending tools** still render with a disabled Process button
    and a pending badge, and each needs a real backend before its UI can enable. Batch 5 wired Word, PowerPoint
@@ -509,8 +511,10 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
    by claim against the live tree (six stale claims corrected: merge's output, the CI badge's branch pin,
    `pdf-parse`'s scope, §2's transport note, the Replit plugin gating, and the §8 file list). Refreshed again
    for Batch 5 — the three Office → PDF tools and their routes and spec paths, the optional LibreOffice
-   prerequisite, the 20/1/11 catalog split, the `batch5.mjs` row, and the Ghostscript correction above. It
-   will drift again as the remaining batches land — [REVIEW.md](REVIEW.md) is the source of truth.
+   prerequisite, the 20/1/11 catalog split, the `batch5.mjs` row, and the Ghostscript correction above. Further
+   refreshed for the compression work: the Compress row and route, the Ghostscript prerequisite, the
+   `compress.mjs` row, and limitation 1 rewritten from "the option is a no-op" to the dependency that actually
+   remains. It will drift again as the remaining batches land — [REVIEW.md](REVIEW.md) is the source of truth.
 
 ---
 
@@ -527,11 +531,13 @@ Ordered by REVIEW.md's actual open items and the queued work they reference — 
 2. **Measure the `on-tertiary-container` pair before first use** — the `tertiary-fixed` token family is ported
    but consumed by nothing (badges use `success-subtle-foreground` instead), so its contrast has never been
    measured. Tracked as Known limitation 4 and REVIEW.md Open Item 9.
-3. **Fix the compress honesty gap** — either implement real compression or reduce the quality selector to one
-   option that tells the truth.
+3. **Surface optional system-binary availability in the UI** — Compress needs Ghostscript and the three
+   Office → PDF tools need LibreOffice; both degrade honestly in the API (`X-PDF-Compression-Engine`, a 503
+   with a clear message) but the browser cannot tell whether this server has them, so a user picks a profile
+   or a tool that may fall back. A capability endpoint (or the tool catalog) could carry that.
 4. **Rotate per-page decision** — extend the rotate endpoint to per-page angles or reframe the UI.
 5. **Wire the committed verification suites into CI** — `scripts/verify-ui/` (the regression, accent/contrast and
-   batch 1–5 suites, 412 assertions in total) is committed and reproducible locally; making a workflow run it
+   batch 1–5 + compression suites, 456 assertions in total) is committed and reproducible locally; making a workflow run it
    (Chrome + live servers) is the natural next step now that CI covers install/typecheck/build.
 6. **Dependency hygiene** — remove `cookie-parser` if still unused; decide `@replit/connectors-sdk`'s platform
    coupling before touching it.
