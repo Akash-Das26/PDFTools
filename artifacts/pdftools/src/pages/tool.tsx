@@ -171,6 +171,14 @@ export default function Tool() {
       };
     }
 
+    if (tool.id === "pdf-to-markdown") {
+      // The shared extract-text endpoint defaults to plain text while this tool
+      // promises Markdown. The panel shows Markdown as the selected card, so the
+      // request must carry it rather than letting the server default win — the
+      // same reason rotate sends its displayed angle explicitly.
+      return { ...options, format: options.format === "txt" ? "txt" : "md" };
+    }
+
     if (tool.workspace !== "page-picker") return options;
 
     const plan = pagePlan;

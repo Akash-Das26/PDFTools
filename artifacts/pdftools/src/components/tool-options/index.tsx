@@ -2,8 +2,12 @@ import type { ComponentType } from "react";
 import { CompressOptions } from "@/components/tool-options/compress";
 import { CropOptions } from "@/components/tool-options/crop";
 import { ExtractPagesOptions } from "@/components/tool-options/extract-pages";
+import { ImagesToPdfOptions } from "@/components/tool-options/images-to-pdf";
 import { MergeOptions } from "@/components/tool-options/merge";
 import { AddPageNumbersOptions } from "@/components/tool-options/page-numbers";
+import { PdfToImagesOptions } from "@/components/tool-options/pdf-to-images";
+import { PdfToMarkdownOptions } from "@/components/tool-options/pdf-to-markdown";
+import { PdfToPdfaOptions } from "@/components/tool-options/pdf-to-pdfa";
 import { ProtectOptions } from "@/components/tool-options/protect";
 import { ReorderPagesOptions } from "@/components/tool-options/reorder-pages";
 import { RemovePagesOptions } from "@/components/tool-options/remove-pages";
@@ -49,6 +53,10 @@ export const OPTION_PANELS: Record<string, ComponentType<ToolOptionsProps>> = {
   watermark: WatermarkOptions,
   "add-page-numbers": AddPageNumbersOptions,
   crop: CropOptions,
+  "images-to-pdf": ImagesToPdfOptions,
+  "pdf-to-images": PdfToImagesOptions,
+  "pdf-to-pdfa": PdfToPdfaOptions,
+  "pdf-to-markdown": PdfToMarkdownOptions,
   "ai-summarize": NoOptionsPanel({
     note: "Runs with the default summarizer settings — a short summary plus key points. No options to set.",
   }),

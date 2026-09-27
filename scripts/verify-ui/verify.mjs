@@ -4,6 +4,9 @@ import { writeFileSync, mkdirSync, rmSync } from "node:fs";
 const BASE = "http://127.0.0.1:5173";
 const OUT = new URL(".", import.meta.url).pathname;
 const FIXTURE = OUT + "fixtures/fixture.pdf";
+const API = "http://127.0.0.1:8080";
+// The whole-catalog panel walk needs a real image for images-to-pdf.
+const PNG_FIXTURE = "/tmp/verify-ui-mark.png";
 const PROFILE = "/tmp/pdfcheck-ui-profile";
 
 rmSync(PROFILE, { recursive: true, force: true });
@@ -134,14 +137,14 @@ function check(label, actual, expected) {
   results.push({ pass, label, actual, expected });
 }
 
-async function upload(nodeSelector = '[data-testid="input-file"]') {
+async function upload(nodeSelector = '[data-testid="input-file"]', files = [FIXTURE]) {
   const doc = await send("DOM.getDocument");
   const node = await send("DOM.querySelector", {
     nodeId: doc.root.nodeId,
     selector: nodeSelector,
   });
   if (!node.nodeId) throw new Error(`file input not found: ${nodeSelector}`);
-  await send("DOM.setFileInputFiles", { nodeId: node.nodeId, files: [FIXTURE] });
+  await send("DOM.setFileInputFiles", { nodeId: node.nodeId, files });
 }
 
 await send("Page.enable");
@@ -634,21 +637,44 @@ check("pending tool: CTA reads Unavailable", pendingTool.processLabel, "Unavaila
 check("pending tool wire status = pending", pendingTool.wire, "pending");
 await shot("pending-tool-sign");
 
-// A wired tool with an unbuilt options panel must also refuse to run, so the
-// endpoint is never called with silently-unset defaults. (pdf-to-images is
-// the standing example — since Batch 3, watermark/page-numbers/crop have real
-// panels, so the wired-but-panel-less examples are the Convert tools.)
-await goto(`${BASE}/tools/pdf-to-images`, 1200, '[data-testid="upload-dropzone"]');
-await upload();
-await sleep(1200);
-const unbuilt = await evaluate(`(() => ({
-  placeholder: !!document.querySelector('[data-testid="options-not-built"]'),
-  processDisabled: document.querySelector('[data-testid="button-process"]')?.disabled,
-  wire: document.querySelector('[data-testid="wire-status"]')?.dataset.status,
-}))()`);
-check("unbuilt options panel is announced", unbuilt.placeholder, true);
-check("unbuilt options panel disables Process", unbuilt.processDisabled, true);
-check("pdf-to-images is a wired route", unbuilt.wire, "implemented");
+// A wired tool with an unbuilt options panel must refuse to run, so the endpoint
+// is never called with silently-unset defaults. Until Batch 4 there was always a
+// wired-but-panel-less tool to point at for that assertion; now that every wired
+// tool has a panel, the stronger whole-catalog invariant replaces it: walk every
+// implemented/partial tool and prove none of them falls back to the placeholder.
+writeFileSync(
+  PNG_FIXTURE,
+  Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    "base64",
+  ),
+);
+const wiredTools = (await (await fetch(`${API}/api/tools`)).json())
+  .filter((tool) => tool.status === "implemented" || tool.status === "partial")
+  .map((tool) => tool.id);
+const placeholders = [];
+const emptyConfigure = [];
+const blocked = [];
+for (const id of wiredTools) {
+  await goto(`${BASE}/tools/${id}`, 500, '[data-testid="upload-dropzone"]');
+  await upload('[data-testid="input-file"]', [id === "images-to-pdf" ? PNG_FIXTURE : FIXTURE]);
+  await sleep(900);
+  const state = await evaluate(`(() => {
+    const configure = document.querySelector('[data-testid="workspace-configure"]');
+    return {
+      placeholder: !!document.querySelector('[data-testid="options-not-built"]'),
+      configureText: (configure?.textContent ?? "").trim().length,
+      disabled: !!document.querySelector('[data-testid="button-process"]')?.disabled,
+    };
+  })()`);
+  if (state.placeholder) placeholders.push(id);
+  if (state.configureText === 0) emptyConfigure.push(id);
+  if (state.disabled) blocked.push(id);
+}
+check("no wired tool falls back to the not-built placeholder", placeholders, []);
+check("every wired tool renders a Configure panel after upload", emptyConfigure, []);
+check("every wired tool stays runnable after upload", blocked, []);
+console.log(`        walked ${wiredTools.length} wired tools: ${wiredTools.join(", ")}`);
 
 /* ═══════════════════════════ REPORT ═══════════════════════════ */
 
