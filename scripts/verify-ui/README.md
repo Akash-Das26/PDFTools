@@ -22,8 +22,17 @@ bash scripts/verify-ui/drive.sh accent.mjs
 # 21-assertion Batch 1 suite (all seven Organize panels through real routes)
 bash scripts/verify-ui/drive.sh batch1.mjs
 
+# 48-assertion Batch 2 suite (Protect/Unlock round-trips, Sign/Redact pending UX)
+bash scripts/verify-ui/drive.sh batch2.mjs
+
+# 59-assertion Batch 3 suite (Watermark text+image, Page Numbers, Crop)
+bash scripts/verify-ui/drive.sh batch3.mjs
+
 # Reference comparison against the Stitch design screens
 bash scripts/verify-ui/drive.sh compare.mjs
+
+# Informational WCAG audit (reports ratios; exit code never gates)
+bash scripts/verify-ui/drive.sh contrast.mjs
 
 # Everything: bash scripts/verify-ui/run-all.sh   (runs verify.mjs)
 # Or from the repo root: pnpm verify:ui [suite.mjs]
@@ -40,4 +49,6 @@ everything down on exit.
 - Chrome profiles are created under `/tmp/pdfcheck-ui-profile*` and removed at suite start.
 - Fixtures live in `fixtures/` (two tiny generated PDFs).
 - When adding a tool batch, add a `batchN.mjs` suite here following the `batch1.mjs` pattern
-  and keep the per-suite assertion counts cited in REVIEW.md entries.
+  and keep the per-suite assertion counts cited in REVIEW.md entries. An implemented tool that
+  has no Configure panel yet is a valid `options-not-built` example for the regression suite
+  (`verify.mjs` points at `pdf-to-images` since Batch 3).

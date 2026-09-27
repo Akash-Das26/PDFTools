@@ -421,7 +421,7 @@ PDFTools/
 │   ├── api-zod/                  # @workspace/api-zod — generated Zod schemas
 │   ├── api-client-react/         # @workspace/api-client-react — generated React Query hooks
 │   └── db/                       # @workspace/db — Drizzle schema + `push` scripts
-├── scripts/                      # dev-local.mjs, build-all.mjs (workspace scripts)
+├── scripts/                      # dev-local.mjs, build-all.mjs, verify-ui/ (CDP suites)
 ├── stitch_pdftools_web_application_ui/   # 16 canonical design screens + DESIGN.md sets
 └── attached_assets/              # pasted session transcripts (provenance records)
 ```
@@ -430,28 +430,36 @@ PDFTools/
 
 ## 12. Testing & verification
 
-**There is no committed test suite.** No test runner (`vitest`, `jest`, `playwright`, …) is declared in any
-`package.json`, and no `*.test.*`/`*.spec.*` files are tracked. Do not assume `pnpm test` works — there is no
-such script.
+**There is still no test runner.** No `vitest`, `jest`, `playwright`, … is declared in any `package.json`, and no
+`*.test.*`/`*.spec.*` files are tracked — `pnpm test` does not exist. What does exist is a committed set of
+headless-Chrome (CDP) suites that drive the **live** app and API: [`scripts/verify-ui/`](scripts/verify-ui/)
+(committed 2026-09-27, which closed REVIEW.md Open Item 10). They were disposable `/tmp` harnesses; they are
+not any more, so verification is reproducible by anyone with Chrome and a built API.
+
+| Suite | Assertions | What it covers |
+|---|---:|---|
+| `verify.mjs` | 127 | Full regression: all five tool-page states on both workspace templates, a real upload→process→download through `/api/pdf/compress` and `/api/pdf/remove-pages`, search, filters, theme |
+| `accent.mjs` | 38 | Accent colours and WCAG contrast computed from rendered pixels |
+| `batch1.mjs` | 21 | Batch 1 — all seven Organize panels through real routes |
+| `batch2.mjs` | 48 | Batch 2 — Protect/Unlock round-trips (including an encrypted file refusing to unlock without its password), the Protect guard, Sign/Redact's honest pending state |
+| `batch3.mjs` | 59 | Batch 3 — Watermark text and image runs, Add Page Numbers, picker-scoped Crop, the image-part guard, Edit PDF Content / PDF Form Filler pending state |
+| `compare.mjs` | — | Reference fidelity against the canonical Stitch design screens |
+| `contrast.mjs` | — | Informational WCAG audit (reports ratios; exit code never gates) |
+
+Run one with `bash scripts/verify-ui/drive.sh <suite>.mjs` — or `pnpm verify:ui <suite>.mjs`. The driver sources
+`.env`, starts the built API on `:8080` and Vite on `:5173`, runs the suite, and tears both down on exit; it
+needs a built API (`pnpm build` once) and Chrome at `/usr/bin/google-chrome`. `bash scripts/verify-ui/run-all.sh`
+runs `verify.mjs`.
 
 **CI exists and runs the build pipeline.** `.github/workflows/ci.yml` (added 2026-09-26) runs on every push
 and pull request across Node 20 and 22: `pnpm install --frozen-lockfile` → `pnpm run typecheck` → `pnpm build`.
 Those are exactly the steps executed locally while authoring this README, so the workflow encodes an
-already-verified sequence; the badge at the top shows the latest live run. CI running the build is not a
-substitute for the test suite that does not exist yet.
+already-verified sequence; the badge at the top shows the latest live run. **CI does not run the CDP suites**
+— they need Chrome plus two live servers on fixed ports, so wiring them into the workflow is the natural next
+step.
 
 What does exist is a verification log with teeth: [`REVIEW.md`](REVIEW.md) records every change since the
 project's start with the exact command or suite that backs each "verified" claim, plus an open-items list.
-During its most recent sessions, verification was done with disposable headless-Chrome (CDP) suites that ran
-against the live app and API:
-
-- a **127-assertion** full-regression suite (all five tool-page states on both workspace templates, real
-  upload→process→download through `/api/pdf/compress` and `/api/pdf/remove-pages`, search, filters, theme),
-- a **38-assertion** accent/contrast suite (WCAG contrast computed from rendered pixels),
-- a **21-assertion** Batch-1 suite (all seven Organize panels through real routes).
-
-These harnesses live in `/tmp` by design and are **not** committed — reproducing them means rewriting them
-(committing them under `scripts/verify-ui/` is an open item).
 
 Minimum verification available to anyone, right now: `pnpm build` (typechecks every package and builds all
 artifacts — this was run as part of authoring this README) and the `/api/healthz` check from the
@@ -466,25 +474,28 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
 1. **`/pdf/compress` `quality` is a no-op** — no Ghostscript in the environment; `extreme`/`recommended`/`high`
    take the identical re-serialisation path, but the Compress panel still offers three choices. Fix: build real
    compression or collapse the UI to one honest option.
-2. **Batches 2–6 of the tool UI are not built** — Batch 1 (all 7 Organize tools) is done and verified; **13
-   backend-pending tools** still render with a disabled Process button and a pending badge; the page-picker
-   Configure panel for Crop is still open.
+2. **Batches 4–6 of the tool UI are not built** — Batches 1–3 (Organize, Security, Edit) are done and
+   verified; **18 tools still lack a full Configure panel**: 14 backend-pending (disabled Process button +
+   pending badge) and 4 wired-but-panel-less (`images-to-pdf`, `pdf-to-images`, `pdf-to-pdfa`,
+   `pdf-to-markdown`), which show the honest "panel not built yet" placeholder instead of calling the
+   endpoint with silently-unset defaults.
 3. **Rotate picker rotations are preview-only** — `POST /pdf/rotate` applies ONE angle (optionally scoped by
    `pages`), so the page-picker's per-page rotate arrows cannot be honoured per-page yet. Product decision
    pending: extend the backend, or keep the honest preview-only framing.
 4. **`on-tertiary-container` contrast never measured** — the `tertiary-fixed` token family is ported but used
    by nothing yet; it must be measured before first use.
-5. **No test framework** — the CDP suites live in `/tmp` and are disposable (see
-   [Testing & verification](#12-testing--verification)); CI runs install/typecheck/build only — there is
-   no test suite for it to run.
+5. **No test runner** — the CDP suites are committed and reproducible (see
+   [Testing & verification](#12-testing--verification)), but there is still no framework (`vitest`/`jest`/
+   `playwright`) and CI runs install/typecheck/build only, so no automated run happens on push; the suites
+   need Chrome plus live servers on fixed ports.
 6. **Spec ↔ multer coupling** — every new `/pdf/*` route must add its binary part(s) to `openapi.yaml` with
    the exact field name (`file`/`files`/`image`), or the generated client cannot upload.
 7. **Unused dependencies** — `cookie-parser` + `@types/cookie-parser` (API server; zero imports) and root
    `@replit/connectors-sdk` (zero imports; Replit platform coupling under review). Removal deliberately
    deferred.
-8. **This README** — authored 2026-09-26 against `feat/frontend-rebuild` @ `9ef1a7a`; it will drift as the
-   remaining tool batches land. Refresh it when the catalog settles — [REVIEW.md](REVIEW.md) is the source of
-   truth for what changed.
+8. **This README** — authored 2026-09-26 against `feat/frontend-rebuild` @ `9ef1a7a`; refreshed 2026-09-27
+   against `main` @ `8fed014` (after Batch 3) to realign the testing and roadmap sections. It will drift
+   again as the remaining batches land — [REVIEW.md](REVIEW.md) is the source of truth for what changed.
 
 ---
 
@@ -492,16 +503,17 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
 
 Ordered by REVIEW.md's actual open items and the queued work they reference — not invented phases:
 
-1. **Batch 2 — PDF Security panels** (next per the batch-and-stop discipline): Protect, Unlock, then the
-   pending Sign/Redact placeholders stay honestly disabled until their backends exist.
-2. **Batches 3–6 — remaining Configure panels** for the Edit / Convert / AI categories, plus the Crop
-   page-picker panel. 13 tools are backend-pending; each needs a real backend before its UI enables.
+1. **Batch 4 — Convert panels** (next per the batch-and-stop discipline): the four wired-but-panel-less
+   Convert tools (`images-to-pdf`, `pdf-to-images`, `pdf-to-pdfa`, `pdf-to-markdown`); after that the
+   remaining work is backend growth for the 14 pending cards across Convert, Edit, Security and AI.
+2. **Batches 5–6 — the pending cards** across Convert, Edit, Security and AI: each of the 14 backend-pending
+   tools needs a real backend — and then its Configure panel — or a stay-honestly-disabled decision.
 3. **Fix the compress honesty gap** — either implement real compression or reduce the quality selector to one
    option that tells the truth.
 4. **Rotate per-page decision** — extend the rotate endpoint to per-page angles or reframe the UI.
-5. **Commit the verification harnesses** (e.g. `scripts/verify-ui/`) so the 127/38/21-assertion suites are
-   reproducible by anyone. CI now covers install/typecheck/build; wiring the harnesses into it is the
-   natural next step.
+5. **Wire the committed verification suites into CI** — `scripts/verify-ui/` (127/38/21/48/59-assertion suites)
+   is committed and reproducible locally; making a workflow run it (Chrome + live servers) is the natural
+   next step now that CI covers install/typecheck/build.
 6. **Dependency hygiene** — remove `cookie-parser` if still unused; decide `@replit/connectors-sdk`'s platform
    coupling before touching it.
 7. **Approved backend candidates** (from the feature audit): PDF form fill/flatten, PDF→Excel (CSV), Translate
