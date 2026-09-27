@@ -5,8 +5,7 @@
   <strong>PDFTools</strong> — a self-hosted PDF toolkit: 32 tools, an Express API, and a React workspace UI.
 </p>
 <p align="center">
-  <!-- Badge is pinned to this branch; drop ?branch=… once merged to the default branch. -->
-  <a href="https://github.com/Akash-Das26/PDFTools/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Akash-Das26/PDFTools/ci.yml?branch=feat/frontend-rebuild&amp;label=CI&amp;logo=github" alt="CI status" /></a>
+  <a href="https://github.com/Akash-Das26/PDFTools/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Akash-Das26/PDFTools/ci.yml?label=CI&amp;logo=github" alt="CI status" /></a>
   <a href="https://github.com/Akash-Das26/PDFTools/blob/HEAD/LICENSE"><img src="https://img.shields.io/github/license/Akash-Das26/PDFTools?label=license" alt="MIT license" /></a>
   <img src="https://img.shields.io/badge/node-%E2%89%A520-brightgreen?logo=nodedotjs" alt="Node 20+" />
   <img src="https://img.shields.io/badge/pnpm-10.26.1-orange?logo=pnpm" alt="pnpm 10.26.1" />
@@ -86,8 +85,10 @@ README was exercised on a plain Linux checkout with Node 22 and pnpm 10.
 
 The contract chain is the point: `openapi.yaml` → **orval** → generated Zod schemas (`@workspace/api-zod`)
 and generated React Query hooks (`@workspace/api-client-react`). The frontend imports types and hooks; it does
-not hand-write API calls. (The PDF-processing page uses a raw `fetch` transport for multipart streaming —
-see [Known limitations](#10-known-limitations).)
+not hand-write API calls. The PDF-processing page is the deliberate exception: every tool call goes through one
+transport helper, `src/lib/process-tool.ts`, which owns the `file`-vs-`files` field rule, stringifies the
+option bag, appends secondary upload parts such as the watermark image, and normalises document-vs-JSON
+responses into one `ProcessOutcome`.
 
 ---
 
@@ -112,7 +113,7 @@ nothing is rounded up.
 
 | Tool | Route | Status | Notes |
 |---|---|---|---|
-| Merge PDF | `POST /pdf/merge` | Implemented | Multi-file, order preserved; ZIP output for multi-file results |
+| Merge PDF | `POST /pdf/merge` | Implemented | Multi-file with reorder rows; document order preserved; always one `merged.pdf` result |
 | Split PDF | `POST /pdf/split` | Implemented | `all` (ZIP of pages) or `pages` (single PDF) |
 | Remove Pages | `POST /pdf/remove-pages` | Implemented | Page selection |
 | Extract Pages | `POST /pdf/split` | Implemented | Shares the split endpoint (`splitType=pages`) |
@@ -140,7 +141,7 @@ nothing is rounded up.
 | PDF to Markdown | `POST /pdf/extract-text` | Partial | `format=md` with heuristic headings/lists; tables are **not** converted |
 | PDF to Word | — | Pending | Needs a DOCX writer + layout reconstruction |
 | PDF to PowerPoint | — | Pending | Needs a PPTX writer |
-| PDF to Excel | — | Pending | CSV form is buildable with `pdf-parse` tables |
+| PDF to Excel | — | Pending | CSV form is buildable by parsing the per-page text `pdf-parse` returns; no table model exists today |
 
 ### Edit — 5 tools, 3 implemented
 
@@ -193,7 +194,7 @@ Sourced from the workspace `package.json` files (no dependency is listed that is
 | | multer (uploads) | ^2.2.0 |
 | | @cantoo/pdf-lib (PDF engine) | 2.11.1 |
 | | tesseract.js (OCR) | 7.0.0 |
-| | pdf-parse (text/tables) | ^2.4.5 |
+| | pdf-parse (per-page text) | ^2.4.5 |
 | | openai (AI summarize) | ^7.0.0 |
 | | pino / pino-http (logging) | ^9.14.0 / ^10.5.0 |
 | | archiver (ZIP output) | ^8.0.0 |
@@ -204,8 +205,10 @@ Sourced from the workspace `package.json` files (no dependency is listed that is
 | Codegen | orval | ^8.23.0 |
 | | zod (schemas) | ^3.25.76 |
 
-Notes: `@replit/vite-plugin-*` packages are dev-only Replit niceties gated behind `REPL_ID` in
-`vite.config.ts` — a non-Replit checkout does not exercise them. Root declares `@replit/connectors-sdk` but no
+Notes: the three `@replit/vite-plugin-*` packages are dev-only, and each is gated differently in
+`vite.config.ts`: `runtime-error-modal` loads whenever Vite runs in `development` mode, while `cartographer`
+and `dev-banner` additionally require `REPL_ID` to be set — so a non-Replit checkout exercises only the error
+overlay, never the two Replit-hosted ones. Root declares `@replit/connectors-sdk` but no
 code imports it (tracked as an open cleanup item). `cookie-parser` is declared by the API server but unused by
 any source file (same).
 
@@ -400,6 +403,7 @@ PDFTools/
 ├── REVIEW.md                     # audit log: every change + its verification evidence
 ├── AGENTS.md                     # pointer to the REVIEW.md protocol
 ├── FEATURES.md / UI-NON-REGRESSION-RULES.md  # feature status / design regression rules
+├── PDFTools-Frontend-Design.md   # the rebuild's design brief and screen inventory
 ├── tsconfig.base.json / tsconfig.json
 ├── artifacts/
 │   ├── api-server/               # @workspace/api-server — Express 5 API
@@ -494,7 +498,9 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
    `@replit/connectors-sdk` (zero imports; Replit platform coupling under review). Removal deliberately
    deferred.
 8. **This README** — authored 2026-09-26 against `feat/frontend-rebuild` @ `9ef1a7a`; refreshed 2026-09-27
-   against `main` @ `8fed014` (after Batch 3) to realign the testing and roadmap sections. It will drift
+   against `main` @ `8fed014` (after Batch 3) to realign the testing and roadmap sections, then audited claim
+   by claim against the live tree (six stale claims corrected: merge's output, the CI badge's branch pin,
+   `pdf-parse`'s scope, §2's transport note, the Replit plugin gating, and the §8 file list). It will drift
    again as the remaining batches land — [REVIEW.md](REVIEW.md) is the source of truth for what changed.
 
 ---
@@ -506,12 +512,9 @@ Ordered by REVIEW.md's actual open items and the queued work they reference — 
 1. **Batches 5–6 — the pending cards** across Convert, Edit, Security and AI: each of the 14 backend-pending
    tools needs a real backend — and then its Configure panel — or a stay-honestly-disabled decision. Batch 4
    completed the panel work, so no wired endpoint is left without a Configure step.
-2. **Correct the stale README claims the verification audit flagged** — six claims don't hold against the live
-   tree: `merge`'s "ZIP output for multi-file results" (it always returns one `merged.pdf`), the CI badge
-   still pinned to the merged-then-deleted `feat/frontend-rebuild` branch, `pdf-parse` credited with table
-   extraction, §2's "raw `fetch` transport" link pointing at a section that never mentions it, one
-   `REPL_ID` gating imprecision, and §2/§8 structure drift. Each is a documentation fix; the audit entry in
-   REVIEW.md carries the evidence and line references.
+2. **Measure the `on-tertiary-container` pair before first use** — the `tertiary-fixed` token family is ported
+   but consumed by nothing (badges use `success-subtle-foreground` instead), so its contrast has never been
+   measured. Tracked as Known limitation 4 and REVIEW.md Open Item 9.
 3. **Fix the compress honesty gap** — either implement real compression or reduce the quality selector to one
    option that tells the truth.
 4. **Rotate per-page decision** — extend the rotate endpoint to per-page angles or reframe the UI.
