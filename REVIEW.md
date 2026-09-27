@@ -25,6 +25,25 @@
 
 ---
 
+## 2026-09-27 (later) — State re-audit per user brief; classification (a); no changes beyond this entry
+**Commits:** this entry's commit (REVIEW.md only).
+**Type:** Audit (read-only)
+**Trigger:** User brief: diagnose the repo state from scratch (git, REVIEW.md currency, README content checklist, frontend rebuild markers), act only on what the diagnosis finds, and log the session regardless.
+**Changes made:**
+- None to code, README, or frontend. This entry only.
+**Verification performed (each command run fresh this session, nothing assumed from prior entries):**
+- Git: `git log --oneline -15`, `git status` (clean), `git rev-parse` both refs → local `main` = `03eb796`, last-fetched `origin/main` = `ac17f1e` (PR #1 merge), ahead 1 / behind 0; `git fetch origin` **timed out** (github.com unreachable from this shell at audit time), so origin's state is confirmed only as of the successful 2026-09-27 18:18 fetch logged in the previous entry. The 1 unpushed commit is `03eb796` (the log-ordering repair). **Push is pending user action.**
+- REVIEW.md: present; headings re-grepped — strictly newest-first; newest entry cites `ac17f1e` and the merge audit. It cannot cite `03eb796` (written before that commit existed); this entry now supersedes it as newest.
+- README: content greps, not existence checks — `## 5. Installation` ✓, distinct `## 6. Quickstart` ✓, env-var table row `| \`DATABASE_URL\` |` ✓, feature-catalog `**Total**` row (32/17/1/14) ✓, `## 13. Known limitations` ✓.
+- Frontend: `templates/` = stepper + page-picker; `routes/tools.ts` category grep → organize 7 / convert-to 6 / convert-from 6 / edit 5 / security 4 / ai 4 = 32; `Minimize2` present in `lib/icons.ts` (Compress icon rule holds).
+**Confidence:** High (direct observation; the only unverifiable item is origin's live state due to the network failure, bounded by the 18:18 fetch)
+**Result:** Verified working (audit only) — classification **(a)**: everything discussed in this conversation (frontend rebuild, README overhaul, REVIEW.md protocol, LICENSE/CI/badges) is committed; local `main` is 1 bookkeeping commit ahead of the last-confirmed `origin/main`.
+**Follow-ups opened:** none (push of `03eb796` + this entry remains a pending user action, not an Open Item).
+**Follow-ups closed:** none.
+*Session-boundary rule:* (a) >4 h gap from the previous entry; (b) distinct task thread (state audit per new brief).
+
+---
+
 ## 2026-09-27 (merge) — feat/frontend-rebuild merged to main as PR #1; log ordering repaired
 **Commits:** `ac17f1e` (GitHub-side merge of PR #1 — no agent session authored it) + this entry's commit (REVIEW.md only).
 **Type:** Audit / Bookkeeping
