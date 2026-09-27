@@ -25,6 +25,33 @@
 
 ---
 
+## 2026-09-27 (README audit) — every README claim checked against the live tree; 6 flags, none blocking
+**Commits:** this entry's commit (REVIEW.md only — no code or README changes).
+**Type:** Audit (read-only apart from this entry; the audit's `pnpm build` left the tree clean)
+**Trigger:** User request: verify every README claim against the live tree and flag any that no longer hold.
+**Changes made:** none. This entry records the audit and its flags.
+**Verification performed (every check below run this session against the working tree, not assumed):**
+- **Catalog + counts:** `grep -c '^    status: …'` → 17 implemented / 1 partial / 14 pending = 32; per-category 7/6/6/5/4/4 all match §3's table. §3's per-tool routes match `routes/tools.ts`.
+- **Routes/transport (mechanical, not eyeballed):** parsed every `router.post(` in `routes/pdf.ts` → 21 routes, and each one's multer field(s) exactly match §7's table (`files` for merge/rotate/compare/images-to-pdf, `file` elsewhere, `file+image` for watermark). `openapi.yaml` = exactly 25 paths. `upload.ts` = 50 MB/file, 20 files, memory storage; `app.ts` has `app.use("/api", router)`, CORS, pino-http and the 413 JSON multer handler.
+- **Versions:** every pin in §4 matches a `package.json` or the `pnpm-workspace.yaml` catalog (react/react-dom 19.1.0, vite ^7.3.2, tailwindcss ^4.1.14, @tanstack/react-query ^5.90.21, drizzle-orm ^0.45.2, zod ^3.25.76, express ^5.2.1, multer ^2.2.0, @cantoo/pdf-lib 2.11.1, tesseract.js 7.0.0, pdf-parse ^2.4.5, openai ^7.0.0, pino/pino-http, archiver, cors, orval, drizzle-kit, pg, typescript ~5.9.3, prettier ^3.9.6). Root: `packageManager: pnpm@10.26.1`, `license: MIT`, **no** `engines` field, no `.nvmrc`, and the `preinstall` hook really does print "Use pnpm instead".
+- **Infra claims:** `.replit` = `["nodejs-24", "postgresql-16"]`; CI matrix `[20, 22]` running install → typecheck → build and no suite step; `pnpm-workspace.yaml` has all four override families (esbuild/rollup/lightningcss/@tailwindcss/oxide); `onlyBuiltDependencies` omits tesseract.js, consistent with the documented warning; `.env.example` carries exactly the four documented variables; `dev-local.mjs` defaults 8080/5173; `vite.config.ts` has `strictPort: true`, the `Invalid PORT value` throw, BASE_PATH default `/`, `API_URL` default `http://127.0.0.1:$API_PORT`, and `@theme` is used in `index.css`.
+- **Behavioural claims:** split → ZIP of pages ✓; pdf-to-images → ZIP for multi-page ✓; images-to-pdf has pageSize/orientation/margin ✓; PDF/A conformance 1B–3U with the trailer `/ID` + sRGB `OutputIntent` + XMP ✓; extract-text markdown heuristics exist and no table handling exists (so "tables are not converted" holds) ✓; OCR = **17** languages in both the service and the zod enum, with text/searchable modes ✓; compare = bounded LCS (2000-line cap + fallback) with genuinely bidi-aware extraction in `extract.ts` ✓; compress ignores `quality` because there is no Ghostscript ✓; ai-summarize returns 503 with `Set OPENAI_API_KEY…` ✓; `/api/jobs` defaults to 20 ✓; `/api/stats` fields = totalJobs/filesProcessed/totalInputSizeMb/totalOutputSizeMb/jobsToday/popular ✓; Form Filler's `getForm()` exists in the installed pdf-lib ✓; compare's UI really does download `comparison.md` ✓; no `*.test.*`/`*.spec.*` files tracked ✓; every path listed in §8 exists ✓; unused `cookie-parser`/`@replit/connectors-sdk` really have zero imports ✓; the tertiary tokens are declared in CSS and consumed by no component ✓.
+- **Live:** `pnpm build` → exit 0, `✓ built in 3.06s`; `/api/healthz` → HTTP 200 with exactly `{"status":"ok"}`; `/api/tools` → 32 entries.
+**FLAGS (claims that do not hold or are imprecise — none block the project):**
+1. **§3 Merge PDF — "ZIP output for multi-file results" is false.** `mergePdfs` always returns one `merged.pdf` via `sendPdf`; merge.ts contains no ZIP path at all. Order preservation *is* accurate.
+2. **The CI badge is pinned to `?branch=feat/frontend-rebuild`** — that branch no longer exists (`git branch -a`: only `origin/main`; PR #1 was merged and `origin/HEAD -> origin/main`), so the badge cannot reflect the project. The badge's own HTML comment says to drop the pin "once merged to the default branch".
+3. **§2's "see [Known limitations]" for the raw `fetch` transport is unsatisfiable** — §10 contains no fetch/transport item (grep), so the matrix link resolves but the explanation does not exist. The underlying fact is real (`process-tool.ts` hand-writes two `fetch` calls).
+4. **§4 "pdf-parse (text/tables)" and §3 PDF-to-Excel "buildable with `pdf-parse` tables" overstate the dependency** — pdf-parse is used for per-page text (LTR path + poppler fallback); no table-extraction code exists anywhere in `services/pdf/`.
+5. **§4's "`@replit/vite-plugin-*` … gated behind `REPL_ID`"** is true for cartographer/dev-banner but not for `vite-plugin-runtime-error-modal`, which is gated by `mode === 'development'`.
+6. **Minor structure drift:** §8's tree omits `PDFTools-Frontend-Design.md` (present at the root), and §2's diagram still lists `scripts/` as only `dev-local.mjs · build-all.mjs` while §8 now includes `verify-ui/`.
+**Not re-verifiable this session:** §5/§7's "served `/api/stats` and stored + listed a job" — the local `.env` credentials are rejected by the running Postgres (the README's own documented sharp edge), so `/api/stats` and `/api/jobs` answered `{"error":…}` here. The endpoints and their fields are verified in code, and the claim was verified against a correctly-credentialed database in the session that authored it.
+**Confidence:** High (every conclusion from a command run this session; the two network-dependent items — badge rendering and the GitHub-side branch — are inferred from local refs and the repo URL, not fetched)
+**Result:** Verified working (audit). The README's substance holds: counts, routes, field names, versions, limits, CI, and every behavioural claim except the merge-ZIP clause. Six flags recorded for correction; no code defect was found behind any of them.
+**Follow-ups opened:** the six flags above (documentation corrections, pending a user decision on fixing them). **Follow-ups closed:** none.
+*Session-boundary rule:* (b) distinct task thread (README claim audit per new request).
+
+---
+
 ## 2026-09-27 (readme numbering) — README sections renumbered 1–12; every anchor re-checked
 **Commits:** `4755536` (README.md), this entry's commit (REVIEW.md only).
 **Type:** Documentation
