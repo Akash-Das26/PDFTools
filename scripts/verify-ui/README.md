@@ -32,6 +32,10 @@ bash scripts/verify-ui/drive.sh batch3.mjs
 # shared move-up/move-down/remove row list)
 bash scripts/verify-ui/drive.sh batch4.mjs
 
+# 65-assertion Batch 5 suite (Word/PowerPoint/Excel to PDF, PDF/A export, fit-to-page,
+# and the container guards) — needs LibreOffice on PATH, or those tools answer 503
+bash scripts/verify-ui/drive.sh batch5.mjs
+
 # Reference comparison against the Stitch design screens
 bash scripts/verify-ui/drive.sh compare.mjs
 
@@ -51,11 +55,23 @@ everything down on exit.
 - Suites write PNG screenshots **next to themselves** (`scripts/verify-ui/*.png`); these are
   gitignored — delete or inspect them after a run.
 - Chrome profiles are created under `/tmp/pdfcheck-ui-profile*` and removed at suite start.
-- Fixtures live in `fixtures/` (two tiny generated PDFs).
+- Fixtures live in `fixtures/` (two tiny generated PDFs, plus the Batch 5 Office documents).
+  `fixtures/make-office-fixtures.py` regenerates the Office ones — `office.docx`, `office.pptx`
+  (one page/slide of text), `office.xlsx` (120 rows, so the default export is 3 pages and
+  `fitToPage` can be shown to collapse them to 1) and `office-mislabelled.docx` (plain text with
+  a `.docx` name, which LibreOffice *would* convert happily — the endpoint rejects it instead).
+- Batch 5 needs LibreOffice: `soffice` on PATH, or `SOFFICE_BIN=/path/to/soffice` for the API
+  process. Without it `batch5.mjs` fails at its first conversion — which is itself the honest
+  503 behaviour, so run the suite on a host that has it.
 - When adding a tool batch, add a `batchN.mjs` suite here following the `batch1.mjs` pattern
   and keep the per-suite assertion counts cited in REVIEW.md entries.
+- Landing-state assertions move with each batch: `verify.mjs` counts pending badges (11 after
+  Batch 5) and `batch4.mjs` names a still-pending Convert card for its example. When a batch
+  wires a tool those numbers change, and the suites must be updated in the same commit.
 - `verify.mjs` no longer points at a single wired-but-panel-less tool as its `options-not-built`
   example (Batch 4 gave every wired tool a panel). It now walks the whole catalog: every
   `implemented`/`partial` tool must render a Configure panel after an upload and stay runnable.
   Keep that invariant true for new tools — a wired tool without a panel would otherwise call its
-  endpoint with silently-unset defaults.
+  endpoint with silently-unset defaults. The walk uploads a fixture each tool's own `accept` list
+  allows (`WALK_FIXTURES`), so a new tool with a different input type needs its fixture added
+  there too.

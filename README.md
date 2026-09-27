@@ -65,9 +65,9 @@ README was exercised on a plain Linux checkout with Node 22 and pnpm 10.
 │  │ /api/* ──────────────────────┼─────▶│ health    GET /healthz          │  │
 │  └──────────────────────────────┘      │ tools     GET /tools            │  │
 │  lib/                                  │ jobs      /stats · /jobs        │  │
-│  ┌──────────────────────────────┐      │ pdf       21 × POST /pdf/*      │  │
+│  ┌──────────────────────────────┐      │ pdf       24 × POST /pdf/*      │  │
 │  │ @workspace/api-spec          │      │ services/pdf/                   │  │
-│  │ openapi.yaml — 25 paths      │      │ @cantoo/pdf-lib · tesseract.js  │  │
+│  │ openapi.yaml — 28 paths      │      │ @cantoo/pdf-lib · tesseract.js  │  │
 │  └──────────────┬───────────────┘      │ pdf-parse · archiver · openai   │  │
 │                 │  orval codegen       │ pino-http request logging       │  │
 │                 ▼                      │ jobs · stats via @workspace/db  │  │
@@ -95,19 +95,19 @@ responses into one `ProcessOutcome`.
 ## 3. Feature catalog
 
 32 tools in 6 categories, served by `GET /api/tools` and rendered as cards in the UI.
-**17 implemented · 1 partial · 14 backend-pending.** A pending tool is visibly badged and its Process button
+**20 implemented · 1 partial · 11 backend-pending.** A pending tool is visibly badged and its Process button
 is disabled in the UI — the catalog never silently calls an endpoint that does not exist. Counts are exact;
 nothing is rounded up.
 
 | Category | Tools | Implemented | Partial | Pending |
 |---|---:|---:|---:|---:|
 | Organize | 7 | 7 | 0 | 0 |
-| Convert to PDF | 6 | 1 | 0 | 5 |
+| Convert to PDF | 6 | 4 | 0 | 2 |
 | Convert from PDF | 6 | 2 | 1 | 3 |
 | Edit | 5 | 3 | 0 | 2 |
 | Security | 4 | 2 | 0 | 2 |
 | AI | 4 | 2 | 0 | 2 |
-| **Total** | **32** | **17** | **1** | **14** |
+| **Total** | **32** | **20** | **1** | **11** |
 
 ### Organize — 7 tools, all implemented
 
@@ -121,14 +121,14 @@ nothing is rounded up.
 | Rotate PDF | `POST /pdf/rotate` | Implemented | Single angle, optionally scoped by `pages` — see limitation 3 |
 | Compress PDF | `POST /pdf/compress` | Implemented | Re-serialisation only — the `quality` option is a **no-op** (limitation 1) |
 
-### Convert to PDF — 6 tools, 1 implemented
+### Convert to PDF — 6 tools, 4 implemented
 
 | Tool | Route | Status | Notes |
 |---|---|---|---|
 | JPG/PNG to PDF | `POST /pdf/images-to-pdf` | Implemented | Page size/orientation/margin options |
-| Word to PDF | — | Pending | Needs DOCX→PDF (LibreOffice headless or hosted converter) |
-| PowerPoint to PDF | — | Pending | Same blocker as Word to PDF |
-| Excel to PDF | — | Pending | Same blocker as Word to PDF |
+| Word to PDF | `POST /pdf/word-to-pdf` | Implemented | Headless LibreOffice; PDF/A-1b/2b/3b export option |
+| PowerPoint to PDF | `POST /pdf/ppt-to-pdf` | Implemented | Same pipeline; one slide becomes one page |
+| Excel to PDF | `POST /pdf/excel-to-pdf` | Implemented | Same pipeline, plus *fit each sheet to one page* |
 | Scan to PDF | — | Pending | Backend half (`/pdf/images-to-pdf`) exists; needs camera capture UI |
 | HTML to PDF | — | Pending | Needs a real HTML layout engine (headless Chromium) |
 
@@ -229,6 +229,7 @@ any source file (same).
 | pnpm | 10.26.1 (pinned) | Enforced: root `packageManager` field + a `preinstall` hook that exits with *"Use pnpm instead"* under npm or yarn |
 | PostgreSQL | ≥ 14 | Latest tested: 18.6 (fresh scratch server, full install flow) and 16 (Replit's module); client tools 18.6. Required at API startup |
 | OS | Linux / macOS / Windows | Linux x64 assumed by the `pnpm-workspace.yaml` platform overrides (Replit heritage); they remove non-linux-x64 `esbuild`/`rollup`/`lightningcss`/`@tailwindcss/oxide` optional packages |
+| LibreOffice (optional) | any recent release | Only the three Office → PDF tools need it; they are the only feature that shells out to a system binary. Located as `soffice` (override with `SOFFICE_BIN`), cached per process, and reported as an honest `503` when absent — nothing else in the app is affected. Verified here with LibreOffice's `writer_pdf_Export` / `impress_pdf_Export` / `calc_pdf_Export` filters |
 
 ### Clone and install
 
@@ -351,7 +352,7 @@ bootstrap from `.env.example`, then launch. The Replit workspace button runs the
 ## 7. API reference
 
 All routes are mounted under `/api` (`app.use("/api", router)` in `artifacts/api-server/src/app.ts`) and are
-modelled in `lib/api-spec/openapi.yaml` (25 paths total). Uploads are multipart form-data; limits are
+modelled in `lib/api-spec/openapi.yaml` (28 paths total). Uploads are multipart form-data; limits are
 **50 MB per file, 20 files max** (`artifacts/api-server/src/lib/upload.ts`), enforced with JSON error
 responses (413 for oversized files).
 
@@ -377,6 +378,9 @@ responses (413 for oversized files).
 | POST | `/api/pdf/unlock` | `file` | Remove encryption |
 | POST | `/api/pdf/pdf-to-images` | `file` | Rasterize pages to JPG/PNG (ZIP for multi-page) |
 | POST | `/api/pdf/images-to-pdf` | `files` (multiple) | Build a PDF from images |
+| POST | `/api/pdf/word-to-pdf` | `file` | Convert .doc/.docx via headless LibreOffice; optional PDF/A |
+| POST | `/api/pdf/ppt-to-pdf` | `file` | Convert .ppt/.pptx; same pipeline and PDF/A option |
+| POST | `/api/pdf/excel-to-pdf` | `file` | Convert .xls/.xlsx; PDF/A option plus `fitToPage` |
 | POST | `/api/pdf/compress` | `file` | Rewrite/re-serialise; `quality` presets exist but are a no-op |
 | POST | `/api/pdf/repair` | `file` | Strict parse + tolerant recovery pass |
 | POST | `/api/pdf/extract-text` | `file` | Text export (`.txt`/Markdown) |
@@ -448,6 +452,7 @@ not any more, so verification is reproducible by anyone with Chrome and a built 
 | `batch2.mjs` | 48 | Batch 2 — Protect/Unlock round-trips (including an encrypted file refusing to unlock without its password), the Protect guard, Sign/Redact's honest pending state |
 | `batch3.mjs` | 59 | Batch 3 — Watermark text and image runs, Add Page Numbers, picker-scoped Crop, the image-part guard, Edit PDF Content / PDF Form Filler pending state |
 | `batch4.mjs` | 54 | Batch 4 — JPG/PNG to PDF, PDF to JPG, PDF to PDF/A and PDF to Markdown through real routes, panel parity, the conditional controls, the download filenames, and the shared move-up/move-down/remove row list |
+| `batch5.mjs` | 65 | Batch 5 — Word/PowerPoint/Excel to PDF: the conversions themselves (text and page counts read back through the API), PDF/A-1b/2b/3b markers, fit-to-page collapsing 3 pages to 1, and the guards that reject a mislabelled or wrong-family upload |
 | `compare.mjs` | — | Reference fidelity against the canonical Stitch design screens |
 | `contrast.mjs` | — | Informational WCAG audit (reports ratios; exit code never gates) |
 
@@ -476,13 +481,15 @@ artifacts — this was run as part of authoring this README) and the `/api/healt
 
 Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
 
-1. **`/pdf/compress` `quality` is a no-op** — no Ghostscript in the environment; `extreme`/`recommended`/`high`
-   take the identical re-serialisation path, but the Compress panel still offers three choices. Fix: build real
-   compression or collapse the UI to one honest option.
-2. **Batches 5–6 of the tool UI are not built** — Batches 1–4 (Organize, Security, Edit, Convert) are done and
-   verified, so **every one of the 18 wired tools now has a Configure panel**; the **14 backend-pending tools**
-   still render with a disabled Process button and a pending badge, and each needs a real backend before its UI
-   can enable.
+1. **`/pdf/compress` `quality` is a no-op** — `extreme`/`recommended`/`high` take the identical
+   re-serialisation path, while the Compress panel still offers three choices. The blocker recorded when this
+   was written was that the environment had no Ghostscript; this host does (`gs --version` → 10.06.0) and the
+   service still does not shell out to it, so the gap is now an implementation choice rather than a missing
+   binary. Fix: wire a real compressor in, or collapse the UI to one honest option.
+2. **Batch 6 of the tool UI is not built** — Batches 1–5 are done and verified, so **every one of the 21 wired
+   tools has a Configure panel**; the **11 backend-pending tools** still render with a disabled Process button
+   and a pending badge, and each needs a real backend before its UI can enable. Batch 5 wired Word, PowerPoint
+   and Excel to PDF through headless LibreOffice (the only system-binary dependency in the project).
 3. **Rotate picker rotations are preview-only** — `POST /pdf/rotate` applies ONE angle (optionally scoped by
    `pages`), so the page-picker's per-page rotate arrows cannot be honoured per-page yet. Product decision
    pending: extend the backend, or keep the honest preview-only framing.
@@ -500,8 +507,10 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
 8. **This README** — authored 2026-09-26 against `feat/frontend-rebuild` @ `9ef1a7a`; refreshed 2026-09-27
    against `main` @ `8fed014` (after Batch 3) to realign the testing and roadmap sections, then audited claim
    by claim against the live tree (six stale claims corrected: merge's output, the CI badge's branch pin,
-   `pdf-parse`'s scope, §2's transport note, the Replit plugin gating, and the §8 file list). It will drift
-   again as the remaining batches land — [REVIEW.md](REVIEW.md) is the source of truth for what changed.
+   `pdf-parse`'s scope, §2's transport note, the Replit plugin gating, and the §8 file list). Refreshed again
+   for Batch 5 — the three Office → PDF tools and their routes and spec paths, the optional LibreOffice
+   prerequisite, the 20/1/11 catalog split, the `batch5.mjs` row, and the Ghostscript correction above. It
+   will drift again as the remaining batches land — [REVIEW.md](REVIEW.md) is the source of truth.
 
 ---
 
@@ -509,9 +518,12 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
 
 Ordered by REVIEW.md's actual open items and the queued work they reference — not invented phases:
 
-1. **Batches 5–6 — the pending cards** across Convert, Edit, Security and AI: each of the 14 backend-pending
-   tools needs a real backend — and then its Configure panel — or a stay-honestly-disabled decision. Batch 4
-   completed the panel work, so no wired endpoint is left without a Configure step.
+1. **Batch 6 — the remaining pending cards** across Convert, Edit, Security and AI: each of the 11
+   backend-pending tools needs a real backend — and then its Configure panel — or a stay-honestly-disabled
+   decision. Batch 4 completed the panel work and Batch 5 the first three backends (Word/PowerPoint/Excel to
+   PDF), so no wired endpoint is left without a Configure step. Cheap next candidates, all buildable with what
+   is already installed: Scan to PDF (its two endpoints exist), PDF Form Filler (`getForm()`), PDF to Excel
+   (per-page text → CSV), and the OpenAI-backed Translate PDF.
 2. **Measure the `on-tertiary-container` pair before first use** — the `tertiary-fixed` token family is ported
    but consumed by nothing (badges use `success-subtle-foreground` instead), so its contrast has never been
    measured. Tracked as Known limitation 4 and REVIEW.md Open Item 9.
@@ -519,7 +531,7 @@ Ordered by REVIEW.md's actual open items and the queued work they reference — 
    option that tells the truth.
 4. **Rotate per-page decision** — extend the rotate endpoint to per-page angles or reframe the UI.
 5. **Wire the committed verification suites into CI** — `scripts/verify-ui/` (the regression, accent/contrast and
-   batch 1–4 suites, 347 assertions in total) is committed and reproducible locally; making a workflow run it
+   batch 1–5 suites, 412 assertions in total) is committed and reproducible locally; making a workflow run it
    (Chrome + live servers) is the natural next step now that CI covers install/typecheck/build.
 6. **Dependency hygiene** — remove `cookie-parser` if still unused; decide `@replit/connectors-sdk`'s platform
    coupling before touching it.

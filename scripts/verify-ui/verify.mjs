@@ -194,7 +194,9 @@ check("total cards = 32", dom.totalCards, 32);
 check("badges equal rendered card count", dom.badges.map(b=>parseInt(b,10)), dom.cardsPerSection);
 check("filter pills (reference order)", dom.pills, ["All Tools","Organize PDF","Convert to PDF","Convert from PDF","Edit PDF","Security","AI Document Tools"]);
 check("header nav (reference order)", dom.nav, ["Organize","Convert","Edit","Security","AI"]);
-check("14 backend-pending cards badged", dom.pendingBadges, 14);
+// The pending count moves with every batch that wires a backend: 14 before
+// Batch 5, 11 after Word/PowerPoint/Excel to PDF became implemented.
+check("11 backend-pending cards badged", dom.pendingBadges, 11);
 check("2 Popular ribbons", dom.popularBadges, 2);
 check("hero quick-dropzone present", dom.quickDropzone, true);
 check("landing search bar present", dom.searchBar, true);
@@ -649,6 +651,15 @@ writeFileSync(
     "base64",
   ),
 );
+// Each tool gets a file its own accept list allows, so the walk proves the
+// panel renders for a legitimately-selected document (Batch 5 added the three
+// Office tools, whose panels only appear for .docx/.pptx/.xlsx uploads).
+const WALK_FIXTURES = {
+  "images-to-pdf": PNG_FIXTURE,
+  "word-to-pdf": OUT + "fixtures/office.docx",
+  "ppt-to-pdf": OUT + "fixtures/office.pptx",
+  "excel-to-pdf": OUT + "fixtures/office.xlsx",
+};
 const wiredTools = (await (await fetch(`${API}/api/tools`)).json())
   .filter((tool) => tool.status === "implemented" || tool.status === "partial")
   .map((tool) => tool.id);
@@ -657,7 +668,7 @@ const emptyConfigure = [];
 const blocked = [];
 for (const id of wiredTools) {
   await goto(`${BASE}/tools/${id}`, 500, '[data-testid="upload-dropzone"]');
-  await upload('[data-testid="input-file"]', [id === "images-to-pdf" ? PNG_FIXTURE : FIXTURE]);
+  await upload('[data-testid="input-file"]', [WALK_FIXTURES[id] ?? FIXTURE]);
   await sleep(900);
   const state = await evaluate(`(() => {
     const configure = document.querySelector('[data-testid="workspace-configure"]');

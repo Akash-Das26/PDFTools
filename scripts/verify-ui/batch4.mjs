@@ -212,12 +212,14 @@ check("landing: convert-to count reads 6 Tools",
       await evaluate(`document.querySelector('[data-testid="count-convert-to"]')?.textContent.trim()`), "6 Tools");
 check("landing: convert-from count reads 6 Tools",
       await evaluate(`document.querySelector('[data-testid="count-convert-from"]')?.textContent.trim()`), "6 Tools");
-check("landing: word-to-pdf still badged pending",
-      await evaluate(`!!document.querySelector('[data-testid="badge-pending-word-to-pdf"]')`), true);
+// word-to-pdf moved to implemented in Batch 5, so the still-pending Convert
+// example is html-to-pdf; the wired list below grows with each batch.
+check("landing: html-to-pdf still badged pending",
+      await evaluate(`!!document.querySelector('[data-testid="badge-pending-html-to-pdf"]')`), true);
 check("landing: pdf-to-word still badged pending",
       await evaluate(`!!document.querySelector('[data-testid="badge-pending-pdf-to-word"]')`), true);
 check("landing: no wired Convert tool is badged pending",
-      await evaluate(`["images-to-pdf","pdf-to-images","pdf-to-pdfa","pdf-to-markdown"].some((id) => !!document.querySelector('[data-testid="badge-pending-' + id + '"]'))`), false);
+      await evaluate(`["images-to-pdf","word-to-pdf","ppt-to-pdf","excel-to-pdf","pdf-to-images","pdf-to-pdfa","pdf-to-markdown"].some((id) => !!document.querySelector('[data-testid="badge-pending-' + id + '"]'))`), false);
 
 /* ── 2. IMAGES TO PDF: panel fields, conditional orientation, real run ────── */
 await openThemed(`${BASE}/tools/images-to-pdf`, '[data-testid="upload-dropzone"]', "light");
