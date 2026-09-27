@@ -25,6 +25,27 @@
 
 ---
 
+## 2026-09-27 (readme numbering) — README sections renumbered 1–12; every anchor re-checked
+**Commits:** `4755536` (README.md), this entry's commit (REVIEW.md only).
+**Type:** Documentation
+**Trigger:** User request: renumber the README headings and fix every cross-document anchor reference in one pass, following up on the numbering gap recorded in the entry below.
+**Changes made:**
+- Renumbered the four out-of-sequence headings so the document runs 1–12 with no gaps, content untouched: §12 Testing & verification → **§9**, §13 Known limitations → **§10**, §14 Roadmap → **§11**, §16 License → **§12**.
+- Updated all six in-document anchor references across five edit sites: the header pointer line, the four affected TOC entries, §2's cross-reference to Known limitations, and §10.5's cross-reference back to Testing & verification.
+- **Mapping for citations in earlier entries** — those entries are dated records and were deliberately not rewritten: old §12 → §9 · old §13 → §10 · old §14 → §11 · old §16 → §12. So the previous entry's "§13.2" is today's §10.2, and its "§14.1–2" is today's §11.1–2.
+- Nothing outside README.md needed changing: a repo-wide scan found no markdown anchors and no section-number citations in any other tracked file (`*.md` outside README, plus `*.ts/tsx/yml/yaml/json/sh/mjs`).
+**Verification performed:**
+- Anchor audit by script, not eyeball: extracted all **21** `](#…)` targets from README.md and resolved each against GitHub-style slugs generated from every heading → **0 unresolved**.
+- Same pass confirmed the section sequence: `1-the-problem … 8-project-structure, 9-testing--verification, 10-known-limitations, 11-roadmap, 12-license` — no gaps.
+- Sub-anchors the installation walkthrough links to (`#verify-the-installation`, `#troubleshooting`) confirmed present as `###` headings.
+- Docs-only: `git diff --stat` for `4755536` = README.md only, 11 insertions/11 deletions — four heading lines plus seven lines carrying the six updated links. No code touched, so no suite re-run was needed.
+**Confidence:** High
+**Result:** Verified working (documentation). The cosmetic leftover recorded in the entry below is closed; its "renumbering would break cross-document references" concern did not materialise because no other file carried anchors or section-number citations.
+**Follow-ups opened:** none. **Follow-ups closed:** the heading-number gap noted in the entry below.
+*Session-boundary rule:* (b) distinct task thread (README renumbering requested separately).
+
+---
+
 ## 2026-09-27 (README refresh) — §12/§13/§14 realigned to Batches 1–3
 **Commits:** `713af3d` (README.md + scripts/verify-ui/README.md), this entry's commit (REVIEW.md only).
 **Type:** Documentation
