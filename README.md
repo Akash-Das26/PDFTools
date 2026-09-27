@@ -80,7 +80,7 @@ README was exercised on a plain Linux checkout with Node 22 and pnpm 10.
 │  │ @workspace/api-client-react  │      │ jobs table · usage stats        │  │
 │  │ generated React Query hooks  │      │ (drizzle-kit push creates it)   │  │
 │  └──────────────────────────────┘      └─────────────────────────────────┘  │
-│  scripts/  dev-local.mjs · build-all.mjs                                    │
+│  scripts/  dev-local.mjs · build-all.mjs · verify-ui/ (CDP suites)          │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -438,11 +438,12 @@ not any more, so verification is reproducible by anyone with Chrome and a built 
 
 | Suite | Assertions | What it covers |
 |---|---:|---|
-| `verify.mjs` | 127 | Full regression: all five tool-page states on both workspace templates, a real upload→process→download through `/api/pdf/compress` and `/api/pdf/remove-pages`, search, filters, theme |
+| `verify.mjs` | 127 | Full regression: all five tool-page states on both workspace templates, a real upload→process→download through `/api/pdf/compress` and `/api/pdf/remove-pages`, search, filters, theme, plus a whole-catalog walk proving every wired tool renders a real Configure panel |
 | `accent.mjs` | 38 | Accent colours and WCAG contrast computed from rendered pixels |
 | `batch1.mjs` | 21 | Batch 1 — all seven Organize panels through real routes |
 | `batch2.mjs` | 48 | Batch 2 — Protect/Unlock round-trips (including an encrypted file refusing to unlock without its password), the Protect guard, Sign/Redact's honest pending state |
 | `batch3.mjs` | 59 | Batch 3 — Watermark text and image runs, Add Page Numbers, picker-scoped Crop, the image-part guard, Edit PDF Content / PDF Form Filler pending state |
+| `batch4.mjs` | 49 | Batch 4 — JPG/PNG to PDF, PDF to JPG, PDF to PDF/A and PDF to Markdown through real routes, panel parity, the conditional controls, and the download filenames |
 | `compare.mjs` | — | Reference fidelity against the canonical Stitch design screens |
 | `contrast.mjs` | — | Informational WCAG audit (reports ratios; exit code never gates) |
 
@@ -474,11 +475,10 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
 1. **`/pdf/compress` `quality` is a no-op** — no Ghostscript in the environment; `extreme`/`recommended`/`high`
    take the identical re-serialisation path, but the Compress panel still offers three choices. Fix: build real
    compression or collapse the UI to one honest option.
-2. **Batches 4–6 of the tool UI are not built** — Batches 1–3 (Organize, Security, Edit) are done and
-   verified; **18 tools still lack a full Configure panel**: 14 backend-pending (disabled Process button +
-   pending badge) and 4 wired-but-panel-less (`images-to-pdf`, `pdf-to-images`, `pdf-to-pdfa`,
-   `pdf-to-markdown`), which show the honest "panel not built yet" placeholder instead of calling the
-   endpoint with silently-unset defaults.
+2. **Batches 5–6 of the tool UI are not built** — Batches 1–4 (Organize, Security, Edit, Convert) are done and
+   verified, so **every one of the 18 wired tools now has a Configure panel**; the **14 backend-pending tools**
+   still render with a disabled Process button and a pending badge, and each needs a real backend before its UI
+   can enable.
 3. **Rotate picker rotations are preview-only** — `POST /pdf/rotate` applies ONE angle (optionally scoped by
    `pages`), so the page-picker's per-page rotate arrows cannot be honoured per-page yet. Product decision
    pending: extend the backend, or keep the honest preview-only framing.
@@ -503,17 +503,18 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
 
 Ordered by REVIEW.md's actual open items and the queued work they reference — not invented phases:
 
-1. **Batch 4 — Convert panels** (next per the batch-and-stop discipline): the four wired-but-panel-less
-   Convert tools (`images-to-pdf`, `pdf-to-images`, `pdf-to-pdfa`, `pdf-to-markdown`); after that the
-   remaining work is backend growth for the 14 pending cards across Convert, Edit, Security and AI.
-2. **Batches 5–6 — the pending cards** across Convert, Edit, Security and AI: each of the 14 backend-pending
-   tools needs a real backend — and then its Configure panel — or a stay-honestly-disabled decision.
+1. **Batches 5–6 — the pending cards** across Convert, Edit, Security and AI: each of the 14 backend-pending
+   tools needs a real backend — and then its Configure panel — or a stay-honestly-disabled decision. Batch 4
+   completed the panel work, so no wired endpoint is left without a Configure step.
+2. **Ordering UI for JPG/PNG to PDF** — the panel states that pages follow upload order but offers no
+   reorder control, unlike Merge PDF's rows; extracting that row list into a shared component would close
+   the parity gap.
 3. **Fix the compress honesty gap** — either implement real compression or reduce the quality selector to one
    option that tells the truth.
 4. **Rotate per-page decision** — extend the rotate endpoint to per-page angles or reframe the UI.
-5. **Wire the committed verification suites into CI** — `scripts/verify-ui/` (127/38/21/48/59-assertion suites)
-   is committed and reproducible locally; making a workflow run it (Chrome + live servers) is the natural
-   next step now that CI covers install/typecheck/build.
+5. **Wire the committed verification suites into CI** — `scripts/verify-ui/` (the regression, accent/contrast and
+   batch 1–4 suites, 342 assertions in total) is committed and reproducible locally; making a workflow run it
+   (Chrome + live servers) is the natural next step now that CI covers install/typecheck/build.
 6. **Dependency hygiene** — remove `cookie-parser` if still unused; decide `@replit/connectors-sdk`'s platform
    coupling before touching it.
 7. **Approved backend candidates** (from the feature audit): PDF form fill/flatten, PDF→Excel (CSV), Translate

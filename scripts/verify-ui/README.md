@@ -28,6 +28,9 @@ bash scripts/verify-ui/drive.sh batch2.mjs
 # 59-assertion Batch 3 suite (Watermark text+image, Page Numbers, Crop)
 bash scripts/verify-ui/drive.sh batch3.mjs
 
+# 49-assertion Batch 4 suite (Image to PDF, PDF to JPG, PDF/A, PDF to Markdown)
+bash scripts/verify-ui/drive.sh batch4.mjs
+
 # Reference comparison against the Stitch design screens
 bash scripts/verify-ui/drive.sh compare.mjs
 
@@ -49,6 +52,9 @@ everything down on exit.
 - Chrome profiles are created under `/tmp/pdfcheck-ui-profile*` and removed at suite start.
 - Fixtures live in `fixtures/` (two tiny generated PDFs).
 - When adding a tool batch, add a `batchN.mjs` suite here following the `batch1.mjs` pattern
-  and keep the per-suite assertion counts cited in REVIEW.md entries. An implemented tool that
-  has no Configure panel yet is a valid `options-not-built` example for the regression suite
-  (`verify.mjs` points at `pdf-to-images` since Batch 3).
+  and keep the per-suite assertion counts cited in REVIEW.md entries.
+- `verify.mjs` no longer points at a single wired-but-panel-less tool as its `options-not-built`
+  example (Batch 4 gave every wired tool a panel). It now walks the whole catalog: every
+  `implemented`/`partial` tool must render a Configure panel after an upload and stay runnable.
+  Keep that invariant true for new tools — a wired tool without a panel would otherwise call its
+  endpoint with silently-unset defaults.
