@@ -68,7 +68,13 @@ export function buildFormData(
 
   for (const [key, value] of Object.entries(options)) {
     if (value === undefined || value === null || value === "") continue;
-    if (Array.isArray(value)) {
+    if (value instanceof File) {
+      // Secondary upload parts (e.g. the watermark image) ride in the options
+      // bag and are appended under their own field name, which matches the
+      // route's multer `upload.fields` entry — see routes/pdf.ts and the
+      // OpenAPI spec's multipart-part table.
+      form.append(key, value);
+    } else if (Array.isArray(value)) {
       form.append(key, value.join(","));
     } else {
       form.append(key, String(value));

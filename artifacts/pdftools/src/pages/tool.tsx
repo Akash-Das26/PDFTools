@@ -195,6 +195,13 @@ export default function Tool() {
         const pages = active.length > 0 ? active : kept;
         return { ...options, pages: pages.join(",") };
       }
+      case "crop":
+        // The crop panel's own Pages field wins when the user typed one;
+        // otherwise the picker selection (or the whole document) applies.
+        if (typeof options.pages === "string" && options.pages.trim() !== "") {
+          return options;
+        }
+        return { ...options, pages: active.join(",") };
       default:
         return { ...options, pages: active.join(",") };
     }
@@ -211,6 +218,21 @@ export default function Tool() {
         title: "A password is required",
         message:
           "Protect encrypts the document with the password you set. Enter one in the Configure step and run it again.",
+      });
+      return;
+    }
+    if (
+      tool.id === "watermark" &&
+      options.type === "image" &&
+      !(options.image instanceof File)
+    ) {
+      // The endpoint 400s an image watermark without the image part; surface
+      // the requirement up front, exactly like the protect-password guard.
+      setPhase("error");
+      setError({
+        title: "Choose a watermark image",
+        message:
+          "Image watermarks need a JPG or PNG to stamp. Pick one in the Configure step and run it again.",
       });
       return;
     }

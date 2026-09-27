@@ -1,13 +1,16 @@
 import type { ComponentType } from "react";
 import { CompressOptions } from "@/components/tool-options/compress";
+import { CropOptions } from "@/components/tool-options/crop";
 import { ExtractPagesOptions } from "@/components/tool-options/extract-pages";
 import { MergeOptions } from "@/components/tool-options/merge";
+import { AddPageNumbersOptions } from "@/components/tool-options/page-numbers";
 import { ProtectOptions } from "@/components/tool-options/protect";
 import { ReorderPagesOptions } from "@/components/tool-options/reorder-pages";
 import { RemovePagesOptions } from "@/components/tool-options/remove-pages";
 import { RotateOptions } from "@/components/tool-options/rotate";
 import { SplitOptions } from "@/components/tool-options/split";
 import { UnlockOptions } from "@/components/tool-options/unlock";
+import { WatermarkOptions } from "@/components/tool-options/watermark";
 import type { ToolOptionsProps } from "@/components/tool-options/types";
 import { uiIcons } from "@/lib/icons";
 
@@ -43,6 +46,9 @@ export const OPTION_PANELS: Record<string, ComponentType<ToolOptionsProps>> = {
   rotate: RotateOptions,
   protect: ProtectOptions,
   unlock: UnlockOptions,
+  watermark: WatermarkOptions,
+  "add-page-numbers": AddPageNumbersOptions,
+  crop: CropOptions,
   "ai-summarize": NoOptionsPanel({
     note: "Runs with the default summarizer settings — a short summary plus key points. No options to set.",
   }),

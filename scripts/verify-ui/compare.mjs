@@ -52,15 +52,19 @@ const shot = async (name) => {
   writeFileSync(`${OUT}${name}.png`, Buffer.from(data, "base64"));
 };
 
-/** Navigate, then poll until a selector exists (and Tailwind/CDN has settled). */
+/** Navigate, then poll until a selector exists (and Tailwind/CDN has settled).
+    Cold vite dev servers occasionally refuse the first navigation, so retry once. */
 async function gotoAndWait(url, selector, extraSettle = 1200, tries = 60) {
-  await send("Page.navigate", { url });
-  for (let i = 0; i < tries; i++) {
-    await sleep(500);
-    try {
-      const found = await evaluate(`!!document.querySelector(${JSON.stringify(selector)})`);
-      if (found) { await sleep(extraSettle); return true; }
-    } catch { /* context may be mid-navigation */ }
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await send("Page.navigate", { url });
+    for (let i = 0; i < tries; i++) {
+      await sleep(500);
+      try {
+        const found = await evaluate(`!!document.querySelector(${JSON.stringify(selector)})`);
+        if (found) { await sleep(extraSettle); return true; }
+      } catch { /* context may be mid-navigation */ }
+    }
+    if (attempt === 1) throw new Error(`timeout waiting for ${selector} at ${url}`);
   }
   throw new Error(`timeout waiting for ${selector} at ${url}`);
 }
