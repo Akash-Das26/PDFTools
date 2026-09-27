@@ -9,18 +9,85 @@ export interface HealthStatus {
   status: string;
 }
 
+/**
+ * Landing-page display category. Order is significant and mirrors the
+ * reference design: organize, convert-to, convert-from, edit, security, ai.
+ */
+export type ToolCategory = typeof ToolCategory[keyof typeof ToolCategory];
+
+
+export const ToolCategory = {
+  organize: 'organize',
+  'convert-to': 'convert-to',
+  'convert-from': 'convert-from',
+  edit: 'edit',
+  security: 'security',
+  ai: 'ai',
+} as const;
+
+/**
+ * Named colour token for the tool icon tile. Resolves to a theme token in
+ * the web app (`primary` -> bg-primary/10 text-primary, `ai` ->
+ * bg-secondary-container/20 text-secondary-hover). Never a raw hex.
+ */
+export type ToolAccent = typeof ToolAccent[keyof typeof ToolAccent];
+
+
+export const ToolAccent = {
+  primary: 'primary',
+  secondary: 'secondary',
+  tertiary: 'tertiary',
+  ai: 'ai',
+} as const;
+
+/**
+ * Which of the two approved workspace templates the tool uses.
+ */
+export type ToolWorkspace = typeof ToolWorkspace[keyof typeof ToolWorkspace];
+
+
+export const ToolWorkspace = {
+  stepper: 'stepper',
+  'page-picker': 'page-picker',
+} as const;
+
+/**
+ * Whether the tool has a live backend route. `pending` tools must render a
+ * disabled Process button plus a visible badge.
+ */
+export type ToolWireStatus = typeof ToolWireStatus[keyof typeof ToolWireStatus];
+
+
+export const ToolWireStatus = {
+  implemented: 'implemented',
+  partial: 'partial',
+  pending: 'pending',
+} as const;
+
 export interface Tool {
   id: string;
   name: string;
   description: string;
-  category: string;
+  /** Search synonyms, matching the reference's data-keywords */
+  keywords?: string[];
+  /** Shows the "Popular" ribbon on the landing card */
+  popular?: boolean;
+  category: ToolCategory;
+  accent: ToolAccent;
+  /** lucide-react export name, used identically on card and workspace header */
   icon: string;
+  workspace: ToolWorkspace;
+  status: ToolWireStatus;
+  /**
+     * Live backend route path, or null when backend-pending
+     * @nullable
+     */
+  route?: string | null;
   inputLabel: string;
   outputLabel: string;
   acceptMultiple?: boolean;
   /** Accepted mime types and extensions for the file picker */
   accept?: string[];
-  color?: string;
 }
 
 export type PdfPageInfoPagesItem = {
@@ -74,6 +141,34 @@ export type ListJobsParams = {
 limit?: number;
 };
 
+export type MergePdfsBody = {
+  /**
+     * Two or more documents, sent as repeated `files` parts.
+     * @minItems 2
+     */
+  files?: Blob[];
+};
+
+/**
+ * `all` splits every page; `pages` splits only `pages`.
+ */
+export type SplitPdfBodySplitType = typeof SplitPdfBodySplitType[keyof typeof SplitPdfBodySplitType];
+
+
+export const SplitPdfBodySplitType = {
+  all: 'all',
+  pages: 'pages',
+} as const;
+
+export type SplitPdfBody = {
+  /** The PDF to split. */
+  file?: Blob;
+  /** `all` splits every page; `pages` splits only `pages`. */
+  splitType?: SplitPdfBodySplitType;
+  /** Only read when `splitType` is `pages`. Empty means every page. */
+  pages?: string;
+};
+
 /**
  * Clockwise rotation in degrees
  */
@@ -87,6 +182,8 @@ export const RotatePdfBodyRotation = {
 } as const;
 
 export type RotatePdfBody = {
+  /** One or more documents, sent as repeated `files` parts. */
+  files?: Blob[];
   /** Clockwise rotation in degrees */
   rotation: RotatePdfBodyRotation;
   /** Page selection such as "1,3,5-8". Empty means every page. */
@@ -94,18 +191,27 @@ export type RotatePdfBody = {
 };
 
 export type RemovePdfPagesBody = {
+  /** The PDF to delete pages from. */
+  file?: Blob;
   /** Pages to delete, e.g. "2,4,7-9" */
   pages: string;
 };
 
 export type ReorderPdfPagesBody = {
+  /** The PDF to reorder. */
+  file?: Blob;
   /** Page numbers in their new order, e.g. "3,1,2,4" */
   order: string;
 };
 
-export type ComparePdfsBody = { [key: string]: unknown };
+export type ComparePdfsBody = {
+  /** One or more documents, sent as repeated `files` parts. */
+  files?: Blob[];
+};
 
 export type GetPdfPageInfoBody = {
+  /** The PDF to inspect. */
+  file?: Blob;
   thumbnails?: boolean;
   /** Preview width in pixels */
   thumbnailWidth?: number;
@@ -136,6 +242,10 @@ export const WatermarkPdfBodyPosition = {
 } as const;
 
 export type WatermarkPdfBody = {
+  /** The PDF to stamp. */
+  file?: Blob;
+  /** The watermark image. Required when `type` is `image`. */
+  image?: Blob;
   type?: WatermarkPdfBodyType;
   text?: string;
   opacity?: number;
@@ -160,6 +270,8 @@ export const ProtectPdfBodyAlgorithm = {
 } as const;
 
 export type ProtectPdfBody = {
+  /** The PDF to encrypt. */
+  file?: Blob;
   password: string;
   ownerPassword?: string;
   algorithm?: ProtectPdfBodyAlgorithm;
@@ -171,6 +283,8 @@ export type ProtectPdfBody = {
 };
 
 export type UnlockPdfBody = {
+  /** The encrypted PDF. */
+  file?: Blob;
   password?: string;
 };
 
@@ -183,6 +297,8 @@ export const CropPdfBodyUnit = {
 } as const;
 
 export type CropPdfBody = {
+  /** The PDF to crop. */
+  file?: Blob;
   unit?: CropPdfBodyUnit;
   top?: number;
   right?: number;
@@ -200,6 +316,8 @@ export const PdfToImagesBodyFormat = {
 } as const;
 
 export type PdfToImagesBody = {
+  /** The PDF to render. */
+  file?: Blob;
   format?: PdfToImagesBodyFormat;
   quality?: number;
   /** Rendered width in pixels */
@@ -226,9 +344,62 @@ export const ImagesToPdfBodyOrientation = {
 } as const;
 
 export type ImagesToPdfBody = {
+  /** One or more documents, sent as repeated `files` parts. */
+  files?: Blob[];
   pageSize?: ImagesToPdfBodyPageSize;
   orientation?: ImagesToPdfBodyOrientation;
   margin?: number;
+};
+
+/**
+ * Accepted, but not yet differentiated by the compressor.
+ */
+export type CompressPdfBodyQuality = typeof CompressPdfBodyQuality[keyof typeof CompressPdfBodyQuality];
+
+
+export const CompressPdfBodyQuality = {
+  extreme: 'extreme',
+  recommended: 'recommended',
+  high: 'high',
+} as const;
+
+export type CompressPdfBody = {
+  /** The PDF to compress. */
+  file?: Blob;
+  /** Accepted, but not yet differentiated by the compressor. */
+  quality?: CompressPdfBodyQuality;
+};
+
+export type AddPageNumbersBodyPosition = typeof AddPageNumbersBodyPosition[keyof typeof AddPageNumbersBodyPosition];
+
+
+export const AddPageNumbersBodyPosition = {
+  'bottom-center': 'bottom-center',
+  'bottom-right': 'bottom-right',
+  'bottom-left': 'bottom-left',
+  'top-center': 'top-center',
+  'top-right': 'top-right',
+} as const;
+
+export type AddPageNumbersBodyFormat = typeof AddPageNumbersBodyFormat[keyof typeof AddPageNumbersBodyFormat];
+
+
+export const AddPageNumbersBodyFormat = {
+  NUMBER_1: '1',
+  Page_1: 'Page 1',
+  '1/N': '1/N',
+} as const;
+
+export type AddPageNumbersBody = {
+  /** The PDF to number. */
+  file?: Blob;
+  position?: AddPageNumbersBodyPosition;
+  /**
+     * @minimum 1
+     * @maximum 100000
+     */
+  startNumber?: number;
+  format?: AddPageNumbersBodyFormat;
 };
 
 export type DuplicatePdfPagesBodyPlacement = typeof DuplicatePdfPagesBodyPlacement[keyof typeof DuplicatePdfPagesBodyPlacement];
@@ -240,6 +411,8 @@ export const DuplicatePdfPagesBodyPlacement = {
 } as const;
 
 export type DuplicatePdfPagesBody = {
+  /** The PDF to copy pages within. */
+  file?: Blob;
   /** Comma separated pages or ranges; empty means every page */
   pages?: string;
   /**
@@ -250,7 +423,10 @@ export type DuplicatePdfPagesBody = {
   placement?: DuplicatePdfPagesBodyPlacement;
 };
 
-export type RepairPdfBody = { [key: string]: unknown };
+export type RepairPdfBody = {
+  /** The damaged PDF. */
+  file?: Blob;
+};
 
 export type PdfToPdfABodyConformance = typeof PdfToPdfABodyConformance[keyof typeof PdfToPdfABodyConformance];
 
@@ -264,6 +440,8 @@ export const PdfToPdfABodyConformance = {
 } as const;
 
 export type PdfToPdfABody = {
+  /** The PDF to convert. */
+  file?: Blob;
   conformance?: PdfToPdfABodyConformance;
 };
 
@@ -276,6 +454,8 @@ export const ExportPdfTextBodyFormat = {
 } as const;
 
 export type ExportPdfTextBody = {
+  /** The PDF to extract text from. */
+  file?: Blob;
   format?: ExportPdfTextBodyFormat;
   pages?: string;
 };
@@ -320,9 +500,23 @@ export const OcrPdfBodyFormat = {
 } as const;
 
 export type OcrPdfBody = {
+  /** The scanned PDF. */
+  file?: Blob;
   language?: OcrPdfBodyLanguage;
   mode?: OcrPdfBodyMode;
   format?: OcrPdfBodyFormat;
   pages?: string;
+};
+
+export type SummarizePdfBody = {
+  /** The PDF to summarise. */
+  file?: Blob;
+};
+
+export type SummarizePdf200 = {
+  summary?: string;
+  keyPoints?: string[];
+  wordCount?: number;
+  pageCount?: number;
 };
 

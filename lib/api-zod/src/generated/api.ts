@@ -23,13 +23,18 @@ export const ListToolsResponseItem = zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "description": zod.string(),
-  "category": zod.string(),
-  "icon": zod.string(),
+  "keywords": zod.array(zod.string()).optional().describe('Search synonyms, matching the reference\'s data-keywords'),
+  "popular": zod.boolean().optional().describe('Shows the \"Popular\" ribbon on the landing card'),
+  "category": zod.enum(['organize', 'convert-to', 'convert-from', 'edit', 'security', 'ai']).describe('Landing-page display category. Order is significant and mirrors the\nreference design: organize, convert-to, convert-from, edit, security, ai.\n'),
+  "accent": zod.enum(['primary', 'secondary', 'tertiary', 'ai']).describe('Named colour token for the tool icon tile. Resolves to a theme token in\nthe web app (`primary` -> bg-primary\/10 text-primary, `ai` ->\nbg-secondary-container\/20 text-secondary-hover). Never a raw hex.\n'),
+  "icon": zod.string().describe('lucide-react export name, used identically on card and workspace header'),
+  "workspace": zod.enum(['stepper', 'page-picker']).describe('Which of the two approved workspace templates the tool uses.'),
+  "status": zod.enum(['implemented', 'partial', 'pending']).describe('Whether the tool has a live backend route. `pending` tools must render a\ndisabled Process button plus a visible badge.\n'),
+  "route": zod.string().nullish().describe('Live backend route path, or null when backend-pending'),
   "inputLabel": zod.string(),
   "outputLabel": zod.string(),
   "acceptMultiple": zod.boolean().optional(),
-  "accept": zod.array(zod.string()).optional().describe('Accepted mime types and extensions for the file picker'),
-  "color": zod.string().optional()
+  "accept": zod.array(zod.string()).optional().describe('Accepted mime types and extensions for the file picker')
 })
 export const ListToolsResponse = zod.array(ListToolsResponseItem)
 

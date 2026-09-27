@@ -36,14 +36,11 @@ export default defineConfig(async ({ mode }) => ({
       : []),
   ],
   resolve: {
+    // `@` is the only path alias. A previous `@assets` alias pointed at the
+    // repo-root attached_assets/ folder; the only file it ever served was an
+    // unused logo import, removed with the frontend rebuild.
     alias: {
       '@': path.resolve(import.meta.dirname, 'src'),
-      '@assets': path.resolve(
-        import.meta.dirname,
-        '..',
-        '..',
-        'attached_assets',
-      ),
     },
     dedupe: ['react', 'react-dom'],
   },

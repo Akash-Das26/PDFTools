@@ -20,7 +20,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AddPageNumbersBody,
   ComparePdfsBody,
+  CompressPdfBody,
   CropPdfBody,
   DuplicatePdfPagesBody,
   ExportPdfTextBody,
@@ -30,6 +32,7 @@ import type {
   Job,
   JobInput,
   ListJobsParams,
+  MergePdfsBody,
   OcrPdfBody,
   PdfPageInfo,
   PdfToImagesBody,
@@ -39,7 +42,10 @@ import type {
   ReorderPdfPagesBody,
   RepairPdfBody,
   RotatePdfBody,
+  SplitPdfBody,
   Stats,
+  SummarizePdf200,
+  SummarizePdfBody,
   Tool,
   UnlockPdfBody,
   WatermarkPdfBody
@@ -458,6 +464,164 @@ export const useCreateJob = <TError = ErrorType<unknown>,
       return useMutation(getCreateJobMutationOptions(options));
     }
 
+export const getMergePdfsUrl = () => {
+
+
+
+
+  return `/api/pdf/merge`
+}
+
+/**
+ * Send two or more documents as repeated `files` parts, in the order they should be appended. Files that cannot be parsed are skipped with a server-side warning rather than failing the whole request.
+ * @summary Combine two or more PDFs into one
+ */
+export const mergePdfs = async (mergePdfsBody: MergePdfsBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+    const formData = new FormData();
+if(mergePdfsBody.files !== undefined) {
+ mergePdfsBody.files.forEach(value => formData.append(`files`, value));
+ }
+
+  return customFetch<void>(getMergePdfsUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getMergePdfsMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mergePdfs>>, TError,{data: BodyType<MergePdfsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof mergePdfs>>, TError,{data: BodyType<MergePdfsBody>}, TContext> => {
+
+const mutationKey = ['mergePdfs'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mergePdfs>>, {data: BodyType<MergePdfsBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  mergePdfs(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MergePdfsMutationResult = NonNullable<Awaited<ReturnType<typeof mergePdfs>>>
+    export type MergePdfsMutationBody = BodyType<MergePdfsBody>
+    export type MergePdfsMutationError = ErrorType<void>
+
+    /**
+ * @summary Combine two or more PDFs into one
+ */
+export const useMergePdfs = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mergePdfs>>, TError,{data: BodyType<MergePdfsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof mergePdfs>>,
+        TError,
+        {data: BodyType<MergePdfsBody>},
+        TContext
+      > => {
+      return useMutation(getMergePdfsMutationOptions(options));
+    }
+
+export const getSplitPdfUrl = () => {
+
+
+
+
+  return `/api/pdf/split`
+}
+
+/**
+ * Send the document as `file`. A single target page comes back as a PDF; anything longer comes back as a ZIP of one-page PDFs.
+ * @summary Cut a PDF into single-page documents
+ */
+export const splitPdf = async (splitPdfBody: SplitPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+    const formData = new FormData();
+if(splitPdfBody.file !== undefined) {
+ formData.append(`file`, splitPdfBody.file);
+ }
+if(splitPdfBody.splitType !== undefined) {
+ formData.append(`splitType`, splitPdfBody.splitType);
+ }
+if(splitPdfBody.pages !== undefined) {
+ formData.append(`pages`, splitPdfBody.pages);
+ }
+
+  return customFetch<void>(getSplitPdfUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getSplitPdfMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof splitPdf>>, TError,{data: BodyType<SplitPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof splitPdf>>, TError,{data: BodyType<SplitPdfBody>}, TContext> => {
+
+const mutationKey = ['splitPdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof splitPdf>>, {data: BodyType<SplitPdfBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  splitPdf(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SplitPdfMutationResult = NonNullable<Awaited<ReturnType<typeof splitPdf>>>
+    export type SplitPdfMutationBody = BodyType<SplitPdfBody>
+    export type SplitPdfMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Cut a PDF into single-page documents
+ */
+export const useSplitPdf = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof splitPdf>>, TError,{data: BodyType<SplitPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof splitPdf>>,
+        TError,
+        {data: BodyType<SplitPdfBody>},
+        TContext
+      > => {
+      return useMutation(getSplitPdfMutationOptions(options));
+    }
+
 export const getRotatePdfUrl = () => {
 
 
@@ -472,6 +636,9 @@ export const getRotatePdfUrl = () => {
  */
 export const rotatePdf = async (rotatePdfBody: RotatePdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(rotatePdfBody.files !== undefined) {
+ rotatePdfBody.files.forEach(value => formData.append(`files`, value));
+ }
 formData.append(`rotation`, rotatePdfBody.rotation.toString())
 if(rotatePdfBody.pages !== undefined) {
  formData.append(`pages`, rotatePdfBody.pages);
@@ -549,6 +716,9 @@ export const getRemovePdfPagesUrl = () => {
  */
 export const removePdfPages = async (removePdfPagesBody: RemovePdfPagesBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(removePdfPagesBody.file !== undefined) {
+ formData.append(`file`, removePdfPagesBody.file);
+ }
 formData.append(`pages`, removePdfPagesBody.pages);
 
   return customFetch<void>(getRemovePdfPagesUrl(),
@@ -623,6 +793,9 @@ export const getReorderPdfPagesUrl = () => {
  */
 export const reorderPdfPages = async (reorderPdfPagesBody: ReorderPdfPagesBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(reorderPdfPagesBody.file !== undefined) {
+ formData.append(`file`, reorderPdfPagesBody.file);
+ }
 formData.append(`order`, reorderPdfPagesBody.order);
 
   return customFetch<void>(getReorderPdfPagesUrl(),
@@ -697,6 +870,9 @@ export const getComparePdfsUrl = () => {
  */
 export const comparePdfs = async (comparePdfsBody: ComparePdfsBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(comparePdfsBody.files !== undefined) {
+ comparePdfsBody.files.forEach(value => formData.append(`files`, value));
+ }
 
   return customFetch<void>(getComparePdfsUrl(),
   {
@@ -770,6 +946,9 @@ export const getGetPdfPageInfoUrl = () => {
  */
 export const getPdfPageInfo = async (getPdfPageInfoBody: GetPdfPageInfoBody, options?: Parameters<typeof customFetch>[1]): Promise<PdfPageInfo> => {
     const formData = new FormData();
+if(getPdfPageInfoBody.file !== undefined) {
+ formData.append(`file`, getPdfPageInfoBody.file);
+ }
 if(getPdfPageInfoBody.thumbnails !== undefined) {
  formData.append(`thumbnails`, getPdfPageInfoBody.thumbnails.toString())
  }
@@ -849,6 +1028,12 @@ export const getWatermarkPdfUrl = () => {
  */
 export const watermarkPdf = async (watermarkPdfBody: WatermarkPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(watermarkPdfBody.file !== undefined) {
+ formData.append(`file`, watermarkPdfBody.file);
+ }
+if(watermarkPdfBody.image !== undefined) {
+ formData.append(`image`, watermarkPdfBody.image);
+ }
 if(watermarkPdfBody.type !== undefined) {
  formData.append(`type`, watermarkPdfBody.type);
  }
@@ -949,6 +1134,9 @@ export const getProtectPdfUrl = () => {
  */
 export const protectPdf = async (protectPdfBody: ProtectPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(protectPdfBody.file !== undefined) {
+ formData.append(`file`, protectPdfBody.file);
+ }
 formData.append(`password`, protectPdfBody.password);
 if(protectPdfBody.ownerPassword !== undefined) {
  formData.append(`ownerPassword`, protectPdfBody.ownerPassword);
@@ -1044,6 +1232,9 @@ export const getUnlockPdfUrl = () => {
  */
 export const unlockPdf = async (unlockPdfBody: UnlockPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(unlockPdfBody.file !== undefined) {
+ formData.append(`file`, unlockPdfBody.file);
+ }
 if(unlockPdfBody.password !== undefined) {
  formData.append(`password`, unlockPdfBody.password);
  }
@@ -1120,6 +1311,9 @@ export const getCropPdfUrl = () => {
  */
 export const cropPdf = async (cropPdfBody: CropPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(cropPdfBody.file !== undefined) {
+ formData.append(`file`, cropPdfBody.file);
+ }
 if(cropPdfBody.unit !== undefined) {
  formData.append(`unit`, cropPdfBody.unit);
  }
@@ -1211,6 +1405,9 @@ export const getPdfToImagesUrl = () => {
  */
 export const pdfToImages = async (pdfToImagesBody: PdfToImagesBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(pdfToImagesBody.file !== undefined) {
+ formData.append(`file`, pdfToImagesBody.file);
+ }
 if(pdfToImagesBody.format !== undefined) {
  formData.append(`format`, pdfToImagesBody.format);
  }
@@ -1296,6 +1493,9 @@ export const getImagesToPdfUrl = () => {
  */
 export const imagesToPdf = async (imagesToPdfBody: ImagesToPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(imagesToPdfBody.files !== undefined) {
+ imagesToPdfBody.files.forEach(value => formData.append(`files`, value));
+ }
 if(imagesToPdfBody.pageSize !== undefined) {
  formData.append(`pageSize`, imagesToPdfBody.pageSize);
  }
@@ -1364,6 +1564,170 @@ export const useImagesToPdf = <TError = ErrorType<unknown>,
       return useMutation(getImagesToPdfMutationOptions(options));
     }
 
+export const getCompressPdfUrl = () => {
+
+
+
+
+  return `/api/pdf/compress`
+}
+
+/**
+ * Send the document as `file`. The document is re-serialised with object streams and its author/keyword metadata dropped. Caveat - no Ghostscript is available in this environment, so all three `quality` modes currently take this same path; the field is accepted so the request shape stays stable.
+ * @summary Shrink a PDF by re-serialising it
+ */
+export const compressPdf = async (compressPdfBody: CompressPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+    const formData = new FormData();
+if(compressPdfBody.file !== undefined) {
+ formData.append(`file`, compressPdfBody.file);
+ }
+if(compressPdfBody.quality !== undefined) {
+ formData.append(`quality`, compressPdfBody.quality);
+ }
+
+  return customFetch<void>(getCompressPdfUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getCompressPdfMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof compressPdf>>, TError,{data: BodyType<CompressPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof compressPdf>>, TError,{data: BodyType<CompressPdfBody>}, TContext> => {
+
+const mutationKey = ['compressPdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof compressPdf>>, {data: BodyType<CompressPdfBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  compressPdf(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompressPdfMutationResult = NonNullable<Awaited<ReturnType<typeof compressPdf>>>
+    export type CompressPdfMutationBody = BodyType<CompressPdfBody>
+    export type CompressPdfMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Shrink a PDF by re-serialising it
+ */
+export const useCompressPdf = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof compressPdf>>, TError,{data: BodyType<CompressPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof compressPdf>>,
+        TError,
+        {data: BodyType<CompressPdfBody>},
+        TContext
+      > => {
+      return useMutation(getCompressPdfMutationOptions(options));
+    }
+
+export const getAddPageNumbersUrl = () => {
+
+
+
+
+  return `/api/pdf/add-page-numbers`
+}
+
+/**
+ * Send the document as `file`.
+ * @summary Stamp page numbers onto a PDF
+ */
+export const addPageNumbers = async (addPageNumbersBody: AddPageNumbersBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+    const formData = new FormData();
+if(addPageNumbersBody.file !== undefined) {
+ formData.append(`file`, addPageNumbersBody.file);
+ }
+if(addPageNumbersBody.position !== undefined) {
+ formData.append(`position`, addPageNumbersBody.position);
+ }
+if(addPageNumbersBody.startNumber !== undefined) {
+ formData.append(`startNumber`, addPageNumbersBody.startNumber.toString())
+ }
+if(addPageNumbersBody.format !== undefined) {
+ formData.append(`format`, addPageNumbersBody.format);
+ }
+
+  return customFetch<void>(getAddPageNumbersUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getAddPageNumbersMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPageNumbers>>, TError,{data: BodyType<AddPageNumbersBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addPageNumbers>>, TError,{data: BodyType<AddPageNumbersBody>}, TContext> => {
+
+const mutationKey = ['addPageNumbers'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addPageNumbers>>, {data: BodyType<AddPageNumbersBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  addPageNumbers(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddPageNumbersMutationResult = NonNullable<Awaited<ReturnType<typeof addPageNumbers>>>
+    export type AddPageNumbersMutationBody = BodyType<AddPageNumbersBody>
+    export type AddPageNumbersMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Stamp page numbers onto a PDF
+ */
+export const useAddPageNumbers = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPageNumbers>>, TError,{data: BodyType<AddPageNumbersBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addPageNumbers>>,
+        TError,
+        {data: BodyType<AddPageNumbersBody>},
+        TContext
+      > => {
+      return useMutation(getAddPageNumbersMutationOptions(options));
+    }
+
 export const getDuplicatePdfPagesUrl = () => {
 
 
@@ -1378,6 +1742,9 @@ export const getDuplicatePdfPagesUrl = () => {
  */
 export const duplicatePdfPages = async (duplicatePdfPagesBody: DuplicatePdfPagesBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(duplicatePdfPagesBody.file !== undefined) {
+ formData.append(`file`, duplicatePdfPagesBody.file);
+ }
 if(duplicatePdfPagesBody.pages !== undefined) {
  formData.append(`pages`, duplicatePdfPagesBody.pages);
  }
@@ -1460,6 +1827,9 @@ export const getRepairPdfUrl = () => {
  */
 export const repairPdf = async (repairPdfBody: RepairPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(repairPdfBody.file !== undefined) {
+ formData.append(`file`, repairPdfBody.file);
+ }
 
   return customFetch<void>(getRepairPdfUrl(),
   {
@@ -1533,6 +1903,9 @@ export const getPdfToPdfAUrl = () => {
  */
 export const pdfToPdfA = async (pdfToPdfABody: PdfToPdfABody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(pdfToPdfABody.file !== undefined) {
+ formData.append(`file`, pdfToPdfABody.file);
+ }
 if(pdfToPdfABody.conformance !== undefined) {
  formData.append(`conformance`, pdfToPdfABody.conformance);
  }
@@ -1609,6 +1982,9 @@ export const getExportPdfTextUrl = () => {
  */
 export const exportPdfText = async (exportPdfTextBody: ExportPdfTextBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(exportPdfTextBody.file !== undefined) {
+ formData.append(`file`, exportPdfTextBody.file);
+ }
 if(exportPdfTextBody.format !== undefined) {
  formData.append(`format`, exportPdfTextBody.format);
  }
@@ -1688,6 +2064,9 @@ export const getOcrPdfUrl = () => {
  */
 export const ocrPdf = async (ocrPdfBody: OcrPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
+if(ocrPdfBody.file !== undefined) {
+ formData.append(`file`, ocrPdfBody.file);
+ }
 if(ocrPdfBody.language !== undefined) {
  formData.append(`language`, ocrPdfBody.language);
  }
@@ -1757,5 +2136,81 @@ export const useOcrPdf = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getOcrPdfMutationOptions(options));
+    }
+
+export const getSummarizePdfUrl = () => {
+
+
+
+
+  return `/api/pdf/ai-summarize`
+}
+
+/**
+ * Send the document as `file`. The only AI endpoint that needs an `OPENAI_API_KEY`; when the key is absent the API still starts and this route answers 503. Returns JSON rather than a file. The text layer is truncated to roughly 12000 characters before being sent to the model.
+ * @summary Summarise a document with an AI model
+ */
+export const summarizePdf = async (summarizePdfBody: SummarizePdfBody, options?: Parameters<typeof customFetch>[1]): Promise<SummarizePdf200> => {
+    const formData = new FormData();
+if(summarizePdfBody.file !== undefined) {
+ formData.append(`file`, summarizePdfBody.file);
+ }
+
+  return customFetch<SummarizePdf200>(getSummarizePdfUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getSummarizePdfMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof summarizePdf>>, TError,{data: BodyType<SummarizePdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof summarizePdf>>, TError,{data: BodyType<SummarizePdfBody>}, TContext> => {
+
+const mutationKey = ['summarizePdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof summarizePdf>>, {data: BodyType<SummarizePdfBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  summarizePdf(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SummarizePdfMutationResult = NonNullable<Awaited<ReturnType<typeof summarizePdf>>>
+    export type SummarizePdfMutationBody = BodyType<SummarizePdfBody>
+    export type SummarizePdfMutationError = ErrorType<void>
+
+    /**
+ * @summary Summarise a document with an AI model
+ */
+export const useSummarizePdf = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof summarizePdf>>, TError,{data: BodyType<SummarizePdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof summarizePdf>>,
+        TError,
+        {data: BodyType<SummarizePdfBody>},
+        TContext
+      > => {
+      return useMutation(getSummarizePdfMutationOptions(options));
     }
 

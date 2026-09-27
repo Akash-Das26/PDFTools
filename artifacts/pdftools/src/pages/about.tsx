@@ -1,4 +1,4 @@
-import { Navbar } from "@/components/navbar";
+import { SiteHeader } from "@/components/site-header";
 import { Shield, Clock, Lock, Trash2 } from "lucide-react";
 import { Seo } from "@/components/seo";
 
@@ -37,7 +37,7 @@ export default function About() {
         description="Learn how PDF Tools makes everyday PDF processing fast, focused, and privacy-conscious."
         path="/about"
       />
-      <Navbar />
+      <SiteHeader />
 
       <main className="flex-1">
         <div className="container max-w-4xl mx-auto px-4 md:px-6 py-16 md:py-24">

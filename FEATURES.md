@@ -2,6 +2,8 @@
 
 Audited 2026-09-25 against the actual code in `artifacts/api-server/src` (routes + services), `artifacts/pdftools/src` (pages + `components/tool-options` panels), and the tool catalog served by `routes/tools.ts`. Statuses reflect runtime-verified behaviour, not just the presence of a route.
 
+> **Reconciled 2026-09-26 (frontend rebuild):** this table tracks *backend capabilities* (31 rows — it includes Repair and OCR, which have routes but no catalog card), while the UI catalog now serves **32 tools / 6 categories**: **17 implemented · 1 partial · 14 backend-pending** (pending tools render a disabled Process button and a visible badge — the UI never silently calls a missing endpoint). The 14 pending map to the ❌/🟡 rows below plus the Convert/Edit/AI tools the backend has not grown yet. Note `README.md` predates the rebuild and still describes the pre-rebuild frontend; run instructions remain correct.
+
 **19 implemented, 2 partial, 12 not implemented — see notes for blockers.** (The request referred to 32 items; the supplied list contains 33.) Four items are **approved and pending build** — feasible with current dependencies, deliberately not yet started: PDF Forms (fill/flatten), PDF to Excel (CSV), Translate PDF, Scan to PDF (camera UI).
 
 Every tool marked ✅ has a route in `routes/pdf.ts`, a catalog entry in `routes/tools.ts`, and an option panel in `components/tool-options`; most were verified this session with runtime smoke tests (real PDFs through the built server, headless-Chrome flows for the UI).
@@ -53,6 +55,6 @@ These four were classified as buildable with current dependencies and approved f
 
 ## Audit notes
 
-- **No duplicate implementations found.** No feature has two routes or two catalog entries. `pages/compare.tsx` (index of SEO competitor pages) and `pages/comparison.tsx` (single competitor page) are unrelated to the Compare PDF tool — both are content pages and neither duplicates a tool. `artifacts/mockup-sandbox` carries ~60 copied `components/ui` files but is a standalone artifact, not part of the tool surface.
+- **No duplicate implementations found.** No feature has two routes or two catalog entries. `pages/compare.tsx` (index of SEO competitor pages) and `pages/comparison.tsx` (single competitor page) are unrelated to the Compare PDF tool — both are content pages and neither duplicates a tool.
 - **Premise corrections vs. the request:** Repair PDF (blocker listed) is implemented with a working recovery strategy; Compare PDF (blocker listed) is implemented; OCR PDF (blocker listed) is implemented on tesseract.js.
 - Runtime verification this session covered: duplicate-pages, repair (healthy + corrupted), PDF/A, OCR (Latin/CJK/Arabic/Hindi/Hebrew text + searchable-PDF layers), compare (Latin + RTL), plus earlier verified tools (merge, split, rotate, remove/reorder, crop, watermark, protect, unlock, images-to-pdf, pdf-to-images, extract-text, ai-summarize).

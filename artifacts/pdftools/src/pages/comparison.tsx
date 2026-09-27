@@ -1,6 +1,6 @@
 import { Link, useParams } from "wouter";
 import { ArrowRight, Check, ChevronRight, ExternalLink, Minus, Sparkles } from "lucide-react";
-import { Navbar } from "@/components/navbar";
+import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Seo } from "@/components/seo";
 import { comparisons, getComparison } from "@/lib/comparisons";
@@ -50,7 +50,7 @@ export default function ComparisonPage() {
   if (!comparison) {
     return (
       <div className="min-h-[100dvh] flex flex-col bg-background">
-        <Navbar />
+        <SiteHeader />
         <main className="flex-1 flex items-center justify-center px-4">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-3">Comparison not found</h1>
@@ -72,7 +72,7 @@ export default function ComparisonPage() {
         path={`/compare/${comparison.slug}`}
         structuredData={ComparisonStructuredData(comparison)}
       />
-      <Navbar />
+      <SiteHeader />
       <main className="flex-1">
         <article>
           <section className="px-4 md:px-6 pt-10 md:pt-16 pb-12">

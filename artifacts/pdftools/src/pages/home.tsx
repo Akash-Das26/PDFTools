@@ -1,115 +1,137 @@
 import { useMemo, useState } from "react";
-import { useListTools } from "@workspace/api-client-react";
-import { Link } from "wouter";
-import { Navbar } from "@/components/navbar";
-import { ToolCard } from "@/components/tool-card";
-import { ToolSearch } from "@/components/tool-search";
-import { CategorySection } from "@/components/category-section";
-import { toolIcons, defaultToolIcon } from "@/lib/icons";
-import { TOOL_CATEGORY_GROUPS, toneForCategory } from "@/lib/tool-categories";
 import { Seo } from "@/components/seo";
-import { FileSearch } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
+import { SearchDialog } from "@/components/search-dialog";
+import { CategoryPills } from "@/components/landing/category-pills";
+import { CategorySection } from "@/components/landing/category-section";
+import { EmptyState } from "@/components/landing/empty-state";
+import { PipelineSection } from "@/components/landing/pipeline-section";
+import { QuickDropzone } from "@/components/landing/quick-dropzone";
+import { SiteFooter } from "@/components/landing/site-footer";
+import { ToolSearchBar } from "@/components/landing/tool-search-bar";
+import { ValueStrip } from "@/components/landing/value-strip";
+import { CATEGORIES } from "@/lib/tool-categories";
+import { filterTools, useToolCatalog } from "@/lib/tool-catalog";
 
+/**
+ * Landing / tool grid.
+ *
+ * Layout follows `landing_tool_grid_categorized_sections`: an ambient two-tone
+ * glow behind a centred hero, the quick-dropzone launcher, the search bar with
+ * its filter pills, then the six categorized sections in reference order, then
+ * the value strip and pipeline band.
+ *
+ * Search and the category pills are independent filters that compose, and both
+ * read the live catalog — so a section's count badge always equals the number
+ * of cards actually rendered beneath it.
+ */
 export default function Home() {
-  const { data: tools, isLoading } = useListTools();
+  const { tools, isLoading, isError } = useToolCatalog();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
-  const visibleGroups = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return TOOL_CATEGORY_GROUPS.map((meta) => {
-      const inGroup = (tools ?? []).filter((tool) => meta.matches.includes(tool.category));
-      const matched = inGroup.filter((tool) => {
-        const haystack = `${tool.name} ${tool.description}`.toLowerCase();
-        return (!q || haystack.includes(q)) && (filter === "all" || filter === meta.filter);
-      });
-      return { meta, tools: matched, total: inGroup.length };
-    }).filter((group) => group.tools.length > 0);
-  }, [tools, query, filter]);
+  const searched = useMemo(() => filterTools(tools, query), [tools, query]);
 
-  const isEmpty = !isLoading && visibleGroups.length === 0;
+  const visibleCategories = useMemo(
+    () => CATEGORIES.filter((category) => filter === "all" || category.id === filter),
+    [filter],
+  );
+
+  const hasResults = visibleCategories.some((category) =>
+    searched.some((tool) => tool.category === category.id),
+  );
+
+  const reset = () => {
+    setQuery("");
+    setFilter("all");
+  };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background">
+    <div className="min-h-screen bg-background">
       <Seo
-        title="Free PDF Tools Online: Merge, Compress, Summarize & More"
-        description="Fast, free online PDF tools for merging, splitting, compressing, protecting, summarizing, extracting text, and numbering pages."
+        title="Free PDF Tools Online: Merge, Compress, Split, Convert & More"
+        description="Fast, free online PDF tools for merging, splitting, compressing, converting, protecting and summarizing documents. No signup, no watermarks."
         path="/"
       />
-      <Navbar />
+      <SiteHeader />
 
-      {/* Hero */}
-      <section className="relative w-full overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 max-w-5xl h-96 bg-gradient-to-b from-primary/5 via-secondary/5 to-transparent blur-3xl pointer-events-none" />
-        <div className="relative max-w-7xl mx-auto px-4 md:px-6 pt-12 sm:pt-16 text-center flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-card border border-border shadow-xs mb-6 transition-transform hover:scale-[1.02] cursor-default">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs tracking-wide uppercase font-semibold text-muted-foreground">
-              Open-source &amp; privacy-first PDF toolkit
-            </span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight max-w-4xl leading-tight">
-            Every tool you need to work with PDFs in one place
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground max-w-2xl text-balance">
-            Fast, secure, browser-based utilities. No file uploads to untrusted servers, zero
-            subscription hurdles, and zero document limits.
-          </p>
+      <main className="w-full bg-surface-container-lowest pt-16">
+        <div className="relative w-full overflow-hidden pb-margin-lg">
+          {/* Ambient glow geometry */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-0 -z-10 h-96 w-3/4 max-w-5xl -translate-x-1/2 bg-gradient-to-b from-primary/5 via-secondary/5 to-transparent blur-3xl"
+          />
 
-          {/* Search + category pills */}
-          <div className="w-full max-w-4xl mt-8 flex flex-col gap-4 items-center">
-            <ToolSearch
-              query={query}
-              onQueryChange={setQuery}
-              filter={filter}
-              onFilterChange={setFilter}
-            />
+          <section className="mx-auto flex max-w-7xl flex-col items-center px-gutter pt-space-xl text-center sm:pt-margin-lg">
+            <div className="mb-space-lg inline-flex items-center gap-space-xs rounded-full bg-surface-container px-space-md py-1 shadow-level-2">
+              <span className="h-2 w-2 rounded-full bg-primary" />
+              <span className="text-label-sm font-semibold uppercase tracking-wide text-on-surface-variant">
+                Open-Source &amp; Privacy-First PDF Toolkit
+              </span>
+            </div>
+
+            <h1 className="max-w-4xl text-headline-xl-mobile tracking-tight text-foreground sm:text-headline-xl">
+              Every tool you need to work with PDFs in one place
+            </h1>
+
+            <p className="mt-space-md max-w-2xl text-body-lg text-muted-foreground">
+              Fast, secure utilities that all follow the same three steps. No
+              subscription hurdles, no watermarks, no signup.
+            </p>
+
+            <QuickDropzone />
+
+            <div className="mt-space-xl flex w-full max-w-4xl flex-col items-center gap-space-md">
+              <ToolSearchBar
+                value={query}
+                onChange={setQuery}
+                onOpenPalette={() => setPaletteOpen(true)}
+              />
+              <CategoryPills active={filter} onChange={setFilter} />
+            </div>
+          </section>
+
+          <ValueStrip />
+
+          <div
+            id="tools-container"
+            className="mx-auto mb-margin-lg flex w-full max-w-7xl flex-col gap-margin-lg px-gutter pt-margin-lg"
+          >
+            {isLoading && (
+              <p className="py-margin-lg text-center text-body-md text-muted-foreground">
+                Loading tools...
+              </p>
+            )}
+
+            {isError && (
+              <p className="py-margin-lg text-center text-body-md text-destructive">
+                Could not load the tool catalog. Please refresh.
+              </p>
+            )}
+
+            {!isLoading && !isError && !hasResults && (
+              <EmptyState onReset={reset} />
+            )}
+
+            {!isLoading &&
+              !isError &&
+              visibleCategories.map((category) => (
+                <CategorySection
+                  key={category.id}
+                  category={category}
+                  tools={searched}
+                />
+              ))}
           </div>
         </div>
-      </section>
 
-      {/* Tool grid */}
-      <main className="w-full max-w-7xl mx-auto px-4 md:px-6 py-12 space-y-12" id="tools">
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-44 rounded-xl bg-card border border-border animate-pulse" />
-            ))}
-          </div>
-        ) : isEmpty ? (
-          <div className="text-center py-20" data-testid="tools-empty">
-            <FileSearch className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No tools match your search</h3>
-            <p className="text-muted-foreground">Try “merge”, “compress”, “ocr” or “protect”.</p>
-          </div>
-          ) : (
-            visibleGroups.map(({ meta, tools: groupTools, total }) => (
-              <CategorySection key={meta.filter} meta={meta} count={total} id={`category-${meta.filter}`}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {groupTools.map((tool) => (
-                    <ToolCard
-                      key={tool.id}
-                      id={tool.id}
-                      name={tool.name}
-                      description={tool.description}
-                      icon={toolIcons[tool.id] ?? defaultToolIcon}
-                      tone={toneForCategory(tool.category)}
-                    />
-                  ))}
-                </div>
-              </CategorySection>
-            ))
-          )}
+        <PipelineSection />
       </main>
 
-      {/* Footer */}
-      <footer className="w-full border-t border-border mt-auto">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-          <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} PDF Tools. All files are deleted after processing.
-          </p>
-        </div>
-      </footer>
+      <SiteFooter />
+      <SearchDialog open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   );
 }
