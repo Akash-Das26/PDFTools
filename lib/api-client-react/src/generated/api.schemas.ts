@@ -352,6 +352,68 @@ export type ImagesToPdfBody = {
 };
 
 /**
+ * Plain PDF, or PDF/A-1b / -2b / -3b export.
+ */
+export type WordToPdfBodyPdfa = typeof WordToPdfBodyPdfa[keyof typeof WordToPdfBodyPdfa];
+
+
+export const WordToPdfBodyPdfa = {
+  off: 'off',
+  '1b': '1b',
+  '2b': '2b',
+  '3b': '3b',
+} as const;
+
+export type WordToPdfBody = {
+  /** The .doc or .docx to convert. */
+  file?: Blob;
+  /** Plain PDF, or PDF/A-1b / -2b / -3b export. */
+  pdfa?: WordToPdfBodyPdfa;
+};
+
+/**
+ * Plain PDF, or PDF/A-1b / -2b / -3b export.
+ */
+export type PptToPdfBodyPdfa = typeof PptToPdfBodyPdfa[keyof typeof PptToPdfBodyPdfa];
+
+
+export const PptToPdfBodyPdfa = {
+  off: 'off',
+  '1b': '1b',
+  '2b': '2b',
+  '3b': '3b',
+} as const;
+
+export type PptToPdfBody = {
+  /** The .ppt or .pptx to convert. */
+  file?: Blob;
+  /** Plain PDF, or PDF/A-1b / -2b / -3b export. */
+  pdfa?: PptToPdfBodyPdfa;
+};
+
+/**
+ * Plain PDF, or PDF/A-1b / -2b / -3b export.
+ */
+export type ExcelToPdfBodyPdfa = typeof ExcelToPdfBodyPdfa[keyof typeof ExcelToPdfBodyPdfa];
+
+
+export const ExcelToPdfBodyPdfa = {
+  off: 'off',
+  '1b': '1b',
+  '2b': '2b',
+  '3b': '3b',
+} as const;
+
+export type ExcelToPdfBody = {
+  /** The .xls or .xlsx to convert. */
+  file?: Blob;
+  /** Plain PDF, or PDF/A-1b / -2b / -3b export. */
+  pdfa?: ExcelToPdfBodyPdfa;
+  /** Scale each sheet so its used range fits one page. */
+  fitToPage?: boolean;
+};
+
+/**
  * Accepted, but not yet differentiated by the compressor.
  */
 export type CompressPdfBodyQuality = typeof CompressPdfBodyQuality[keyof typeof CompressPdfBodyQuality];

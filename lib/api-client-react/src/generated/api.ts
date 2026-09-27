@@ -25,6 +25,7 @@ import type {
   CompressPdfBody,
   CropPdfBody,
   DuplicatePdfPagesBody,
+  ExcelToPdfBody,
   ExportPdfTextBody,
   GetPdfPageInfoBody,
   HealthStatus,
@@ -37,6 +38,7 @@ import type {
   PdfPageInfo,
   PdfToImagesBody,
   PdfToPdfABody,
+  PptToPdfBody,
   ProtectPdfBody,
   RemovePdfPagesBody,
   ReorderPdfPagesBody,
@@ -48,7 +50,8 @@ import type {
   SummarizePdfBody,
   Tool,
   UnlockPdfBody,
-  WatermarkPdfBody
+  WatermarkPdfBody,
+  WordToPdfBody
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -1562,6 +1565,246 @@ export const useImagesToPdf = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getImagesToPdfMutationOptions(options));
+    }
+
+export const getWordToPdfUrl = () => {
+
+
+
+
+  return `/api/pdf/word-to-pdf`
+}
+
+/**
+ * Send a .doc or .docx as `file`. Conversion runs through a headless LibreOffice, so the server answers 503 when the host has no `soffice` binary. The document package must be intact - a mislabelled or damaged file is rejected instead of being silently converted.
+ * @summary Convert a Word document to PDF
+ */
+export const wordToPdf = async (wordToPdfBody: WordToPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+    const formData = new FormData();
+if(wordToPdfBody.file !== undefined) {
+ formData.append(`file`, wordToPdfBody.file);
+ }
+if(wordToPdfBody.pdfa !== undefined) {
+ formData.append(`pdfa`, wordToPdfBody.pdfa);
+ }
+
+  return customFetch<void>(getWordToPdfUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getWordToPdfMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof wordToPdf>>, TError,{data: BodyType<WordToPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof wordToPdf>>, TError,{data: BodyType<WordToPdfBody>}, TContext> => {
+
+const mutationKey = ['wordToPdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof wordToPdf>>, {data: BodyType<WordToPdfBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  wordToPdf(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WordToPdfMutationResult = NonNullable<Awaited<ReturnType<typeof wordToPdf>>>
+    export type WordToPdfMutationBody = BodyType<WordToPdfBody>
+    export type WordToPdfMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Convert a Word document to PDF
+ */
+export const useWordToPdf = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof wordToPdf>>, TError,{data: BodyType<WordToPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof wordToPdf>>,
+        TError,
+        {data: BodyType<WordToPdfBody>},
+        TContext
+      > => {
+      return useMutation(getWordToPdfMutationOptions(options));
+    }
+
+export const getPptToPdfUrl = () => {
+
+
+
+
+  return `/api/pdf/ppt-to-pdf`
+}
+
+/**
+ * Send a .ppt or .pptx as `file`. Uses the same headless LibreOffice pipeline as the Word tool, including the 503 when `soffice` is unavailable.
+ * @summary Convert a PowerPoint deck to PDF
+ */
+export const pptToPdf = async (pptToPdfBody: PptToPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+    const formData = new FormData();
+if(pptToPdfBody.file !== undefined) {
+ formData.append(`file`, pptToPdfBody.file);
+ }
+if(pptToPdfBody.pdfa !== undefined) {
+ formData.append(`pdfa`, pptToPdfBody.pdfa);
+ }
+
+  return customFetch<void>(getPptToPdfUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getPptToPdfMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pptToPdf>>, TError,{data: BodyType<PptToPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof pptToPdf>>, TError,{data: BodyType<PptToPdfBody>}, TContext> => {
+
+const mutationKey = ['pptToPdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof pptToPdf>>, {data: BodyType<PptToPdfBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  pptToPdf(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PptToPdfMutationResult = NonNullable<Awaited<ReturnType<typeof pptToPdf>>>
+    export type PptToPdfMutationBody = BodyType<PptToPdfBody>
+    export type PptToPdfMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Convert a PowerPoint deck to PDF
+ */
+export const usePptToPdf = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pptToPdf>>, TError,{data: BodyType<PptToPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof pptToPdf>>,
+        TError,
+        {data: BodyType<PptToPdfBody>},
+        TContext
+      > => {
+      return useMutation(getPptToPdfMutationOptions(options));
+    }
+
+export const getExcelToPdfUrl = () => {
+
+
+
+
+  return `/api/pdf/excel-to-pdf`
+}
+
+/**
+ * Send a .xls or .xlsx as `file`. Uses the same headless LibreOffice pipeline as the Word tool, including the 503 when `soffice` is unavailable.
+ * @summary Convert a spreadsheet to PDF
+ */
+export const excelToPdf = async (excelToPdfBody: ExcelToPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+    const formData = new FormData();
+if(excelToPdfBody.file !== undefined) {
+ formData.append(`file`, excelToPdfBody.file);
+ }
+if(excelToPdfBody.pdfa !== undefined) {
+ formData.append(`pdfa`, excelToPdfBody.pdfa);
+ }
+if(excelToPdfBody.fitToPage !== undefined) {
+ formData.append(`fitToPage`, excelToPdfBody.fitToPage.toString())
+ }
+
+  return customFetch<void>(getExcelToPdfUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getExcelToPdfMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof excelToPdf>>, TError,{data: BodyType<ExcelToPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof excelToPdf>>, TError,{data: BodyType<ExcelToPdfBody>}, TContext> => {
+
+const mutationKey = ['excelToPdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof excelToPdf>>, {data: BodyType<ExcelToPdfBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  excelToPdf(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExcelToPdfMutationResult = NonNullable<Awaited<ReturnType<typeof excelToPdf>>>
+    export type ExcelToPdfMutationBody = BodyType<ExcelToPdfBody>
+    export type ExcelToPdfMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Convert a spreadsheet to PDF
+ */
+export const useExcelToPdf = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof excelToPdf>>, TError,{data: BodyType<ExcelToPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof excelToPdf>>,
+        TError,
+        {data: BodyType<ExcelToPdfBody>},
+        TContext
+      > => {
+      return useMutation(getExcelToPdfMutationOptions(options));
     }
 
 export const getCompressPdfUrl = () => {

@@ -65,10 +65,14 @@ export function failTool(req: Request, res: Response, err: unknown, logLabel: st
  * Reads the main PDF upload. `upload.single` populates `req.file`, while
  * `upload.fields` (used by the watermark tool) populates `req.files.file`.
  */
-export function requirePdfFile(req: Request, message = "A PDF file is required"): Express.Multer.File {
+export function requireUploadedFile(req: Request, message = "A file is required"): Express.Multer.File {
   const file = req.file ?? uploadedField(req, "file");
   if (!file) throw badRequest(message);
   return file;
+}
+
+export function requirePdfFile(req: Request, message = "A PDF file is required"): Express.Multer.File {
+  return requireUploadedFile(req, message);
 }
 
 export function requireUploadedFiles(req: Request): Express.Multer.File[] {

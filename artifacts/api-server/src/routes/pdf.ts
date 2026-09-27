@@ -5,8 +5,10 @@ import {
   CompressPdfOptions,
   CropPdfOptions,
   DuplicatePdfPagesOptions,
+  ExcelToPdfOptions,
   ExportPdfTextOptions,
   ImagesToPdfOptions,
+  PptToPdfOptions,
   OcrPdfOptions,
   PdfPageInfoOptions,
   PdfToImagesOptions,
@@ -19,6 +21,7 @@ import {
   SplitPdfOptions,
   UnlockPdfOptions,
   WatermarkPdfOptions,
+  WordToPdfOptions,
 } from "@workspace/api-zod";
 import { upload } from "../lib/upload";
 import { mergePdfs } from "../services/pdf/merge";
@@ -36,6 +39,7 @@ import { pdfToPdfA } from "../services/pdf/pdfa";
 import { repairPdf } from "../services/pdf/repair";
 import { imagesToPdf, pdfToImages } from "../services/pdf/convert";
 import { exportPdfText } from "../services/pdf/export-text";
+import { excelToPdf, pptToPdf, wordToPdf } from "../services/pdf/office";
 import { ocrPdf } from "../services/pdf/ocr";
 import { getPdfPageInfo } from "../services/pdf/page-info";
 import { summarizePdf } from "../services/pdf/summarize";
@@ -104,6 +108,9 @@ router.post("/pdf/protect", upload.single("file"), withOptions(ProtectPdfOptions
 router.post("/pdf/unlock", upload.single("file"), withOptions(UnlockPdfOptions, unlockPdf));
 
 // ─── Convert ──────────────────────────────────────────────────────────────────
+router.post("/pdf/word-to-pdf", upload.single("file"), withOptions(WordToPdfOptions, wordToPdf));
+router.post("/pdf/ppt-to-pdf", upload.single("file"), withOptions(PptToPdfOptions, pptToPdf));
+router.post("/pdf/excel-to-pdf", upload.single("file"), withOptions(ExcelToPdfOptions, excelToPdf));
 router.post("/pdf/pdf-to-images", upload.single("file"), withOptions(PdfToImagesOptions, pdfToImages));
 router.post("/pdf/images-to-pdf", upload.array("files"), withOptions(ImagesToPdfOptions, imagesToPdf));
 router.post("/pdf/extract-text", upload.single("file"), withOptions(ExportPdfTextOptions, exportPdfText));

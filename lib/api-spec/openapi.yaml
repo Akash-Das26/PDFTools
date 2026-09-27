@@ -535,6 +535,95 @@ paths:
         "200":
           description: PDF containing one page per image
 
+  /pdf/word-to-pdf:
+    post:
+      operationId: wordToPdf
+      tags: [pdf]
+      summary: Convert a Word document to PDF
+      description: Send a .doc or .docx as `file`. Conversion runs through a
+        headless LibreOffice, so the server answers 503 when the host has no
+        `soffice` binary. The document package must be intact - a mislabelled or
+        damaged file is rejected instead of being silently converted.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The .doc or .docx to convert.
+                pdfa:
+                  type: string
+                  enum: [off, 1b, 2b, 3b]
+                  default: "off"
+                  description: Plain PDF, or PDF/A-1b / -2b / -3b export.
+      responses:
+        "200":
+          description: Converted PDF
+
+  /pdf/ppt-to-pdf:
+    post:
+      operationId: pptToPdf
+      tags: [pdf]
+      summary: Convert a PowerPoint deck to PDF
+      description: Send a .ppt or .pptx as `file`. Uses the same headless
+        LibreOffice pipeline as the Word tool, including the 503 when `soffice`
+        is unavailable.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The .ppt or .pptx to convert.
+                pdfa:
+                  type: string
+                  enum: [off, 1b, 2b, 3b]
+                  default: "off"
+                  description: Plain PDF, or PDF/A-1b / -2b / -3b export.
+      responses:
+        "200":
+          description: Converted PDF
+
+  /pdf/excel-to-pdf:
+    post:
+      operationId: excelToPdf
+      tags: [pdf]
+      summary: Convert a spreadsheet to PDF
+      description: Send a .xls or .xlsx as `file`. Uses the same headless
+        LibreOffice pipeline as the Word tool, including the 503 when `soffice`
+        is unavailable.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The .xls or .xlsx to convert.
+                pdfa:
+                  type: string
+                  enum: [off, 1b, 2b, 3b]
+                  default: "off"
+                  description: Plain PDF, or PDF/A-1b / -2b / -3b export.
+                fitToPage:
+                  type: boolean
+                  default: false
+                  description: Scale each sheet so its used range fits one page.
+      responses:
+        "200":
+          description: Converted PDF
+
   /pdf/compress:
     post:
       operationId: compressPdf

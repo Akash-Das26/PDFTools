@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { CompressOptions } from "@/components/tool-options/compress";
 import { CropOptions } from "@/components/tool-options/crop";
+import { ExcelToPdfOptions } from "@/components/tool-options/excel-to-pdf";
 import { ExtractPagesOptions } from "@/components/tool-options/extract-pages";
 import { ImagesToPdfOptions } from "@/components/tool-options/images-to-pdf";
 import { MergeOptions } from "@/components/tool-options/merge";
@@ -8,6 +9,7 @@ import { AddPageNumbersOptions } from "@/components/tool-options/page-numbers";
 import { PdfToImagesOptions } from "@/components/tool-options/pdf-to-images";
 import { PdfToMarkdownOptions } from "@/components/tool-options/pdf-to-markdown";
 import { PdfToPdfaOptions } from "@/components/tool-options/pdf-to-pdfa";
+import { PptToPdfOptions } from "@/components/tool-options/ppt-to-pdf";
 import { ProtectOptions } from "@/components/tool-options/protect";
 import { ReorderPagesOptions } from "@/components/tool-options/reorder-pages";
 import { RemovePagesOptions } from "@/components/tool-options/remove-pages";
@@ -15,6 +17,7 @@ import { RotateOptions } from "@/components/tool-options/rotate";
 import { SplitOptions } from "@/components/tool-options/split";
 import { UnlockOptions } from "@/components/tool-options/unlock";
 import { WatermarkOptions } from "@/components/tool-options/watermark";
+import { WordToPdfOptions } from "@/components/tool-options/word-to-pdf";
 import type { ToolOptionsProps } from "@/components/tool-options/types";
 import { uiIcons } from "@/lib/icons";
 
@@ -54,6 +57,9 @@ export const OPTION_PANELS: Record<string, ComponentType<ToolOptionsProps>> = {
   "add-page-numbers": AddPageNumbersOptions,
   crop: CropOptions,
   "images-to-pdf": ImagesToPdfOptions,
+  "word-to-pdf": WordToPdfOptions,
+  "ppt-to-pdf": PptToPdfOptions,
+  "excel-to-pdf": ExcelToPdfOptions,
   "pdf-to-images": PdfToImagesOptions,
   "pdf-to-pdfa": PdfToPdfaOptions,
   "pdf-to-markdown": PdfToMarkdownOptions,

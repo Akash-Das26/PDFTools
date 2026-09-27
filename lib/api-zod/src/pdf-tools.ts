@@ -262,6 +262,32 @@ export const OcrPdfOptions = z.object({
   pages: pageSelection,
 });
 
+// ─── Office → PDF (Word / PowerPoint / Excel) ─────────────────────────────────
+
+/**
+ * LibreOffice's PDF export filter takes the archival level as filter data:
+ * `off` is plain PDF 1.7, while 1b/2b/3b select PDF/A-1b/2b/3b. Verified against
+ * the writer, calc and impress filters — each writes a `pdfaid:part` XMP packet.
+ */
+const pdfaLevel = z.enum(["off", "1b", "2b", "3b"]).default("off");
+
+export const WordToPdfOptions = z.object({
+  pdfa: pdfaLevel,
+});
+
+export const PptToPdfOptions = z.object({
+  pdfa: pdfaLevel,
+});
+
+export const ExcelToPdfOptions = z.object({
+  pdfa: pdfaLevel,
+  /** Calc export only: scale each sheet so its used range lands on one page. */
+  fitToPage: booleanish.default(false),
+});
+
+export type WordToPdfOptionsInput = z.infer<typeof WordToPdfOptions>;
+export type PptToPdfOptionsInput = z.infer<typeof PptToPdfOptions>;
+export type ExcelToPdfOptionsInput = z.infer<typeof ExcelToPdfOptions>;
 export type PdfPageInfoOptionsInput = z.infer<typeof PdfPageInfoOptions>;
 export type ComparePdfOptionsInput = z.infer<typeof ComparePdfOptions>;
 export type SplitPdfOptionsInput = z.infer<typeof SplitPdfOptions>;
