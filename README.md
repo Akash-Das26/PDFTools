@@ -443,7 +443,7 @@ not any more, so verification is reproducible by anyone with Chrome and a built 
 | `batch1.mjs` | 21 | Batch 1 — all seven Organize panels through real routes |
 | `batch2.mjs` | 48 | Batch 2 — Protect/Unlock round-trips (including an encrypted file refusing to unlock without its password), the Protect guard, Sign/Redact's honest pending state |
 | `batch3.mjs` | 59 | Batch 3 — Watermark text and image runs, Add Page Numbers, picker-scoped Crop, the image-part guard, Edit PDF Content / PDF Form Filler pending state |
-| `batch4.mjs` | 49 | Batch 4 — JPG/PNG to PDF, PDF to JPG, PDF to PDF/A and PDF to Markdown through real routes, panel parity, the conditional controls, and the download filenames |
+| `batch4.mjs` | 54 | Batch 4 — JPG/PNG to PDF, PDF to JPG, PDF to PDF/A and PDF to Markdown through real routes, panel parity, the conditional controls, the download filenames, and the shared move-up/move-down/remove row list |
 | `compare.mjs` | — | Reference fidelity against the canonical Stitch design screens |
 | `contrast.mjs` | — | Informational WCAG audit (reports ratios; exit code never gates) |
 
@@ -506,14 +506,17 @@ Ordered by REVIEW.md's actual open items and the queued work they reference — 
 1. **Batches 5–6 — the pending cards** across Convert, Edit, Security and AI: each of the 14 backend-pending
    tools needs a real backend — and then its Configure panel — or a stay-honestly-disabled decision. Batch 4
    completed the panel work, so no wired endpoint is left without a Configure step.
-2. **Ordering UI for JPG/PNG to PDF** — the panel states that pages follow upload order but offers no
-   reorder control, unlike Merge PDF's rows; extracting that row list into a shared component would close
-   the parity gap.
+2. **Correct the stale README claims the verification audit flagged** — six claims don't hold against the live
+   tree: `merge`'s "ZIP output for multi-file results" (it always returns one `merged.pdf`), the CI badge
+   still pinned to the merged-then-deleted `feat/frontend-rebuild` branch, `pdf-parse` credited with table
+   extraction, §2's "raw `fetch` transport" link pointing at a section that never mentions it, one
+   `REPL_ID` gating imprecision, and §2/§8 structure drift. Each is a documentation fix; the audit entry in
+   REVIEW.md carries the evidence and line references.
 3. **Fix the compress honesty gap** — either implement real compression or reduce the quality selector to one
    option that tells the truth.
 4. **Rotate per-page decision** — extend the rotate endpoint to per-page angles or reframe the UI.
 5. **Wire the committed verification suites into CI** — `scripts/verify-ui/` (the regression, accent/contrast and
-   batch 1–4 suites, 342 assertions in total) is committed and reproducible locally; making a workflow run it
+   batch 1–4 suites, 347 assertions in total) is committed and reproducible locally; making a workflow run it
    (Chrome + live servers) is the natural next step now that CI covers install/typecheck/build.
 6. **Dependency hygiene** — remove `cookie-parser` if still unused; decide `@replit/connectors-sdk`'s platform
    coupling before touching it.

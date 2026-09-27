@@ -28,7 +28,8 @@ bash scripts/verify-ui/drive.sh batch2.mjs
 # 59-assertion Batch 3 suite (Watermark text+image, Page Numbers, Crop)
 bash scripts/verify-ui/drive.sh batch3.mjs
 
-# 49-assertion Batch 4 suite (Image to PDF, PDF to JPG, PDF/A, PDF to Markdown)
+# 54-assertion Batch 4 suite (Image to PDF, PDF to JPG, PDF/A, PDF to Markdown, and the
+# shared move-up/move-down/remove row list)
 bash scripts/verify-ui/drive.sh batch4.mjs
 
 # Reference comparison against the Stitch design screens
