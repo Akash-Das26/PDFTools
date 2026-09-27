@@ -25,6 +25,27 @@
 
 ---
 
+## 2026-09-27 (batch 4 follow-up) — JPG/PNG to PDF gets Merge PDF's reorder controls; the last panel-parity gap closed
+**Commits:** `581e37f` (shared row list + both panels + icon + batch4.mjs), `0b33640` (README §9/§11 + harness README), this entry's commit (REVIEW.md only).
+**Type:** Feature (UI parity between two multi-file panels) + test coverage
+**Trigger:** User brief: add reorder controls to JPG/PNG to PDF for parity with Merge PDF — the follow-up opened by the Batch 4 entry.
+**Changes made:**
+- New `components/tool-options/file-order.tsx`: `FileOrderList`, the merge panel's row list extracted verbatim (rows keyed `merge-row-<name>`, up/down/remove buttons, disabled-at-the-ends arrows, the remove-allowed-even-when-empty rule). `merge.tsx` now renders it instead of its own inline markup, so Merge PDF's behaviour is unchanged by construction.
+- `images-to-pdf.tsx` uses the same list, replacing the old line that only *stated* pages follow upload order. Its rows reorder the same `files` array the request posts, and the panel keeps a short scope line noting that upload order sets page order unless reordered.
+- One new glyph (`Image`, registered in `lib/icons.ts`) so the row thumbnails are not generic files; Batch 4's images-to-pdf accept/guard behaviour is untouched.
+- `batch4.mjs` 49 → **54 checks**: two images listed as rows in upload order, the up arrow swapping them, and remove editing the posted array — the remove checks run in their own fresh page load, because the Configure panel is unmounted after processing.
+**Verification performed:**
+- `bash scripts/verify-ui/drive.sh batch4.mjs` → **54/54, exit 0**.
+- Regression across every other suite: `verify.mjs` **127/127** (its whole-catalog invariant still walks all 18 wired tools), `batch1.mjs` **21/21** (the suite that pins Merge PDF's row test ids and needs-two hint — it stays green, confirming the extraction is behaviour-preserving), `batch2.mjs` **48/48**, `batch3.mjs` **59/59**, `accent.mjs` **38/38**, `compare.mjs` exit 0. `pnpm run typecheck` exit 0.
+- Two suite-side defects found and fixed rather than worked around: (1) the second test image was hand-written base64 whose PNG *structure* parsed but whose zlib stream was corrupt — pdf-lib answered 500 (its own log: "invalid distance too far back"), so the fixture was regenerated with a real encoder and validated before use; (2) the remove checks originally ran after the process step, when the panel no longer exists.
+- Doc numbers re-derived from the suite runs, not copied: README §9 batch4 row 49 → 54, §11 assertion total 342 → 347; `scripts/verify-ui/README.md` batch4 line updated.
+**Confidence:** High (every number from a command run this session; the merge suite is the control on the refactor)
+**Result:** Verified working. README §11 item 2's ordering-parity gap is closed, so item 2 now carries the six stale README claims from the verification audit instead — the follow-up is spent, not silently dropped. The earlier Batch 4 entry's pointer ("recorded in README §11.2") now points at that replacement item; recorded here rather than editing a dated entry.
+**Follow-ups opened:** none. **Follow-ups closed:** the ordering UI for JPG/PNG to PDF, opened by the Batch 4 entry.
+*Session-boundary rule:* (a) continuation of the Batch 4 thread — the follow-up that entry opened, done before Batch 5 starts.
+
+---
+
 ## 2026-09-27 (batch 4) — Batch 4 Convert panels built and verified; a real Markdown-format bug fixed
 **Commits:** `7dc828a` (four panels + registry + the format fix + the verify.mjs invariant + batch4.mjs), `96665be` (README §9/§10.2/§11 + harness README), this entry's commit (REVIEW.md only).
 **Type:** Feature (Batch 4: JPG/PNG to PDF, PDF to JPG, PDF to PDF/A, PDF to Markdown) + Bug fix
