@@ -5,8 +5,12 @@ const BASE = "http://127.0.0.1:5173";
 const OUT = new URL(".", import.meta.url).pathname;
 const FIXTURE = OUT + "fixtures/fixture.pdf";
 const API = "http://127.0.0.1:8080";
-// The whole-catalog panel walk needs a real image for images-to-pdf.
+// The whole-catalog panel walk needs a real image for images-to-pdf and a
+// real (tiny) page for html-to-pdf.
 const PNG_FIXTURE = "/tmp/verify-ui-mark.png";
+const HTML_FIXTURE = "/tmp/verify-ui-page.html";
+const HTML_PAGE =
+  "<!doctype html><html><body><h1>Verify fixture</h1><p>Paragraph.</p></body></html>";
 const PROFILE = "/tmp/pdfcheck-ui-profile";
 
 rmSync(PROFILE, { recursive: true, force: true });
@@ -195,8 +199,8 @@ check("badges equal rendered card count", dom.badges.map(b=>parseInt(b,10)), dom
 check("filter pills (reference order)", dom.pills, ["All Tools","Organize PDF","Convert to PDF","Convert from PDF","Edit PDF","Security","AI Document Tools"]);
 check("header nav (reference order)", dom.nav, ["Organize","Convert","Edit","Security","AI"]);
 // The pending count moves with every batch that wires a backend: 14 before
-// Batch 5, 11 after Word/PowerPoint/Excel to PDF became implemented.
-check("11 backend-pending cards badged", dom.pendingBadges, 11);
+// Batch 5, 11 after Word/PowerPoint/Excel to PDF, 9 after Scan/HTML to PDF.
+check("9 backend-pending cards badged", dom.pendingBadges, 9);
 check("2 Popular ribbons", dom.popularBadges, 2);
 check("hero quick-dropzone present", dom.quickDropzone, true);
 check("landing search bar present", dom.searchBar, true);
@@ -653,12 +657,17 @@ writeFileSync(
 );
 // Each tool gets a file its own accept list allows, so the walk proves the
 // panel renders for a legitimately-selected document (Batch 5 added the three
-// Office tools, whose panels only appear for .docx/.pptx/.xlsx uploads).
+// Office tools, whose panels only appear for .docx/.pptx/.xlsx uploads; Batch 6
+// added Scan, which needs an image, and HTML, which needs a runtime-written
+// page — see batch6.mjs for what those tools really do with them).
+writeFileSync(HTML_FIXTURE, HTML_PAGE);
 const WALK_FIXTURES = {
   "images-to-pdf": PNG_FIXTURE,
   "word-to-pdf": OUT + "fixtures/office.docx",
   "ppt-to-pdf": OUT + "fixtures/office.pptx",
   "excel-to-pdf": OUT + "fixtures/office.xlsx",
+  "scan-to-pdf": PNG_FIXTURE,
+  "html-to-pdf": HTML_FIXTURE,
 };
 const wiredTools = (await (await fetch(`${API}/api/tools`)).json())
   .filter((tool) => tool.status === "implemented" || tool.status === "partial")

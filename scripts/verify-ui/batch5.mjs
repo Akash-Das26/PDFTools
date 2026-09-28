@@ -227,10 +227,12 @@ for (const [id, route] of [
   check(`catalog: ${id} is implemented`, byId[id].status, "implemented");
   check(`catalog: ${id} points at ${route}`, byId[id].route, route);
 }
-check("catalog: implemented count is 20",
-      tools.filter((t) => t.status === "implemented").length, 20);
-check("catalog: pending count is 11",
-      tools.filter((t) => t.status === "pending").length, 11);
+// Batch 6 moved scan-to-pdf and html-to-pdf to implemented, so the counts
+// this suite pinned at 20/11 are now 22/9.
+check("catalog: implemented count is 22",
+      tools.filter((t) => t.status === "implemented").length, 22);
+check("catalog: pending count is 9",
+      tools.filter((t) => t.status === "pending").length, 9);
 check("catalog: still 32 tools in total", tools.length, 32);
 
 /* ── 2. LANDING: Convert-to section reflects the new wires ───────────────── */
@@ -241,8 +243,8 @@ for (const id of ["word-to-pdf", "ppt-to-pdf", "excel-to-pdf"]) {
   check(`landing: ${id} is no longer badged pending`,
         await evaluate(`!document.querySelector('[data-testid="badge-pending-${id}"]')`), true);
 }
-check("landing: html-to-pdf is still badged pending",
-      await evaluate(`!!document.querySelector('[data-testid="badge-pending-html-to-pdf"]')`), true);
+check("landing: html-to-pdf is no longer badged pending",
+      await evaluate(`!document.querySelector('[data-testid="badge-pending-html-to-pdf"]')`), true);
 check("landing: pdf-to-word is still badged pending",
       await evaluate(`!!document.querySelector('[data-testid="badge-pending-pdf-to-word"]')`), true);
 check("landing: convert-to count still reads 6 Tools",

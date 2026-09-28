@@ -8,9 +8,8 @@
    (~158 ppi) sits between the extremes of the presets. That is what makes
    `extreme` visibly downsample while `recommended` re-encodes at full size. */
 import { spawn } from "node:child_process";
-import { deflateSync, crc32 } from "node:zlib";
-import { randomBytes } from "node:crypto";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { writePng } from "./lib/png.mjs";
 
 const OUT = new URL(".", import.meta.url).pathname;
 const BASE = "http://127.0.0.1:5173";
@@ -20,39 +19,8 @@ const NOISE_PNG = "/tmp/compress-noise.png";
 const PROFILE = "/tmp/pdfcheck-ui-profile-compress";
 rmSync(PROFILE, { recursive: true, force: true });
 
-/** Minimal PNG writer — IHDR + one zlib IDAT + IEND. */
-function writeNoisePng(path, width, height) {
-  const chunk = (type, data) => {
-    const body = Buffer.concat([Buffer.from(type, "latin1"), data]);
-    const length = Buffer.alloc(4);
-    length.writeUInt32BE(data.length, 0);
-    const checksum = Buffer.alloc(4);
-    checksum.writeUInt32BE(crc32(body), 0);
-    return Buffer.concat([length, body, checksum]);
-  };
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(width, 0);
-  ihdr.writeUInt32BE(height, 4);
-  ihdr[8] = 8;   // bit depth
-  ihdr[9] = 2;   // truecolour
-  // Real noise, not a PRNG: a cheap generator's byte stream deflates to almost
-  // nothing (55 KB for this image, versus ~5.7 MB), which would flatten the
-  // difference between the profiles and make the whole suite meaningless.
-  const rowBytes = width * 3;
-  const raw = Buffer.alloc(height * (1 + rowBytes));
-  for (let y = 0; y < height; y++) {
-    raw[y * (1 + rowBytes)] = 0; // filter: none
-    randomBytes(rowBytes).copy(raw, y * (1 + rowBytes) + 1);
-  }
-  writeFileSync(path, Buffer.concat([
-    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-    chunk("IHDR", ihdr),
-    chunk("IDAT", deflateSync(raw, { level: 6 })),
-    chunk("IEND", Buffer.alloc(0)),
-  ]));
-}
-
-writeNoisePng(NOISE_PNG, 1200, 1600);
+// Real random pixels — see lib/png.mjs for why a PRNG would not do here.
+writePng(NOISE_PNG, 1200, 1600, "noise");
 
 const chrome = spawn(
   "/usr/bin/google-chrome",
