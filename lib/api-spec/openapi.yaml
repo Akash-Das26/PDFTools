@@ -874,6 +874,134 @@ paths:
         "200":
           description: Plain text or Markdown document
 
+  /pdf/pdf-to-excel:
+    post:
+      operationId: pdfToExcel
+      tags: [pdf]
+      summary: Extract ruled tables as CSV spreadsheets
+      description: Send the document as `file`. The table detector reads grids
+        drawn with ruled lines; a layout of plain text columns without rules
+        yields nothing and the route answers 422 rather than an empty file.
+        One table downloads as `.csv`, several as a ZIP of per-table files.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF whose tables to extract.
+                pages:
+                  type: string
+                  description: Comma separated page numbers and ranges. Empty means all pages.
+                delimiter:
+                  type: string
+                  enum: [",", ";", "tab"]
+                  default: ","
+      responses:
+        "200":
+          description: A CSV file, or a ZIP of one CSV per table
+
+  /pdf/pdf-form-inspect:
+    post:
+      operationId: inspectPdfForm
+      tags: [pdf]
+      summary: List a PDF's form fields
+      description: Send the document as `file`. Answers the field inventory the
+        filler UI builds its inputs from — names, kinds, current values and the
+        choices dropdowns and radio groups offer. A PDF without form fields
+        answers 422.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF whose fields to list.
+      responses:
+        "200":
+          description: The field inventory
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fieldCount:
+                    type: integer
+                  fields:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        type:
+                          type: string
+                          enum: [text, checkbox, dropdown, optionlist, radio, signature, button]
+                        value:
+                          type: string
+                        checked:
+                          type: boolean
+                        selected:
+                          type: array
+                          items:
+                            type: string
+                        options:
+                          type: array
+                          items:
+                            type: string
+                        maxLength:
+                          type: integer
+                        readOnly:
+                          type: boolean
+        "422":
+          description: The PDF has no form fields
+
+  /pdf/pdf-form-filler:
+    post:
+      operationId: fillPdfForm
+      tags: [pdf]
+      summary: Fill a PDF's form fields and optionally flatten
+      description: Send the document as `file` plus `values`, a JSON object
+        keyed by field name — strings fill text fields and select dropdown,
+        option-list and radio options, booleans check and uncheck checkboxes.
+        Unknown names, wrong-typed values and choices the field does not offer
+        are refused with a message naming the fields the form does have. When
+        `flatten` is true the values become page content and the fields
+        disappear; otherwise the result stays an editable form.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [values]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF form to fill.
+                values:
+                  type: string
+                  description: JSON object keyed by field name.
+                flatten:
+                  type: boolean
+                  default: true
+      responses:
+        "200":
+          description: The filled PDF
+        "400":
+          description: A value does not fit the field it names
+        "422":
+          description: The PDF has no fields, or values name fields it does not have
+
   /pdf/ocr:
     post:
       operationId: ocrPdf
@@ -908,6 +1036,64 @@ paths:
       responses:
         "200":
           description: Recognised text (.txt/.md) or a searchable PDF
+
+  /pdf/translate-pdf:
+    post:
+      operationId: translatePdf
+      tags: [pdf]
+      summary: Translate a document's text with an AI model
+      description: Send the document as `file`. The text layer is extracted page
+        by page and each page is sent to the model with a strict JSON contract;
+        the answer is JSON the UI renders and offers as a Markdown download.
+        Layout is not rebuilt — this is the translated text, not a translated
+        PDF. At most 50 text pages per request. Needs an `OPENAI_API_KEY`; when
+        the key is absent the route answers 503.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to translate.
+                targetLanguage:
+                  type: string
+                  enum: [english, spanish, french, german, italian, portuguese, dutch, polish,
+                    turkish, russian, arabic, hebrew, hindi, chinese (simplified),
+                    chinese (traditional), japanese, korean]
+                  default: english
+      responses:
+        "200":
+          description: Page-by-page translation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        num:
+                          type: integer
+                        text:
+                          type: string
+                  targetLanguage:
+                    type: string
+                  failedPages:
+                    type: integer
+                  pageCount:
+                    type: integer
+                  markdown:
+                    type: string
+        "422":
+          description: No extractable text layer, or the document exceeds 50 text pages
+        "503":
+          description: OPENAI_API_KEY is not configured
 
   /pdf/ai-summarize:
     post:

@@ -27,16 +27,20 @@ import type {
   DuplicatePdfPagesBody,
   ExcelToPdfBody,
   ExportPdfTextBody,
+  FillPdfFormBody,
   GetPdfPageInfoBody,
   HealthStatus,
   HtmlToPdfBody,
   ImagesToPdfBody,
+  InspectPdfForm200,
+  InspectPdfFormBody,
   Job,
   JobInput,
   ListJobsParams,
   MergePdfsBody,
   OcrPdfBody,
   PdfPageInfo,
+  PdfToExcelBody,
   PdfToImagesBody,
   PdfToPdfABody,
   PptToPdfBody,
@@ -51,6 +55,8 @@ import type {
   SummarizePdf200,
   SummarizePdfBody,
   Tool,
+  TranslatePdf200,
+  TranslatePdfBody,
   UnlockPdfBody,
   WatermarkPdfBody,
   WordToPdfBody
@@ -2465,6 +2471,244 @@ export const useExportPdfText = <TError = ErrorType<unknown>,
       return useMutation(getExportPdfTextMutationOptions(options));
     }
 
+export const getPdfToExcelUrl = () => {
+
+
+
+
+  return `/api/pdf/pdf-to-excel`
+}
+
+/**
+ * Send the document as `file`. The table detector reads grids drawn with ruled lines; a layout of plain text columns without rules yields nothing and the route answers 422 rather than an empty file. One table downloads as `.csv`, several as a ZIP of per-table files.
+ * @summary Extract ruled tables as CSV spreadsheets
+ */
+export const pdfToExcel = async (pdfToExcelBody: PdfToExcelBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+    const formData = new FormData();
+if(pdfToExcelBody.file !== undefined) {
+ formData.append(`file`, pdfToExcelBody.file);
+ }
+if(pdfToExcelBody.pages !== undefined) {
+ formData.append(`pages`, pdfToExcelBody.pages);
+ }
+if(pdfToExcelBody.delimiter !== undefined) {
+ formData.append(`delimiter`, pdfToExcelBody.delimiter);
+ }
+
+  return customFetch<void>(getPdfToExcelUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getPdfToExcelMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pdfToExcel>>, TError,{data: BodyType<PdfToExcelBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof pdfToExcel>>, TError,{data: BodyType<PdfToExcelBody>}, TContext> => {
+
+const mutationKey = ['pdfToExcel'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof pdfToExcel>>, {data: BodyType<PdfToExcelBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  pdfToExcel(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PdfToExcelMutationResult = NonNullable<Awaited<ReturnType<typeof pdfToExcel>>>
+    export type PdfToExcelMutationBody = BodyType<PdfToExcelBody>
+    export type PdfToExcelMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Extract ruled tables as CSV spreadsheets
+ */
+export const usePdfToExcel = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pdfToExcel>>, TError,{data: BodyType<PdfToExcelBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof pdfToExcel>>,
+        TError,
+        {data: BodyType<PdfToExcelBody>},
+        TContext
+      > => {
+      return useMutation(getPdfToExcelMutationOptions(options));
+    }
+
+export const getInspectPdfFormUrl = () => {
+
+
+
+
+  return `/api/pdf/pdf-form-inspect`
+}
+
+/**
+ * Send the document as `file`. Answers the field inventory the filler UI builds its inputs from — names, kinds, current values and the choices dropdowns and radio groups offer. A PDF without form fields answers 422.
+ * @summary List a PDF's form fields
+ */
+export const inspectPdfForm = async (inspectPdfFormBody: InspectPdfFormBody, options?: Parameters<typeof customFetch>[1]): Promise<InspectPdfForm200> => {
+    const formData = new FormData();
+if(inspectPdfFormBody.file !== undefined) {
+ formData.append(`file`, inspectPdfFormBody.file);
+ }
+
+  return customFetch<InspectPdfForm200>(getInspectPdfFormUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getInspectPdfFormMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inspectPdfForm>>, TError,{data: BodyType<InspectPdfFormBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inspectPdfForm>>, TError,{data: BodyType<InspectPdfFormBody>}, TContext> => {
+
+const mutationKey = ['inspectPdfForm'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inspectPdfForm>>, {data: BodyType<InspectPdfFormBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  inspectPdfForm(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InspectPdfFormMutationResult = NonNullable<Awaited<ReturnType<typeof inspectPdfForm>>>
+    export type InspectPdfFormMutationBody = BodyType<InspectPdfFormBody>
+    export type InspectPdfFormMutationError = ErrorType<void>
+
+    /**
+ * @summary List a PDF's form fields
+ */
+export const useInspectPdfForm = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inspectPdfForm>>, TError,{data: BodyType<InspectPdfFormBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof inspectPdfForm>>,
+        TError,
+        {data: BodyType<InspectPdfFormBody>},
+        TContext
+      > => {
+      return useMutation(getInspectPdfFormMutationOptions(options));
+    }
+
+export const getFillPdfFormUrl = () => {
+
+
+
+
+  return `/api/pdf/pdf-form-filler`
+}
+
+/**
+ * Send the document as `file` plus `values`, a JSON object keyed by field name — strings fill text fields and select dropdown, option-list and radio options, booleans check and uncheck checkboxes. Unknown names, wrong-typed values and choices the field does not offer are refused with a message naming the fields the form does have. When `flatten` is true the values become page content and the fields disappear; otherwise the result stays an editable form.
+ * @summary Fill a PDF's form fields and optionally flatten
+ */
+export const fillPdfForm = async (fillPdfFormBody: FillPdfFormBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+    const formData = new FormData();
+if(fillPdfFormBody.file !== undefined) {
+ formData.append(`file`, fillPdfFormBody.file);
+ }
+formData.append(`values`, fillPdfFormBody.values);
+if(fillPdfFormBody.flatten !== undefined) {
+ formData.append(`flatten`, fillPdfFormBody.flatten.toString())
+ }
+
+  return customFetch<void>(getFillPdfFormUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getFillPdfFormMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fillPdfForm>>, TError,{data: BodyType<FillPdfFormBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof fillPdfForm>>, TError,{data: BodyType<FillPdfFormBody>}, TContext> => {
+
+const mutationKey = ['fillPdfForm'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof fillPdfForm>>, {data: BodyType<FillPdfFormBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  fillPdfForm(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FillPdfFormMutationResult = NonNullable<Awaited<ReturnType<typeof fillPdfForm>>>
+    export type FillPdfFormMutationBody = BodyType<FillPdfFormBody>
+    export type FillPdfFormMutationError = ErrorType<void>
+
+    /**
+ * @summary Fill a PDF's form fields and optionally flatten
+ */
+export const useFillPdfForm = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fillPdfForm>>, TError,{data: BodyType<FillPdfFormBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof fillPdfForm>>,
+        TError,
+        {data: BodyType<FillPdfFormBody>},
+        TContext
+      > => {
+      return useMutation(getFillPdfFormMutationOptions(options));
+    }
+
 export const getOcrPdfUrl = () => {
 
 
@@ -2551,6 +2795,85 @@ export const useOcrPdf = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getOcrPdfMutationOptions(options));
+    }
+
+export const getTranslatePdfUrl = () => {
+
+
+
+
+  return `/api/pdf/translate-pdf`
+}
+
+/**
+ * Send the document as `file`. The text layer is extracted page by page and each page is sent to the model with a strict JSON contract; the answer is JSON the UI renders and offers as a Markdown download. Layout is not rebuilt — this is the translated text, not a translated PDF. At most 50 text pages per request. Needs an `OPENAI_API_KEY`; when the key is absent the route answers 503.
+ * @summary Translate a document's text with an AI model
+ */
+export const translatePdf = async (translatePdfBody: TranslatePdfBody, options?: Parameters<typeof customFetch>[1]): Promise<TranslatePdf200> => {
+    const formData = new FormData();
+if(translatePdfBody.file !== undefined) {
+ formData.append(`file`, translatePdfBody.file);
+ }
+if(translatePdfBody.targetLanguage !== undefined) {
+ formData.append(`targetLanguage`, translatePdfBody.targetLanguage);
+ }
+
+  return customFetch<TranslatePdf200>(getTranslatePdfUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getTranslatePdfMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof translatePdf>>, TError,{data: BodyType<TranslatePdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof translatePdf>>, TError,{data: BodyType<TranslatePdfBody>}, TContext> => {
+
+const mutationKey = ['translatePdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof translatePdf>>, {data: BodyType<TranslatePdfBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  translatePdf(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TranslatePdfMutationResult = NonNullable<Awaited<ReturnType<typeof translatePdf>>>
+    export type TranslatePdfMutationBody = BodyType<TranslatePdfBody>
+    export type TranslatePdfMutationError = ErrorType<void>
+
+    /**
+ * @summary Translate a document's text with an AI model
+ */
+export const useTranslatePdf = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof translatePdf>>, TError,{data: BodyType<TranslatePdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof translatePdf>>,
+        TError,
+        {data: BodyType<TranslatePdfBody>},
+        TContext
+      > => {
+      return useMutation(getTranslatePdfMutationOptions(options));
     }
 
 export const getSummarizePdfUrl = () => {

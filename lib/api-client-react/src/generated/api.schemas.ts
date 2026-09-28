@@ -585,6 +585,65 @@ export type ExportPdfTextBody = {
   pages?: string;
 };
 
+export type PdfToExcelBodyDelimiter = typeof PdfToExcelBodyDelimiter[keyof typeof PdfToExcelBodyDelimiter];
+
+
+export const PdfToExcelBodyDelimiter = {
+  ',': ',',
+  ';': ';',
+  tab: 'tab',
+} as const;
+
+export type PdfToExcelBody = {
+  /** The PDF whose tables to extract. */
+  file?: Blob;
+  /** Comma separated page numbers and ranges. Empty means all pages. */
+  pages?: string;
+  delimiter?: PdfToExcelBodyDelimiter;
+};
+
+export type InspectPdfFormBody = {
+  /** The PDF whose fields to list. */
+  file?: Blob;
+};
+
+export type InspectPdfForm200FieldsItemType = typeof InspectPdfForm200FieldsItemType[keyof typeof InspectPdfForm200FieldsItemType];
+
+
+export const InspectPdfForm200FieldsItemType = {
+  text: 'text',
+  checkbox: 'checkbox',
+  dropdown: 'dropdown',
+  optionlist: 'optionlist',
+  radio: 'radio',
+  signature: 'signature',
+  button: 'button',
+} as const;
+
+export type InspectPdfForm200FieldsItem = {
+  name?: string;
+  type?: InspectPdfForm200FieldsItemType;
+  value?: string;
+  checked?: boolean;
+  selected?: string[];
+  options?: string[];
+  maxLength?: number;
+  readOnly?: boolean;
+};
+
+export type InspectPdfForm200 = {
+  fieldCount?: number;
+  fields?: InspectPdfForm200FieldsItem[];
+};
+
+export type FillPdfFormBody = {
+  /** The PDF form to fill. */
+  file?: Blob;
+  /** JSON object keyed by field name. */
+  values: string;
+  flatten?: boolean;
+};
+
 export type OcrPdfBodyLanguage = typeof OcrPdfBodyLanguage[keyof typeof OcrPdfBodyLanguage];
 
 
@@ -631,6 +690,48 @@ export type OcrPdfBody = {
   mode?: OcrPdfBodyMode;
   format?: OcrPdfBodyFormat;
   pages?: string;
+};
+
+export type TranslatePdfBodyTargetLanguage = typeof TranslatePdfBodyTargetLanguage[keyof typeof TranslatePdfBodyTargetLanguage];
+
+
+export const TranslatePdfBodyTargetLanguage = {
+  english: 'english',
+  spanish: 'spanish',
+  french: 'french',
+  german: 'german',
+  italian: 'italian',
+  portuguese: 'portuguese',
+  dutch: 'dutch',
+  polish: 'polish',
+  turkish: 'turkish',
+  russian: 'russian',
+  arabic: 'arabic',
+  hebrew: 'hebrew',
+  hindi: 'hindi',
+  'chinese_(simplified)': 'chinese (simplified)',
+  'chinese_(traditional)': 'chinese (traditional)',
+  japanese: 'japanese',
+  korean: 'korean',
+} as const;
+
+export type TranslatePdfBody = {
+  /** The PDF to translate. */
+  file?: Blob;
+  targetLanguage?: TranslatePdfBodyTargetLanguage;
+};
+
+export type TranslatePdf200PagesItem = {
+  num?: number;
+  text?: string;
+};
+
+export type TranslatePdf200 = {
+  pages?: TranslatePdf200PagesItem[];
+  targetLanguage?: string;
+  failedPages?: number;
+  pageCount?: number;
+  markdown?: string;
 };
 
 export type SummarizePdfBody = {

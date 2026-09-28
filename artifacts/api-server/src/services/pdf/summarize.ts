@@ -1,27 +1,7 @@
 import type { Request, Response } from "express";
-import OpenAI from "openai";
 import { failTool, unprocessable, requirePdfFile } from "./shared";
 import { extractPdfText } from "./pdfjs";
-
-const configuredAiKey = process.env.OPENAI_API_KEY;
-const usesOpenRouter = configuredAiKey?.startsWith("sk-or-") ?? false;
-
-const openaiClient = configuredAiKey
-  ? new OpenAI({
-      apiKey: configuredAiKey,
-      ...(usesOpenRouter
-        ? {
-            baseURL: "https://openrouter.ai/api/v1",
-            defaultHeaders: {
-              "HTTP-Referer": "https://pdftools.replit.app",
-              "X-Title": "PDF Tools",
-            },
-          }
-        : {}),
-    })
-  : null;
-
-const aiModel = usesOpenRouter ? "openai/gpt-5-mini" : "gpt-5-mini";
+import { AiNotConfiguredError, aiModel, openaiClient } from "./ai";
 
 /** Roughly 12k characters keeps the request inside the model's token budget. */
 const MAX_INPUT_CHARS = 12000;
@@ -36,10 +16,7 @@ export async function summarizePdf(req: Request, res: Response): Promise<void> {
 
     // AI is optional: the API must start and the other tools must work without it.
     if (!openaiClient) {
-      res.status(503).json({
-        error: "AI summarization is not configured. Set OPENAI_API_KEY in .env and restart the API server.",
-      });
-      return;
+      throw new AiNotConfiguredError();
     }
 
     const parsed = await extractPdfText(file.buffer);
@@ -78,6 +55,10 @@ export async function summarizePdf(req: Request, res: Response): Promise<void> {
       pageCount: parsed.pageCount,
     });
   } catch (err) {
+    if (err instanceof AiNotConfiguredError) {
+      res.status(503).json({ error: err.message });
+      return;
+    }
     failTool(req, res, err, "AI summarize failed", "Failed to summarize PDF. Please check your OpenAI API key.");
   }
 }

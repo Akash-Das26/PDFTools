@@ -7,6 +7,8 @@ import { HtmlToPdfOptions } from "@/components/tool-options/html-to-pdf";
 import { ImagesToPdfOptions } from "@/components/tool-options/images-to-pdf";
 import { MergeOptions } from "@/components/tool-options/merge";
 import { AddPageNumbersOptions } from "@/components/tool-options/page-numbers";
+import { PdfFormFillerOptions } from "@/components/tool-options/pdf-form-filler";
+import { PdfToExcelOptions } from "@/components/tool-options/pdf-to-excel";
 import { PdfToImagesOptions } from "@/components/tool-options/pdf-to-images";
 import { PdfToMarkdownOptions } from "@/components/tool-options/pdf-to-markdown";
 import { PdfToPdfaOptions } from "@/components/tool-options/pdf-to-pdfa";
@@ -17,6 +19,7 @@ import { RemovePagesOptions } from "@/components/tool-options/remove-pages";
 import { RotateOptions } from "@/components/tool-options/rotate";
 import { ScanToPdfOptions } from "@/components/tool-options/scan-to-pdf";
 import { SplitOptions } from "@/components/tool-options/split";
+import { TranslatePdfOptions } from "@/components/tool-options/translate-pdf";
 import { UnlockOptions } from "@/components/tool-options/unlock";
 import { WatermarkOptions } from "@/components/tool-options/watermark";
 import { WordToPdfOptions } from "@/components/tool-options/word-to-pdf";
@@ -67,6 +70,9 @@ export const OPTION_PANELS: Record<string, ComponentType<ToolOptionsProps>> = {
   "pdf-to-images": PdfToImagesOptions,
   "pdf-to-pdfa": PdfToPdfaOptions,
   "pdf-to-markdown": PdfToMarkdownOptions,
+  "pdf-to-excel": PdfToExcelOptions,
+  "pdf-form-filler": PdfFormFillerOptions,
+  "translate-pdf": TranslatePdfOptions,
   "ai-summarize": NoOptionsPanel({
     note: "Runs with the default summarizer settings — a short summary plus key points. No options to set.",
   }),

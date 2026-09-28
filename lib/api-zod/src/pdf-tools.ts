@@ -301,10 +301,73 @@ export const HtmlToPdfOptions = z.object({
   pdfa: pdfaLevel,
 });
 
+// ─── PDF Form Filler ─────────────────────────────────────────────────────────
+
+/**
+ * Filler values, posted as a JSON object string keyed by field name. A string
+ * fills a text field (or selects a dropdown/radio option); `true`/`"true"`
+ * checks a checkbox, `false` unchecks it. The service rejects unknown names —
+ * the field inventory comes from the document, and `/pdf/pdf-form-inspect`
+ * returns it to the UI before anything is filled.
+ */
+const formValues = z
+  .string()
+  .trim()
+  .max(100_000, { message: "The field values payload is too large" });
+
+export const PdfFormFillerOptions = z.object({
+  values: formValues,
+  /** Flatten after filling: values become page content and fields disappear. */
+  flatten: booleanish.default(true),
+});
+
+export const PdfFormInspectOptions = z.object({});
+
+// ─── PDF to Excel (CSV) ───────────────────────────────────────────────────────
+
+export const PdfToExcelOptions = z.object({
+  pages: pageSelection,
+  delimiter: z.enum([",", ";", "tab"]).default(","),
+});
+
+// ─── Translate PDF ────────────────────────────────────────────────────────────
+
+/**
+ * The target languages the translator supports — the same set the OCR tool
+ * ships packs for, written out in full because the words go into the prompt.
+ */
+export const TRANSLATE_LANGUAGES = [
+  "english",
+  "spanish",
+  "french",
+  "german",
+  "italian",
+  "portuguese",
+  "dutch",
+  "polish",
+  "turkish",
+  "russian",
+  "arabic",
+  "hebrew",
+  "hindi",
+  "chinese (simplified)",
+  "chinese (traditional)",
+  "japanese",
+  "korean",
+] as const;
+
+export const TranslatePdfOptions = z.object({
+  targetLanguage: z.enum(TRANSLATE_LANGUAGES).default("english"),
+});
+
 export type WordToPdfOptionsInput = z.infer<typeof WordToPdfOptions>;
 export type PptToPdfOptionsInput = z.infer<typeof PptToPdfOptions>;
 export type ExcelToPdfOptionsInput = z.infer<typeof ExcelToPdfOptions>;
 export type HtmlToPdfOptionsInput = z.infer<typeof HtmlToPdfOptions>;
+export type PdfFormFillerOptionsInput = z.infer<typeof PdfFormFillerOptions>;
+export type PdfFormInspectOptionsInput = z.infer<typeof PdfFormInspectOptions>;
+export type PdfToExcelOptionsInput = z.infer<typeof PdfToExcelOptions>;
+export type TranslatePdfOptionsInput = z.infer<typeof TranslatePdfOptions>;
 export type PdfPageInfoOptionsInput = z.infer<typeof PdfPageInfoOptions>;
 export type ComparePdfOptionsInput = z.infer<typeof ComparePdfOptions>;
 export type SplitPdfOptionsInput = z.infer<typeof SplitPdfOptions>;

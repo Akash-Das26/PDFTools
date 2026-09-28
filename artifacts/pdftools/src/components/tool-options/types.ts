@@ -18,4 +18,6 @@ export interface ToolOptionsProps {
   files?: File[];
   /** Replace the tool page's file list (merge reordering, removing a file). */
   onFilesChange?: (files: File[]) => void;
+  /** The inspected form fields, for the filler panel. Undefined until the document's fields have been read. */
+  fields?: import("@/components/tool-options/pdf-form-filler").InspectedFormField[];
 }

@@ -9,8 +9,12 @@ import {
   ExportPdfTextOptions,
   HtmlToPdfOptions,
   ImagesToPdfOptions,
+  PdfFormFillerOptions,
+  PdfFormInspectOptions,
+  PdfToExcelOptions,
   PptToPdfOptions,
   ScanToPdfOptions,
+  TranslatePdfOptions,
   OcrPdfOptions,
   PdfPageInfoOptions,
   PdfToImagesOptions,
@@ -44,6 +48,9 @@ import { exportPdfText } from "../services/pdf/export-text";
 import { excelToPdf, htmlToPdf, pptToPdf, wordToPdf } from "../services/pdf/office";
 import { scanToPdf } from "../services/pdf/scan";
 import { ocrPdf } from "../services/pdf/ocr";
+import { fillPdfForm, inspectPdfForm } from "../services/pdf/forms";
+import { pdfToExcel } from "../services/pdf/pdf-to-excel";
+import { translatePdf } from "../services/pdf/translate";
 import { getPdfPageInfo } from "../services/pdf/page-info";
 import { summarizePdf } from "../services/pdf/summarize";
 
@@ -119,10 +126,18 @@ router.post("/pdf/scan-to-pdf", upload.array("files"), withOptions(ScanToPdfOpti
 router.post("/pdf/pdf-to-images", upload.single("file"), withOptions(PdfToImagesOptions, pdfToImages));
 router.post("/pdf/images-to-pdf", upload.array("files"), withOptions(ImagesToPdfOptions, imagesToPdf));
 router.post("/pdf/extract-text", upload.single("file"), withOptions(ExportPdfTextOptions, exportPdfText));
+router.post("/pdf/pdf-to-excel", upload.single("file"), withOptions(PdfToExcelOptions, pdfToExcel));
+
+// ─── Forms ────────────────────────────────────────────────────────────────────
+// Inspect answers the field inventory (JSON) before anything is filled; the
+// filler takes its values as one JSON object keyed by field name.
+router.post("/pdf/pdf-form-inspect", upload.single("file"), withOptions(PdfFormInspectOptions, inspectPdfForm));
+router.post("/pdf/pdf-form-filler", upload.single("file"), withOptions(PdfFormFillerOptions, fillPdfForm));
 router.post("/pdf/ocr", upload.single("file"), withOptions(OcrPdfOptions, ocrPdf));
 router.post("/pdf/pdf-to-pdfa", upload.single("file"), withOptions(PdfToPdfAOptions, pdfToPdfA));
 
 // ─── AI ───────────────────────────────────────────────────────────────────────
 router.post("/pdf/ai-summarize", upload.single("file"), summarizePdf);
+router.post("/pdf/translate-pdf", upload.single("file"), withOptions(TranslatePdfOptions, translatePdf));
 
 export default router;

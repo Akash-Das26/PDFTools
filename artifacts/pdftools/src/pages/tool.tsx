@@ -3,6 +3,7 @@ import { Link, useParams } from "wouter";
 import { Seo } from "@/components/seo";
 import { SiteHeader } from "@/components/site-header";
 import { ToolOptionsPanel, hasOptionsPanel } from "@/components/tool-options";
+import type { InspectedFormField as FormFieldInfo } from "@/components/tool-options/pdf-form-filler";
 import { StepperWorkspace } from "@/templates/stepper-workspace";
 import {
   PagePickerWorkspace,
@@ -54,6 +55,7 @@ const PROCESS_LABELS: Record<string, string> = {
   "extract-text": "Extracting text...",
   "pdf-to-markdown": "Converting to Markdown...",
   "ai-summarize": "Asking the model for a summary...",
+  "translate-pdf": "Translating page by page...",
   compare: "Diffing the two documents...",
 };
 
@@ -73,6 +75,10 @@ export default function Tool() {
   const [pagePlan, setPagePlan] = useState<PagePlan | undefined>();
   const [pages, setPages] = useState<PageInfoPage[]>([]);
   const [pagesLoading, setPagesLoading] = useState(false);
+  // The form filler's inspected inventory: null until the document's fields
+  // have been read, [] when the read answered "no fields".
+  const [formFields, setFormFields] = useState<FormFieldInfo[] | null>(null);
+  const [formInspectLoading, setFormInspectLoading] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
   const fileUrlRef = useRef<string | null>(null);
@@ -105,6 +111,49 @@ export default function Tool() {
   useEffect(() => {
     if (files.length > 0 && phase === "empty") setPhase("configuring");
   }, [files, phase]);
+
+  // The form filler needs the field inventory before step 2 renders, for the
+  // same reason the page-picker needs the page list: its panel is built from
+  // what the document actually contains. This is the only other call with no
+  // Process button behind it, so it reports its own failure — a document with
+  // no fields is an answer, not a silent empty panel.
+  useEffect(() => {
+    if (tool?.id !== "pdf-form-filler") return;
+    const [single] = files;
+    if (files.length !== 1 || !single) {
+      setFormFields(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    setFormInspectLoading(true);
+    const form = new FormData();
+    form.append("file", single);
+    fetch("/api/pdf/pdf-form-inspect", { method: "POST", body: form, signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) {
+          const payload = (await response.json().catch(() => ({}))) as { error?: string };
+          throw new Error(payload.error ?? `Could not read the form (${response.status})`);
+        }
+        return (await response.json()) as { fields: FormFieldInfo[] };
+      })
+      .then((info) => setFormFields(info.fields))
+      .catch((caught: unknown) => {
+        if (controller.signal.aborted) return;
+        setFormFields([]);
+        setError(
+          describeError(
+            caught instanceof Error ? caught.message : "Could not read the form fields.",
+          ),
+        );
+        setPhase("error");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setFormInspectLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [tool?.id, files]);
 
   // Page-picker tools need the page list (and previews) before step 2 renders.
   // This is the only call with no Process button behind it, so it reports its
@@ -358,9 +407,10 @@ export default function Tool() {
         pagePlan={pagePlan}
         files={files}
         onFilesChange={setFiles}
+        fields={tool.id === "pdf-form-filler" ? (formFields ?? undefined) : undefined}
       />
     );
-  }, [options, pagePlan, tool, files]);
+  }, [options, pagePlan, tool, files, formFields]);
 
   if (isLoading) {
     return (
@@ -398,6 +448,14 @@ export default function Tool() {
   // endpoint with unset defaults.
   const optionsBlocked = tool.status === "implemented" && !hasOptionsPanel(tool.id);
 
+  // The filler must not run until the form has been inspected (the panel is
+  // empty before that) and at least one field carries a value — an empty fill
+  // would return the document unchanged while claiming to have filled it.
+  const formValues = parseFormValues(options.values);
+  const filledCount = Object.values(formValues).filter((value) => value !== "" && value !== false).length;
+  const formBlocked =
+    tool.id === "pdf-form-filler" && (formInspectLoading || formFields === null || filledCount === 0);
+
   const shared = {
     tool,
     phase,
@@ -409,7 +467,7 @@ export default function Tool() {
     },
     onReplace: () => reset(),
     onProcess: process,
-    processDisabled: optionsBlocked,
+    processDisabled: optionsBlocked || formBlocked,
     onCancel: cancel,
     progress,
     result,
@@ -446,6 +504,22 @@ export default function Tool() {
 }
 
 /** Turn a JSON tool response into a renderable result panel. */
+/** Parses the panel's JSON-string `values` draft for the fill-count gate. */
+function parseFormValues(raw: unknown): Record<string, string | boolean> {
+  if (typeof raw !== "string" || raw.trim() === "") return {};
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    const out: Record<string, string | boolean> = {};
+    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (typeof value === "string" || typeof value === "boolean") out[key] = value;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 function jsonResult(
   toolId: string,
   payload: unknown,
@@ -489,6 +563,24 @@ function jsonResult(
       ],
       bodyLabel: "Diff report",
       body,
+    };
+  }
+
+  if (toolId === "translate-pdf") {
+    const pages = Array.isArray(data.pages) ? (data.pages as Array<{ num: number; text: string }>) : [];
+    const body = String(data.markdown ?? "");
+    const download = new Blob([body], { type: "text/markdown" });
+    return {
+      fileName: `translation-${data.targetLanguage ?? "document"}.md`,
+      blob: download,
+      url: URL.createObjectURL(download),
+      meta: [
+        { label: "Pages translated", value: String(pages.length) },
+        { label: "Target", value: String(data.targetLanguage ?? "—") },
+        { label: "Failed pages", value: String(data.failedPages ?? 0) },
+      ],
+      bodyLabel: "Translation",
+      body: pages.map((page) => page.text).join("\n\n"),
     };
   }
 
