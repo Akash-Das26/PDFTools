@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ToolAccent } from './toolAccent';
+import type { ToolCapture } from './toolCapture';
 import type { ToolCategory } from './toolCategory';
 import type { ToolWireStatus } from './toolWireStatus';
 import type { ToolWorkspace } from './toolWorkspace';
@@ -32,6 +33,8 @@ export interface Tool {
   inputLabel: string;
   outputLabel: string;
   acceptMultiple?: boolean;
+  /** Facing mode for the upload input, so a capture tool can open the camera instead of the gallery. Omitted by tools that just read files. */
+  capture?: ToolCapture;
   /** Accepted mime types and extensions for the file picker */
   accept?: string[];
 }

@@ -34,6 +34,7 @@ export const ListToolsResponseItem = zod.object({
   "inputLabel": zod.string(),
   "outputLabel": zod.string(),
   "acceptMultiple": zod.boolean().optional(),
+  "capture": zod.enum(['environment', 'user']).optional().describe('Facing mode for the upload input, so a capture tool can open the camera instead of the gallery. Omitted by tools that just read files.'),
   "accept": zod.array(zod.string()).optional().describe('Accepted mime types and extensions for the file picker')
 })
 export const ListToolsResponse = zod.array(ListToolsResponseItem)

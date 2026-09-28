@@ -22,6 +22,7 @@ export function UploadDropzone({
   multiple = false,
   accent = "primary",
   inputLabel,
+  capture,
   disabled = false,
 }: {
   onFiles: (files: File[]) => void;
@@ -29,6 +30,12 @@ export function UploadDropzone({
   multiple?: boolean;
   accent?: ToolAccent;
   inputLabel: string;
+  /**
+   * Camera facing mode for the file input. On a phone this is the difference
+   * between picking an existing photo and taking one now, which is the whole
+   * point of Scan to PDF; desktop browsers ignore it.
+   */
+  capture?: "environment" | "user";
   disabled?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -94,6 +101,7 @@ export function UploadDropzone({
         type="file"
         accept={acceptAttr}
         multiple={multiple}
+        capture={capture}
         disabled={disabled}
         data-testid="input-file"
         className="hidden"

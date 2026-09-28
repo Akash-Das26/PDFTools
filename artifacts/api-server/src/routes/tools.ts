@@ -8,7 +8,9 @@ const IMAGE_ACCEPT = ["image/jpeg", "image/png", ".jpg", ".jpeg", ".png"];
 const WORD_ACCEPT = [".doc", ".docx"];
 const SLIDES_ACCEPT = [".ppt", ".pptx"];
 const SHEET_ACCEPT = [".xls", ".xlsx"];
-const HTML_ACCEPT = [".html", ".htm", ".zip"];
+// A .zip of a site is listed nowhere: nothing in this server can unpack one
+// (archiver only writes), so the tool advertises the two extensions it accepts.
+const HTML_ACCEPT = [".html", ".htm"];
 
 /**
  * The tool catalog served to the web app.
@@ -218,8 +220,11 @@ export const PDF_TOOLS: Tool[] = [
     accent: "secondary",
     icon: "ScanText",
     workspace: "stepper",
-    status: "pending",
-    route: null,
+    status: "implemented",
+    route: "/api/pdf/scan-to-pdf",
+    // On a phone, this is what makes the tool a scanner: the browser offers the
+    // camera for the file input instead of the gallery.
+    capture: "environment",
     inputLabel: "Capture or select pages to scan",
     outputLabel: "Scanned PDF",
     acceptMultiple: true,
@@ -234,8 +239,8 @@ export const PDF_TOOLS: Tool[] = [
     accent: "secondary",
     icon: "Code",
     workspace: "stepper",
-    status: "pending",
-    route: null,
+    status: "implemented",
+    route: "/api/pdf/html-to-pdf",
     inputLabel: "Select HTML file or archive to convert",
     outputLabel: "PDF document",
     acceptMultiple: false,

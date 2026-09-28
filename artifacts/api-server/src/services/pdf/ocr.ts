@@ -203,9 +203,13 @@ async function exportRecognisedText(
 }
 
 /**
- * Tesseract renders a page image plus an invisible text layer, so each page is
- * recognised straight to a PDF and the pages are merged. Feeding Tesseract the
- * original page width (through `user_defined_dpi`) keeps the output at the same
+ * Recognises the pages and returns the document with an invisible text layer
+ * added — the shared half of `mode=searchable-pdf` and of Scan to PDF's
+ * "searchable" option, so both build the layer the same way.
+ *
+ * Tesseract renders a page image plus that layer, so each page is recognised
+ * straight to a PDF and the pages are merged. Feeding Tesseract the original
+ * page width (through `user_defined_dpi`) keeps the output at the same
  * dimensions as the source instead of the image resolution.
  *
  * The text layer is written by Tesseract itself, whose PDF renderer emits a
@@ -213,17 +217,16 @@ async function exportRecognisedText(
  * languages too, so no Unicode font needs to be embedded here — the extracted
  * text of a searchable CJK page matches the OCR output exactly.
  */
-async function exportSearchablePdf(
-  res: Response,
-  file: Express.Multer.File,
-  options: OcrPdfOptionsInput,
-): Promise<void> {
-  const document = await loadPdf(file.buffer);
+export async function makeSearchablePdf(
+  buffer: Buffer,
+  options: { language: OcrLanguage; pages?: string },
+): Promise<Buffer> {
+  const document = await loadPdf(buffer);
   const totalPages = document.getPageCount();
   const indices = selectPages(options.pages, totalPages, options.language);
   const pageSizes = document.getPages().map((page) => page.getSize());
 
-  const rendered = await renderPdfPages(file.buffer, { indices, width: RENDER_WIDTH });
+  const rendered = await renderPdfPages(buffer, { indices, width: RENDER_WIDTH });
   const worker = await getWorker(options.language);
   const output = await PDFDocument.create();
   let recognised = 0;
@@ -249,8 +252,23 @@ async function exportSearchablePdf(
     );
   }
 
-  const name = baseName(file.originalname, "document");
-  sendPdf(res, Buffer.from(await output.save()), `${name}-ocr.pdf`);
+  return Buffer.from(await output.save());
+}
+
+/**
+ * Path used by `mode=searchable-pdf`: recognises the pages and returns the same
+ * document with an invisible text layer added.
+ */
+async function exportSearchablePdf(
+  res: Response,
+  file: Express.Multer.File,
+  options: OcrPdfOptionsInput,
+): Promise<void> {
+  const bytes = await makeSearchablePdf(file.buffer, {
+    language: options.language,
+    pages: options.pages,
+  });
+  sendPdf(res, bytes, `${baseName(file.originalname, "document")}-ocr.pdf`);
 }
 
 /** DPI that makes Tesseract's page match `size` (in points) at the render width. */

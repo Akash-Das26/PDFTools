@@ -254,6 +254,18 @@ export const OCR_LANGUAGES = [
   "kor",
 ] as const;
 
+/**
+ * Scan to PDF reuses the image page-composition fields and adds the optional OCR
+ * pass: `searchable` turns the composed PDF into one with an invisible text
+ * layer, using the same language packs the OCR tool exposes.
+ */
+export const ScanToPdfOptions = ImagesToPdfOptions.extend({
+  searchable: booleanish.default(false),
+  language: z.enum(OCR_LANGUAGES).default("eng"),
+});
+
+export type ScanToPdfOptionsInput = z.infer<typeof ScanToPdfOptions>;
+
 export const OcrPdfOptions = z.object({
   language: z.enum(OCR_LANGUAGES).default("eng"),
   /** `text` downloads a .txt/.md file; `searchable-pdf` returns a PDF with a text layer. */
@@ -285,9 +297,14 @@ export const ExcelToPdfOptions = z.object({
   fitToPage: booleanish.default(false),
 });
 
+export const HtmlToPdfOptions = z.object({
+  pdfa: pdfaLevel,
+});
+
 export type WordToPdfOptionsInput = z.infer<typeof WordToPdfOptions>;
 export type PptToPdfOptionsInput = z.infer<typeof PptToPdfOptions>;
 export type ExcelToPdfOptionsInput = z.infer<typeof ExcelToPdfOptions>;
+export type HtmlToPdfOptionsInput = z.infer<typeof HtmlToPdfOptions>;
 export type PdfPageInfoOptionsInput = z.infer<typeof PdfPageInfoOptions>;
 export type ComparePdfOptionsInput = z.infer<typeof ComparePdfOptions>;
 export type SplitPdfOptionsInput = z.infer<typeof SplitPdfOptions>;

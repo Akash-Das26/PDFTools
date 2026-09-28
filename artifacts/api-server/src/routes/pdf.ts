@@ -7,8 +7,10 @@ import {
   DuplicatePdfPagesOptions,
   ExcelToPdfOptions,
   ExportPdfTextOptions,
+  HtmlToPdfOptions,
   ImagesToPdfOptions,
   PptToPdfOptions,
+  ScanToPdfOptions,
   OcrPdfOptions,
   PdfPageInfoOptions,
   PdfToImagesOptions,
@@ -39,7 +41,8 @@ import { pdfToPdfA } from "../services/pdf/pdfa";
 import { repairPdf } from "../services/pdf/repair";
 import { imagesToPdf, pdfToImages } from "../services/pdf/convert";
 import { exportPdfText } from "../services/pdf/export-text";
-import { excelToPdf, pptToPdf, wordToPdf } from "../services/pdf/office";
+import { excelToPdf, htmlToPdf, pptToPdf, wordToPdf } from "../services/pdf/office";
+import { scanToPdf } from "../services/pdf/scan";
 import { ocrPdf } from "../services/pdf/ocr";
 import { getPdfPageInfo } from "../services/pdf/page-info";
 import { summarizePdf } from "../services/pdf/summarize";
@@ -111,6 +114,8 @@ router.post("/pdf/unlock", upload.single("file"), withOptions(UnlockPdfOptions, 
 router.post("/pdf/word-to-pdf", upload.single("file"), withOptions(WordToPdfOptions, wordToPdf));
 router.post("/pdf/ppt-to-pdf", upload.single("file"), withOptions(PptToPdfOptions, pptToPdf));
 router.post("/pdf/excel-to-pdf", upload.single("file"), withOptions(ExcelToPdfOptions, excelToPdf));
+router.post("/pdf/html-to-pdf", upload.single("file"), withOptions(HtmlToPdfOptions, htmlToPdf));
+router.post("/pdf/scan-to-pdf", upload.array("files"), withOptions(ScanToPdfOptions, scanToPdf));
 router.post("/pdf/pdf-to-images", upload.single("file"), withOptions(PdfToImagesOptions, pdfToImages));
 router.post("/pdf/images-to-pdf", upload.array("files"), withOptions(ImagesToPdfOptions, imagesToPdf));
 router.post("/pdf/extract-text", upload.single("file"), withOptions(ExportPdfTextOptions, exportPdfText));

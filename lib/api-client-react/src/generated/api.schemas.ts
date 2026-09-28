@@ -64,6 +64,17 @@ export const ToolWireStatus = {
   pending: 'pending',
 } as const;
 
+/**
+ * Facing mode for the upload input, so a capture tool can open the camera instead of the gallery. Omitted by tools that just read files.
+ */
+export type ToolCapture = typeof ToolCapture[keyof typeof ToolCapture];
+
+
+export const ToolCapture = {
+  environment: 'environment',
+  user: 'user',
+} as const;
+
 export interface Tool {
   id: string;
   name: string;
@@ -86,6 +97,8 @@ export interface Tool {
   inputLabel: string;
   outputLabel: string;
   acceptMultiple?: boolean;
+  /** Facing mode for the upload input, so a capture tool can open the camera instead of the gallery. Omitted by tools that just read files. */
+  capture?: ToolCapture;
   /** Accepted mime types and extensions for the file picker */
   accept?: string[];
 }
@@ -411,6 +424,56 @@ export type ExcelToPdfBody = {
   pdfa?: ExcelToPdfBodyPdfa;
   /** Scale each sheet so its used range fits one page. */
   fitToPage?: boolean;
+};
+
+export type ScanToPdfBodyPageSize = typeof ScanToPdfBodyPageSize[keyof typeof ScanToPdfBodyPageSize];
+
+
+export const ScanToPdfBodyPageSize = {
+  fit: 'fit',
+  a4: 'a4',
+  letter: 'letter',
+} as const;
+
+export type ScanToPdfBodyOrientation = typeof ScanToPdfBodyOrientation[keyof typeof ScanToPdfBodyOrientation];
+
+
+export const ScanToPdfBodyOrientation = {
+  auto: 'auto',
+  portrait: 'portrait',
+  landscape: 'landscape',
+} as const;
+
+export type ScanToPdfBody = {
+  /** Captured pages, sent as repeated `files` parts in page order. */
+  files?: Blob[];
+  pageSize?: ScanToPdfBodyPageSize;
+  orientation?: ScanToPdfBodyOrientation;
+  margin?: number;
+  /** Run OCR over the composed pages and add a text layer. */
+  searchable?: boolean;
+  /** OCR language pack, one of the codes `POST /pdf/ocr` accepts. */
+  language?: string;
+};
+
+/**
+ * Plain PDF, or PDF/A-1b / -2b / -3b export.
+ */
+export type HtmlToPdfBodyPdfa = typeof HtmlToPdfBodyPdfa[keyof typeof HtmlToPdfBodyPdfa];
+
+
+export const HtmlToPdfBodyPdfa = {
+  off: 'off',
+  '1b': '1b',
+  '2b': '2b',
+  '3b': '3b',
+} as const;
+
+export type HtmlToPdfBody = {
+  /** The .html or .htm file to convert. */
+  file?: Blob;
+  /** Plain PDF, or PDF/A-1b / -2b / -3b export. */
+  pdfa?: HtmlToPdfBodyPdfa;
 };
 
 /**

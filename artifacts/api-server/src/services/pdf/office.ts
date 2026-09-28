@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import type { Request, Response } from "express";
 import type {
   ExcelToPdfOptionsInput,
+  HtmlToPdfOptionsInput,
   PptToPdfOptionsInput,
   WordToPdfOptionsInput,
 } from "@workspace/api-zod";
@@ -20,13 +21,18 @@ import {
 } from "./shared";
 
 /**
- * Word / PowerPoint / Excel → PDF through a headless LibreOffice.
+ * Word / PowerPoint / Excel / HTML → PDF through a headless LibreOffice.
  *
- * The three tools differ only in which document family comes in, so one service
- * covers them: write the upload to a temp directory, ask LibreOffice's PDF export
- * filter for a file, stream the result back. `soffice` is a system dependency
- * rather than an npm one, so it is located at call time and reported honestly
- * (503) when this host does not have it.
+ * The tools differ only in which document family comes in, so one service covers
+ * them: write the upload to a temp directory, ask the family's PDF export filter
+ * for a file, stream the result back. `soffice` is a system dependency rather
+ * than an npm one, so it is located at call time and reported honestly (503)
+ * when this host does not have it.
+ *
+ * HTML is the one family where the engine's limits are worth stating plainly:
+ * LibreOffice's HTML import does not execute JavaScript and does not fetch the
+ * resources a page references, so images and stylesheets that live next to the
+ * file (or on a server) are simply absent from the output. The panel says so.
  */
 
 const execFileAsync = promisify(execFile);
@@ -37,15 +43,25 @@ const SOFFICE_BIN = process.env.SOFFICE_BIN?.trim() || "soffice";
 /** LibreOffice is slow to start (~1-3s cold) but must never hang a request forever. */
 const CONVERT_TIMEOUT_MS = 120_000;
 
-type OfficeKind = "word" | "ppt" | "excel";
+type OfficeKind = "word" | "ppt" | "excel" | "html";
+
+/**
+ * How an upload's container is checked before the engine ever sees it. The
+ * engine is not a validator: it converts a text file named `.docx` into a PDF of
+ * that text, and a plain text file named `.html` through the *Writer* filter, and
+ * exits 0 both times. So each family declares what a real file looks like.
+ */
+type ContainerCheck =
+  | { kind: "ooxml"; mainPart: string }
+  | { kind: "ole" }
+  | { kind: "html" };
 
 interface OfficeFormat {
   /** The family's PDF export filter — the PDF/A level rides along as filter data. */
   filter: string;
   /** Extensions the catalog's Configure panels accept, in the same order. */
   extensions: string[];
-  /** Member that must exist inside an OOXML container (".docx"/".pptx"/".xlsx"). */
-  ooxmlPart: string;
+  container: ContainerCheck;
   /** How the file is named in error messages. */
   label: string;
 }
@@ -54,20 +70,26 @@ const FORMATS: Record<OfficeKind, OfficeFormat> = {
   word: {
     filter: "writer_pdf_Export",
     extensions: [".doc", ".docx"],
-    ooxmlPart: "word/document.xml",
+    container: { kind: "ooxml", mainPart: "word/document.xml" },
     label: "Word document",
   },
   ppt: {
     filter: "impress_pdf_Export",
     extensions: [".ppt", ".pptx"],
-    ooxmlPart: "ppt/presentation.xml",
+    container: { kind: "ooxml", mainPart: "ppt/presentation.xml" },
     label: "PowerPoint presentation",
   },
   excel: {
     filter: "calc_pdf_Export",
     extensions: [".xls", ".xlsx"],
-    ooxmlPart: "xl/workbook.xml",
+    container: { kind: "ooxml", mainPart: "xl/workbook.xml" },
     label: "Excel workbook",
+  },
+  html: {
+    filter: "writer_web_pdf_Export",
+    extensions: [".html", ".htm"],
+    container: { kind: "html" },
+    label: "HTML document",
   },
 };
 
@@ -117,6 +139,9 @@ async function findSoffice(): Promise<string | null> {
  * asked for. The container is therefore sniffed first — a ZIP header plus the
  * family's main part for OOXML, the OLE header for the binary formats.
  */
+/** Catches any tag-like construct, so a real fragment passes and plain text does not. */
+const HTML_TAG = /<[a-z!/][^>]*>/i;
+
 function assertConvertible(file: Express.Multer.File, format: OfficeFormat): void {
   const extension = extensionOf(file.originalname);
 
@@ -126,7 +151,7 @@ function assertConvertible(file: Express.Multer.File, format: OfficeFormat): voi
     );
   }
 
-  if (extension === ".doc" || extension === ".ppt" || extension === ".xls") {
+  if (format.container.kind === "ole") {
     if (!file.buffer.subarray(0, OLE_MAGIC.length).equals(OLE_MAGIC)) {
       throw unprocessable(
         `That file isn't a valid ${format.label} — the ${extension} header could not be read.`,
@@ -135,10 +160,22 @@ function assertConvertible(file: Express.Multer.File, format: OfficeFormat): voi
     return;
   }
 
+  if (format.container.kind === "html") {
+    // Only the head of the file is inspected: a stray tag in a huge binary tail
+    // should not make an upload count as HTML.
+    const head = file.buffer.subarray(0, 64 * 1024).toString("latin1");
+    if (!HTML_TAG.test(head)) {
+      throw unprocessable(
+        `That file isn't HTML — no markup was found in it. Save the page as HTML and try again.`,
+      );
+    }
+    return;
+  }
+
   const isZip = file.buffer.subarray(0, OOXML_MAGIC.length).equals(OOXML_MAGIC);
   // The member name appears in the ZIP central directory, so a plain search is
   // enough to tell an empty/broken archive from a real document package.
-  const hasMainPart = file.buffer.includes(Buffer.from(format.ooxmlPart, "latin1"));
+  const hasMainPart = file.buffer.includes(Buffer.from(format.container.mainPart, "latin1"));
   if (!isZip || !hasMainPart) {
     throw unprocessable(
       `That file isn't a valid ${format.label} — the document package inside it is missing or damaged.`,
@@ -265,4 +302,8 @@ export async function pptToPdf(req: Request, res: Response, options: PptToPdfOpt
 
 export async function excelToPdf(req: Request, res: Response, options: ExcelToPdfOptionsInput): Promise<void> {
   await officeToPdf(req, res, "excel", options, "Excel to PDF failed", "Failed to convert the spreadsheet");
+}
+
+export async function htmlToPdf(req: Request, res: Response, options: HtmlToPdfOptionsInput): Promise<void> {
+  await officeToPdf(req, res, "html", options, "HTML to PDF failed", "Failed to convert the HTML document");
 }

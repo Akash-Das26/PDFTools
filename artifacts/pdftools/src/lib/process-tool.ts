@@ -49,6 +49,7 @@ const MULTI_FILE_ROUTES = new Set([
   "/api/pdf/rotate",
   "/api/pdf/compare",
   "/api/pdf/images-to-pdf",
+  "/api/pdf/scan-to-pdf",
 ]);
 
 /** Build multipart form data from the selected files plus the tool's options. */

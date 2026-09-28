@@ -29,6 +29,7 @@ import type {
   ExportPdfTextBody,
   GetPdfPageInfoBody,
   HealthStatus,
+  HtmlToPdfBody,
   ImagesToPdfBody,
   Job,
   JobInput,
@@ -44,6 +45,7 @@ import type {
   ReorderPdfPagesBody,
   RepairPdfBody,
   RotatePdfBody,
+  ScanToPdfBody,
   SplitPdfBody,
   Stats,
   SummarizePdf200,
@@ -1807,6 +1809,176 @@ export const useExcelToPdf = <TError = ErrorType<unknown>,
       return useMutation(getExcelToPdfMutationOptions(options));
     }
 
+export const getScanToPdfUrl = () => {
+
+
+
+
+  return `/api/pdf/scan-to-pdf`
+}
+
+/**
+ * Send one or more JPG/PNG captures as repeated `files` parts, in page order. The pages are composed exactly as JPG/PNG to PDF composes them; with `searchable=true` the result goes through the OCR pass that backs `POST /pdf/ocr`, adding an invisible text layer (so it costs a real recognition run per page and can fail the way OCR fails).
+ * @summary Compose captured pages into one PDF
+ */
+export const scanToPdf = async (scanToPdfBody: ScanToPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+    const formData = new FormData();
+if(scanToPdfBody.files !== undefined) {
+ scanToPdfBody.files.forEach(value => formData.append(`files`, value));
+ }
+if(scanToPdfBody.pageSize !== undefined) {
+ formData.append(`pageSize`, scanToPdfBody.pageSize);
+ }
+if(scanToPdfBody.orientation !== undefined) {
+ formData.append(`orientation`, scanToPdfBody.orientation);
+ }
+if(scanToPdfBody.margin !== undefined) {
+ formData.append(`margin`, scanToPdfBody.margin.toString())
+ }
+if(scanToPdfBody.searchable !== undefined) {
+ formData.append(`searchable`, scanToPdfBody.searchable.toString())
+ }
+if(scanToPdfBody.language !== undefined) {
+ formData.append(`language`, scanToPdfBody.language);
+ }
+
+  return customFetch<void>(getScanToPdfUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getScanToPdfMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof scanToPdf>>, TError,{data: BodyType<ScanToPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof scanToPdf>>, TError,{data: BodyType<ScanToPdfBody>}, TContext> => {
+
+const mutationKey = ['scanToPdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof scanToPdf>>, {data: BodyType<ScanToPdfBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  scanToPdf(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ScanToPdfMutationResult = NonNullable<Awaited<ReturnType<typeof scanToPdf>>>
+    export type ScanToPdfMutationBody = BodyType<ScanToPdfBody>
+    export type ScanToPdfMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Compose captured pages into one PDF
+ */
+export const useScanToPdf = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof scanToPdf>>, TError,{data: BodyType<ScanToPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof scanToPdf>>,
+        TError,
+        {data: BodyType<ScanToPdfBody>},
+        TContext
+      > => {
+      return useMutation(getScanToPdfMutationOptions(options));
+    }
+
+export const getHtmlToPdfUrl = () => {
+
+
+
+
+  return `/api/pdf/html-to-pdf`
+}
+
+/**
+ * Send a .html or .htm file as `file`. The page is rendered by LibreOffice's HTML import, which does not execute JavaScript and does not fetch referenced images or stylesheets - only what is inside the uploaded file is rendered. Same pipeline and 503 as the other Office tools.
+ * @summary Convert an HTML file to PDF
+ */
+export const htmlToPdf = async (htmlToPdfBody: HtmlToPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+    const formData = new FormData();
+if(htmlToPdfBody.file !== undefined) {
+ formData.append(`file`, htmlToPdfBody.file);
+ }
+if(htmlToPdfBody.pdfa !== undefined) {
+ formData.append(`pdfa`, htmlToPdfBody.pdfa);
+ }
+
+  return customFetch<void>(getHtmlToPdfUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getHtmlToPdfMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof htmlToPdf>>, TError,{data: BodyType<HtmlToPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof htmlToPdf>>, TError,{data: BodyType<HtmlToPdfBody>}, TContext> => {
+
+const mutationKey = ['htmlToPdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof htmlToPdf>>, {data: BodyType<HtmlToPdfBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  htmlToPdf(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HtmlToPdfMutationResult = NonNullable<Awaited<ReturnType<typeof htmlToPdf>>>
+    export type HtmlToPdfMutationBody = BodyType<HtmlToPdfBody>
+    export type HtmlToPdfMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Convert an HTML file to PDF
+ */
+export const useHtmlToPdf = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof htmlToPdf>>, TError,{data: BodyType<HtmlToPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof htmlToPdf>>,
+        TError,
+        {data: BodyType<HtmlToPdfBody>},
+        TContext
+      > => {
+      return useMutation(getHtmlToPdfMutationOptions(options));
+    }
+
 export const getCompressPdfUrl = () => {
 
 
@@ -1816,8 +1988,8 @@ export const getCompressPdfUrl = () => {
 }
 
 /**
- * Send the document as `file`. The document is re-serialised with object streams and its author/keyword metadata dropped. Caveat - no Ghostscript is available in this environment, so all three `quality` modes currently take this same path; the field is accepted so the request shape stays stable.
- * @summary Shrink a PDF by re-serialising it
+ * Send the document as `file`. `quality` selects Ghostscript's own preset - extreme=`/screen` (72 dpi images), recommended=`/ebook` (150 dpi), high=`/printer` (300 dpi) - so text stays vector and pages keep their count. Two guarantees hold regardless of profile - the response is never larger than a plain re-serialisation (the 300 dpi preset inflates text-only documents, in which case the re-serialised bytes are returned instead), and the `X-PDF-Compression-Engine` response header names the engine that produced them (`ghostscript`, or `pdf-lib` when the host has no Ghostscript and only the re-serialisation path is available).
+ * @summary Shrink a PDF with Ghostscript's PDF presets
  */
 export const compressPdf = async (compressPdfBody: CompressPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
     const formData = new FormData();
@@ -1873,7 +2045,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CompressPdfMutationError = ErrorType<unknown>
 
     /**
- * @summary Shrink a PDF by re-serialising it
+ * @summary Shrink a PDF with Ghostscript's PDF presets
  */
 export const useCompressPdf = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof compressPdf>>, TError,{data: BodyType<CompressPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}

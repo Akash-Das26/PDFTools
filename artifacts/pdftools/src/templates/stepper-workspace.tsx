@@ -135,6 +135,7 @@ export function StepperWorkspace({
           multiple={tool.acceptMultiple}
           accent={category.accent}
           inputLabel={tool.inputLabel}
+          capture={tool.capture}
         />
       ) : (
         <>

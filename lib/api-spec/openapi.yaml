@@ -624,6 +624,81 @@ paths:
         "200":
           description: Converted PDF
 
+  /pdf/scan-to-pdf:
+    post:
+      operationId: scanToPdf
+      tags: [pdf]
+      summary: Compose captured pages into one PDF
+      description: Send one or more JPG/PNG captures as repeated `files` parts,
+        in page order. The pages are composed exactly as JPG/PNG to PDF composes
+        them; with `searchable=true` the result goes through the OCR pass that
+        backs `POST /pdf/ocr`, adding an invisible text layer (so it costs a real
+        recognition run per page and can fail the way OCR fails).
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  description: Captured pages, sent as repeated `files` parts in page order.
+                  items:
+                    type: string
+                    format: binary
+                pageSize:
+                  type: string
+                  enum: [fit, a4, letter]
+                  default: fit
+                orientation:
+                  type: string
+                  enum: [auto, portrait, landscape]
+                  default: auto
+                margin:
+                  type: number
+                  default: 24
+                searchable:
+                  type: boolean
+                  default: false
+                  description: Run OCR over the composed pages and add a text layer.
+                language:
+                  type: string
+                  default: eng
+                  description: OCR language pack, one of the codes `POST /pdf/ocr` accepts.
+      responses:
+        "200":
+          description: Scanned PDF, searchable when requested
+
+  /pdf/html-to-pdf:
+    post:
+      operationId: htmlToPdf
+      tags: [pdf]
+      summary: Convert an HTML file to PDF
+      description: Send a .html or .htm file as `file`. The page is rendered by
+        LibreOffice's HTML import, which does not execute JavaScript and does not
+        fetch referenced images or stylesheets - only what is inside the uploaded
+        file is rendered. Same pipeline and 503 as the other Office tools.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The .html or .htm file to convert.
+                pdfa:
+                  type: string
+                  enum: [off, 1b, 2b, 3b]
+                  default: "off"
+                  description: Plain PDF, or PDF/A-1b / -2b / -3b export.
+      responses:
+        "200":
+          description: Converted PDF
+
   /pdf/compress:
     post:
       operationId: compressPdf
@@ -632,8 +707,9 @@ paths:
       description: Send the document as `file`. `quality` selects Ghostscript's
         own preset - extreme=`/screen` (72 dpi images), recommended=`/ebook`
         (150 dpi), high=`/printer` (300 dpi) - so text stays vector and pages
-        keep their count. Two guarantees: the response is never larger than a
-        plain re-serialisation (the 300 dpi preset inflates text-only documents,
+        keep their count. Two guarantees hold regardless of profile - the response
+        is never larger than a plain re-serialisation (the 300 dpi preset inflates
+        text-only documents,
         in which case the re-serialised bytes are returned instead), and the
         `X-PDF-Compression-Engine` response header names the engine that
         produced them (`ghostscript`, or `pdf-lib` when the host has no
@@ -967,6 +1043,11 @@ components:
           type: string
         acceptMultiple:
           type: boolean
+        capture:
+          type: string
+          enum: [environment, user]
+          description: Facing mode for the upload input, so a capture tool can open the
+            camera instead of the gallery. Omitted by tools that just read files.
         accept:
           type: array
           description: Accepted mime types and extensions for the file picker

@@ -13,6 +13,7 @@ export * from './listJobsParams';
 export * from './stats';
 export * from './tool';
 export * from './toolAccent';
+export * from './toolCapture';
 export * from './toolCategory';
 export * from './toolWireStatus';
 export * from './toolWorkspace';

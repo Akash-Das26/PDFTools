@@ -301,6 +301,7 @@ export function PagePickerWorkspace({
           multiple={tool.acceptMultiple}
           accent={category.accent}
           inputLabel={tool.inputLabel}
+          capture={tool.capture}
         />
       ) : pagesLoading ? (
         <div

@@ -23,6 +23,9 @@ const PAGE_SIZES = {
   letter: { width: 612, height: 792 },
 } as const;
 
+/** The page-composition options shared by JPG/PNG to PDF and Scan to PDF. */
+export type ImagePageOptions = Pick<ImagesToPdfOptionsInput, "pageSize" | "orientation" | "margin">;
+
 /**
  * Renders the selected pages to JPG or PNG. One page is returned as an image,
  * several pages come back as a ZIP — the same single/multiple contract the split
@@ -74,15 +77,18 @@ export async function pdfToImages(
   }
 }
 
-/** Composes one or more JPG/PNG uploads into a single PDF, in upload order. */
-export async function imagesToPdf(
-  req: Request,
-  res: Response,
-  options: ImagesToPdfOptionsInput,
-): Promise<void> {
-  try {
-    const files = requireUploadedFiles(req);
-    const document = await PDFDocument.create();
+/**
+ * Composes one or more JPG/PNG uploads into a single PDF, in upload order.
+ *
+ * Split out of the route so Scan to PDF can build the same document from its
+ * captures and then optionally put it through OCR, rather than the two tools
+ * sharing a route they would have to distinguish between.
+ */
+export async function buildImagesPdf(
+  files: Express.Multer.File[],
+  options: ImagePageOptions,
+): Promise<Buffer> {
+  const document = await PDFDocument.create();
     const margin = options.margin;
 
     for (const file of files) {
@@ -124,7 +130,18 @@ export async function imagesToPdf(
       });
     }
 
-    sendPdf(res, Buffer.from(await document.save()), "images.pdf");
+  return Buffer.from(await document.save());
+}
+
+/** Composes one or more JPG/PNG uploads into a single PDF, in upload order. */
+export async function imagesToPdf(
+  req: Request,
+  res: Response,
+  options: ImagesToPdfOptionsInput,
+): Promise<void> {
+  try {
+    const files = requireUploadedFiles(req);
+    sendPdf(res, await buildImagesPdf(files, options), "images.pdf");
   } catch (err) {
     failTool(req, res, err, "Image to PDF failed", "Failed to convert images to PDF");
   }
