@@ -42,6 +42,12 @@ bash scripts/verify-ui/drive.sh batch5.mjs
 # html-to-pdf answers 503
 bash scripts/verify-ui/drive.sh batch6.mjs
 
+# 75-assertion Batch 7 suite (PDF Form Filler: the inspected inventory drives the
+# panel, filled values proven by round-trip and by flatten; PDF to Excel: ruled
+# tables to CSV/ZIP with the delimiter proven both ways; Translate PDF's honest
+# 503 without a key)
+bash scripts/verify-ui/drive.sh batch7.mjs
+
 # 44-assertion compression suite (Ghostscript profiles, the never-larger guarantee,
 # the engine header, the panel copy) — generate-and-compress, so it needs Ghostscript
 # for the profile assertions (without it they exercise the re-serialise fallback)
@@ -75,6 +81,11 @@ everything down on exit.
   `SOFFICE_BIN=/path/to/soffice` for the API process. Without it `batch5.mjs` fails at its first
   conversion and `batch6.mjs` at its first HTML one — which is itself the honest 503 behaviour,
   so run the suites on a host that has it.
+- `batch7.mjs` needs no system binaries, but the committed `form.pdf`/`table.pdf`/`notform.pdf`
+  fixtures are generated: `bash scripts/verify-ui/fixtures/make-batch7-fixtures.sh` rebuilds them
+  with `@cantoo/pdf-lib` (which only resolves from the api-server workspace, hence the wrapper).
+  The table fixture draws real ruled lines because the detector builds its grid from lines and
+  clips anything outside them — every column needs both of its rules.
 - `compress.mjs` builds its own input: a 1200×1600 noise PNG (~5.7 MB, written to
   `/tmp/compress-noise.png`) through `/api/pdf/images-to-pdf`, then compresses it at each
   profile. Real noise matters — a cheap PRNG's byte stream deflates to 55 KB and hides the
@@ -83,11 +94,14 @@ everything down on exit.
   and the engine header says `pdf-lib`.
 - When adding a tool batch, add a `batchN.mjs` suite here following the `batch1.mjs` pattern
   and keep the per-suite assertion counts cited in REVIEW.md entries.
-- Landing-state assertions move with each batch: `verify.mjs` counts pending badges (9 after
-  Batch 6) and `batch4.mjs` names a still-pending Convert card for its example. When a batch
-  wires a tool those numbers change, and the suites must be updated in the same commit.
+- Landing-state assertions move with each batch: `verify.mjs` counts pending badges (6 after
+  Batch 7) and `batch4.mjs` names a still-pending Convert card for its example. When a batch
+  wires a tool those numbers change, and the suites must be updated in the same commit — older
+  suites' pending examples move too (Batch 7 retired batch3's pdf-form-filler example and
+  batch5/batch6's catalog counts).
 - `batch4.mjs` is 53 assertions (it lost one when Batch 6 retired its html-to-pdf pending
-  example), so the tracked total is **525**: 127 + 38 + 21 + 48 + 59 + 53 + 65 + 70 + 44.
+  example and gained one new still-pending check), so the tracked total is **595**:
+  127 + 38 + 21 + 48 + 54 + 53 + 65 + 70 + 75 + 44.
 - `verify.mjs` no longer points at a single wired-but-panel-less tool as its `options-not-built`
   example (Batch 4 gave every wired tool a panel). It now walks the whole catalog: every
   `implemented`/`partial` tool must render a Configure panel after an upload and stay runnable.
