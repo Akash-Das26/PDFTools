@@ -228,6 +228,18 @@ export default function Tool() {
       return { ...options, format: options.format === "txt" ? "txt" : "md" };
     }
 
+    if (tool.id === "translate-pdf") {
+      // Same principle: the panel displays a target language (English by
+      // default), so the request must carry it instead of letting the server
+      // default decide what the download is named.
+      return {
+        ...options,
+        targetLanguage: typeof options.targetLanguage === "string" && options.targetLanguage
+          ? options.targetLanguage
+          : "english",
+      };
+    }
+
     if (tool.workspace !== "page-picker") return options;
 
     const plan = pagePlan;

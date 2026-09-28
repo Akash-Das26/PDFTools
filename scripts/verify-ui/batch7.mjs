@@ -1,11 +1,12 @@
 /* Batch 7 (PDF Form Filler + PDF to Excel + Translate PDF) end-to-end verification:
    the field inventory read before anything is filled and the filled values proven
    by reading them back out of the flattened output, the ruled-table detector and
-   its honest refusal of a table-less document, and the translator's contract —
-   including the fact that no OPENAI_API_KEY is configured in this environment,
-   so the 503 is itself the assertion, alongside a genuine empty-key 200-shaped
-   guard via the inspect-style JSON contract. The spec ↔ router coupling check
-   from Batch 6 is repeated with the new paths counted in. */
+   its honest refusal of a table-less document, and the translator's contract.
+   The translate section is key-aware: with OPENAI_API_KEY set (the driver sources
+   .env, so the suite and the server always agree) it exercises the live model
+   path — a real run whose output must differ from the English source — while
+   without a key it asserts the honest 503 instead. The spec ↔ router coupling
+   check from Batch 6 is repeated with the new paths counted in. */
 import { spawn } from "node:child_process";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { writePng } from "./lib/png.mjs";
@@ -18,6 +19,8 @@ const FORM_PDF = FIXTURES + "form.pdf";
 const TABLE_PDF = FIXTURES + "table.pdf";
 const NOTFORM_PDF = FIXTURES + "notform.pdf";
 const PDF_FIXTURE = FIXTURES + "fixture.pdf";
+const TEXTLESS_PNG = "/tmp/batch7-textless.png";
+const TEXTLESS_PDF = "/tmp/batch7-textless.pdf";
 const PROFILE = "/tmp/pdfcheck-ui-profile-batch7";
 rmSync(PROFILE, { recursive: true, force: true });
 
@@ -115,6 +118,10 @@ async function shot(name) {
 }
 
 const bytes = (path) => readFileSync(path);
+
+// The live branch's no-text-layer input: a solid-gradient PNG (nothing for
+// extraction to find) composed into a PDF through the images tool.
+writePng(TEXTLESS_PNG, 600, 800, "solid");
 
 /** The JSON error message, parsed before the response body is consumed. */
 function errorMessage(raw, res) {
@@ -271,17 +278,50 @@ const allZip = await post("/pdf/pdf-to-excel", TABLE_PDF);
 check("api pdf-to-excel: both tables come back zipped",
       allZip.disposition.includes("table-csv.zip"), true);
 
-/* ── 4. TRANSLATE: honest 503 without a key, JSON contract otherwise pinned ─ */
-const translate = await post("/pdf/translate-pdf", PDF_FIXTURE, { targetLanguage: "french" });
-check("api translate: without a configured key the answer is 503", translate.status, 503);
-check("api translate: the 503 names the fix",
-      translate.error.includes("OPENAI_API_KEY"), true);
+/* ── 4. TRANSLATE: key-aware — the real model with a key, honest 503 without ─ */
+const hasAiKey = Boolean(process.env.OPENAI_API_KEY?.trim());
+console.log(`        ai key: ${hasAiKey ? "present — exercising the live translate path" : "absent — asserting the honest 503"}`);
 
 const translateBad = await post("/pdf/translate-pdf", PDF_FIXTURE, { targetLanguage: "klingon" });
 check("api translate: an unknown language is rejected before any model call", translateBad.status, 400);
 
-const emptyDoc = await post("/pdf/translate-pdf", NOTFORM_PDF, { targetLanguage: "french" });
-check("api translate: still answers 503 without a key (config check precedes extraction)", emptyDoc.status, 503);
+if (!hasAiKey) {
+  const translate = await post("/pdf/translate-pdf", PDF_FIXTURE, { targetLanguage: "french" });
+  check("api translate: without a configured key the answer is 503", translate.status, 503);
+  check("api translate: the 503 names the fix",
+        translate.error.includes("OPENAI_API_KEY"), true);
+  const emptyDoc = await post("/pdf/translate-pdf", NOTFORM_PDF, { targetLanguage: "french" });
+  check("api translate: config is checked before extraction (no text, no key → still 503)", emptyDoc.status, 503);
+} else {
+  // The real thing. The assertion is that the output changed — the fixture's
+  // known English wording must NOT survive — not that it matches any exact
+  // wording a model might vary.
+  const translate = await post("/pdf/translate-pdf", PDF_FIXTURE, { targetLanguage: "french" });
+  check("api translate (live): 200", translate.status, 200);
+  const payload = translate.json() ?? {};
+  check("api translate (live): at least one page translated, none failed",
+        (payload.pages?.length ?? 0) >= 1 && payload.failedPages === 0, true);
+  check("api translate (live): the target language is echoed", payload.targetLanguage, "french");
+  check("api translate (live): the markdown carries the first page heading",
+        String(payload.markdown ?? "").includes("## Page 1"), true);
+  const pageText = String(payload.pages?.[0]?.text ?? "");
+  check("api translate (live): real translated text, not the English source",
+        pageText.trim().length > 20 && !pageText.includes("of body text"), true);
+  console.log(`        translation, page 1 line 1: ${JSON.stringify(pageText.split("\n")[0]?.slice(0, 70))}`);
+  // notform.pdf is only fieldless — it has plenty of text, so it translates
+  // fine (200 is correct). The real no-text-layer case needs an image-only
+  // PDF: compose one from a solid PNG through images-to-pdf, which (like every
+  // multi-file route) takes its upload under `files`, not `file` — the same
+  // field-name distinction the batch6 transport bug turned on.
+  const imageForm = new FormData();
+  imageForm.append("files", new Blob([bytes(TEXTLESS_PNG)]), "textless.png");
+  const imageOnly = await fetch(`${API}/api/pdf/images-to-pdf`, { method: "POST", body: imageForm });
+  writeFileSync(TEXTLESS_PDF, Buffer.from(await imageOnly.arrayBuffer()));
+  check("api translate (live): setup — composed a text-free image PDF",
+        imageOnly.status, 200);
+  const emptyDoc = await post("/pdf/translate-pdf", TEXTLESS_PDF, { targetLanguage: "french" });
+  check("api translate (live): a text-free document is a 422, not an empty translation", emptyDoc.status, 422);
+}
 
 /* ── 5. Catalog and the spec ↔ router coupling ───────────────────────────── */
 const tools = await (await fetch(`${API}/api/tools`)).json();
@@ -356,7 +396,7 @@ check("pdf-to-excel: download is a CSV or a ZIP of them",
       await evaluate(`const n = document.querySelector('[data-testid="button-download"]')?.getAttribute("download") ?? ""; n.endsWith(".csv") || n.endsWith(".zip")`), true);
 await shot("pdf-to-excel-complete");
 
-/* ── 9. TRANSLATE panel: language picker, 503 surfaces as an error panel ─── */
+/* ── 9. TRANSLATE panel: language picker, key-aware run ─────────────── */
 await openThemed(`${BASE}/tools/translate-pdf`, '[data-testid="upload-dropzone"]', "light");
 await uploadFiles([PDF_FIXTURE]);
 await waitFor('[data-testid="translate-note"]');
@@ -366,10 +406,19 @@ check("translate: the note says the result is a Markdown download",
       await evaluate(`document.querySelector('[data-testid="translate-note"]').textContent.includes("Markdown")`), true);
 await shot("translate-configured");
 await click('[data-testid="button-process"]');
-await waitFor('[data-testid="error-panel"]');
-check("translate: the unconfigured key surfaces as an error panel, not a hang",
-      await evaluate(`(document.querySelector('[data-testid="error-panel"]')?.textContent ?? "").includes("OPENAI_API_KEY")`), true);
-await shot("translate-unconfigured");
+if (!hasAiKey) {
+  await waitFor('[data-testid="error-panel"]');
+  check("translate: the unconfigured key surfaces as an error panel, not a hang",
+        await evaluate(`(document.querySelector('[data-testid="error-panel"]')?.textContent ?? "").includes("OPENAI_API_KEY")`), true);
+  await shot("translate-unconfigured");
+} else {
+  // One model call per page — hence the generous wait compared to local tools.
+  await waitFor('[data-testid="result-panel"]', 240);
+  check("translate (live): a real run produces a result", true, true);
+  check("translate (live): the download is named for the panel's language",
+        await evaluate(`(document.querySelector('[data-testid="button-download"]')?.getAttribute("download") ?? "").startsWith("translation-")`), true);
+  await shot("translate-complete");
+}
 
 /* ── 10. DARK THEME ───────────────────────────────────────────────────────── */
 await openThemed(`${BASE}/tools/pdf-form-filler`, '[data-testid="upload-dropzone"]', "dark");
