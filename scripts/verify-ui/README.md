@@ -36,6 +36,12 @@ bash scripts/verify-ui/drive.sh batch4.mjs
 # and the container guards) — needs LibreOffice on PATH, or those tools answer 503
 bash scripts/verify-ui/drive.sh batch5.mjs
 
+# 70-assertion Batch 6 suite (Scan to PDF: composed captures, geometry, the optional
+# OCR text layer read back as real text; HTML to PDF: PDF/A markers and the markup
+# sniff that rejects a text file named .html) — needs LibreOffice on PATH, or
+# html-to-pdf answers 503
+bash scripts/verify-ui/drive.sh batch6.mjs
+
 # 44-assertion compression suite (Ghostscript profiles, the never-larger guarantee,
 # the engine header, the panel copy) — generate-and-compress, so it needs Ghostscript
 # for the profile assertions (without it they exercise the re-serialise fallback)
@@ -65,9 +71,10 @@ everything down on exit.
   (one page/slide of text), `office.xlsx` (120 rows, so the default export is 3 pages and
   `fitToPage` can be shown to collapse them to 1) and `office-mislabelled.docx` (plain text with
   a `.docx` name, which LibreOffice *would* convert happily — the endpoint rejects it instead).
-- Batch 5 needs LibreOffice: `soffice` on PATH, or `SOFFICE_BIN=/path/to/soffice` for the API
-  process. Without it `batch5.mjs` fails at its first conversion — which is itself the honest
-  503 behaviour, so run the suite on a host that has it.
+- `batch5.mjs` and `batch6.mjs` need LibreOffice: `soffice` on PATH, or
+  `SOFFICE_BIN=/path/to/soffice` for the API process. Without it `batch5.mjs` fails at its first
+  conversion and `batch6.mjs` at its first HTML one — which is itself the honest 503 behaviour,
+  so run the suites on a host that has it.
 - `compress.mjs` builds its own input: a 1200×1600 noise PNG (~5.7 MB, written to
   `/tmp/compress-noise.png`) through `/api/pdf/images-to-pdf`, then compresses it at each
   profile. Real noise matters — a cheap PRNG's byte stream deflates to 55 KB and hides the
@@ -76,9 +83,11 @@ everything down on exit.
   and the engine header says `pdf-lib`.
 - When adding a tool batch, add a `batchN.mjs` suite here following the `batch1.mjs` pattern
   and keep the per-suite assertion counts cited in REVIEW.md entries.
-- Landing-state assertions move with each batch: `verify.mjs` counts pending badges (11 after
-  Batch 5) and `batch4.mjs` names a still-pending Convert card for its example. When a batch
+- Landing-state assertions move with each batch: `verify.mjs` counts pending badges (9 after
+  Batch 6) and `batch4.mjs` names a still-pending Convert card for its example. When a batch
   wires a tool those numbers change, and the suites must be updated in the same commit.
+- `batch4.mjs` is 53 assertions (it lost one when Batch 6 retired its html-to-pdf pending
+  example), so the tracked total is **525**: 127 + 38 + 21 + 48 + 59 + 53 + 65 + 70 + 44.
 - `verify.mjs` no longer points at a single wired-but-panel-less tool as its `options-not-built`
   example (Batch 4 gave every wired tool a panel). It now walks the whole catalog: every
   `implemented`/`partial` tool must render a Configure panel after an upload and stay runnable.
