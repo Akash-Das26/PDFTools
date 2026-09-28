@@ -199,8 +199,8 @@ check("badges equal rendered card count", dom.badges.map(b=>parseInt(b,10)), dom
 check("filter pills (reference order)", dom.pills, ["All Tools","Organize PDF","Convert to PDF","Convert from PDF","Edit PDF","Security","AI Document Tools"]);
 check("header nav (reference order)", dom.nav, ["Organize","Convert","Edit","Security","AI"]);
 // The pending count moves with every batch that wires a backend: 14 before
-// Batch 5, 11 after Word/PowerPoint/Excel to PDF, 9 after Scan/HTML to PDF.
-check("9 backend-pending cards badged", dom.pendingBadges, 9);
+// Batch 5, 9 after Scan/HTML to PDF, 6 after Form Filler/Excel/Translate.
+check("6 backend-pending cards badged", dom.pendingBadges, 6);
 check("2 Popular ribbons", dom.popularBadges, 2);
 check("hero quick-dropzone present", dom.quickDropzone, true);
 check("landing search bar present", dom.searchBar, true);
@@ -659,7 +659,8 @@ writeFileSync(
 // panel renders for a legitimately-selected document (Batch 5 added the three
 // Office tools, whose panels only appear for .docx/.pptx/.xlsx uploads; Batch 6
 // added Scan, which needs an image, and HTML, which needs a runtime-written
-// page — see batch6.mjs for what those tools really do with them).
+// page; Batch 7 added the form filler and Excel, which read the generated
+// form.pdf/table.pdf, and Translate, whose panel shows before upload too).
 writeFileSync(HTML_FIXTURE, HTML_PAGE);
 const WALK_FIXTURES = {
   "images-to-pdf": PNG_FIXTURE,
@@ -668,6 +669,8 @@ const WALK_FIXTURES = {
   "excel-to-pdf": OUT + "fixtures/office.xlsx",
   "scan-to-pdf": PNG_FIXTURE,
   "html-to-pdf": HTML_FIXTURE,
+  "pdf-form-filler": OUT + "fixtures/form.pdf",
+  "pdf-to-excel": OUT + "fixtures/table.pdf",
 };
 const wiredTools = (await (await fetch(`${API}/api/tools`)).json())
   .filter((tool) => tool.status === "implemented" || tool.status === "partial")
@@ -678,6 +681,20 @@ const blocked = [];
 for (const id of wiredTools) {
   await goto(`${BASE}/tools/${id}`, 500, '[data-testid="upload-dropzone"]');
   await upload('[data-testid="input-file"]', [WALK_FIXTURES[id] ?? FIXTURE]);
+  // The form filler's Process stays disabled until its field inventory has
+  // loaded AND a value is typed — an empty fill would return the document
+  // unchanged. The walk types into the first field so the gate opens like a
+  // real user opening it.
+  if (id === "pdf-form-filler") {
+    await sleep(1200);
+    await evaluate(`(() => {
+      const el = document.querySelector('[data-testid^="form-field-"]');
+      if (!el || el.tagName !== "INPUT") return;
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+      setter.call(el, "walk");
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    })()`);
+  }
   await sleep(900);
   const state = await evaluate(`(() => {
     const configure = document.querySelector('[data-testid="workspace-configure"]');

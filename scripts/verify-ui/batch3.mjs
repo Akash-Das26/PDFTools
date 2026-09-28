@@ -179,8 +179,10 @@ check("landing: edit count badge reads 5 Tools",
       await evaluate(`document.querySelector('[data-testid="count-edit"]')?.textContent.trim()`), "5 Tools");
 check("landing: edit-pdf shows backend-pending badge",
       await evaluate(`!!document.querySelector('[data-testid="badge-pending-edit-pdf"]')`), true);
-check("landing: pdf-form-filler shows backend-pending badge",
-      await evaluate(`!!document.querySelector('[data-testid="badge-pending-pdf-form-filler"]')`), true);
+// Batch 7 moved pdf-form-filler to implemented, so edit-pdf carries this
+// section's still-pending example on its own.
+check("landing: pdf-form-filler is no longer badged pending",
+      await evaluate(`!document.querySelector('[data-testid="badge-pending-pdf-form-filler"]')`), true);
 
 /* ── 2. WATERMARK: text mode fields, real text run, image run, guard ──────── */
 await openThemed(`${BASE}/tools/watermark`, '[data-testid="upload-dropzone"]', "light");
@@ -294,8 +296,11 @@ check("crop: download enabled",
       await evaluate(`!document.querySelector('[data-testid="button-download"]').disabled`), true);
 await shot("crop-complete");
 
-/* ── 5. EDIT-PDF + PDF-FORM-FILLER: honest backend-pending workspaces ─────── */
-for (const id of ["edit-pdf", "pdf-form-filler"]) {
+/* ── 5. EDIT-PDF: the honest backend-pending workspace ───────────────── */
+// pdf-form-filler left the pending set in Batch 7 (batch7.mjs covers its real
+// panels and runs), so this section's pending example is edit-pdf alone.
+{
+  const id = "edit-pdf";
   await openThemed(`${BASE}/tools/${id}`, '[data-testid="upload-dropzone"]', "light");
   await uploadFiles([FIXTURE]);
   await waitFor('[data-testid="pending-badge"]');
