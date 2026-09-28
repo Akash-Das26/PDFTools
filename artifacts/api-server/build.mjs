@@ -41,6 +41,10 @@ async function buildAll() {
       "tesseract.js",
       "tesseract.js-core",
       "@tesseract.js-data/*",
+      // mupdf is an ESM/WASM module (top-level await) that locates its .wasm
+      // blob relative to its own package at runtime — same reasoning as
+      // tesseract.js above. Loaded through a dynamic import in redact.ts.
+      "mupdf",
       "better-sqlite3",
       "sqlite3",
       "canvas",

@@ -1,6 +1,8 @@
 /* Batch 2 (PDF Security) end-to-end verification:
    Protect + Unlock through their real routes (password flows, encrypted
-   round-trip), Sign + Redact as honest backend-pending workspaces,
+   round-trip), and Sign + Redact — pending when written, wired since Batch 8
+   (batch8.mjs covers their real runs), so this suite re-asserts the workspace
+   guarantees from the wired side,
    icon consistency between landing card and workspace header. */
 import { spawn } from "node:child_process";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -129,10 +131,10 @@ for (const id of ["protect", "unlock", "sign", "redact"]) {
 }
 check("landing: security count badge reads 4 Tools",
       await evaluate(`document.querySelector('[data-testid="count-security"]')?.textContent.trim()`), "4 Tools");
-check("landing: sign shows backend-pending badge",
-      await evaluate(`!!document.querySelector('[data-testid="badge-pending-sign"]')`), true);
-check("landing: redact shows backend-pending badge",
-      await evaluate(`!!document.querySelector('[data-testid="badge-pending-redact"]')`), true);
+check("landing: sign is no longer badged pending (wired in Batch 8)",
+      await evaluate(`!document.querySelector('[data-testid="badge-pending-sign"]')`), true);
+check("landing: redact is no longer badged pending (wired in Batch 8)",
+      await evaluate(`!document.querySelector('[data-testid="badge-pending-redact"]')`), true);
 
 /* ── 2. ICON CONSISTENCY: card glyph === workspace-header glyph ───────────── */
 for (const id of ["protect", "unlock", "sign", "redact"]) {
@@ -240,28 +242,30 @@ check("api unlock unencrypted file: 200 passthrough", passthrough.status, 200);
 const passthroughBytes = Buffer.from(await passthrough.arrayBuffer());
 check("api unlock unencrypted: no /Encrypt in output", passthroughBytes.includes("/Encrypt"), false);
 
-/* ── 5. SIGN + REDACT: honest backend-pending workspaces ──────────────────── */
+/* ── 5. SIGN + REDACT: wired in Batch 8 — the workspace guarantees hold, unpended ─ */
+// Pending when this suite was written; Batch 8 wired both (batch8.mjs covers
+// their real runs end to end). The workspace-level guarantees are re-asserted
+// from the other side: no pending badge, a built panel, a live Process button.
 for (const id of ["sign", "redact"]) {
   await openThemed(`${BASE}/tools/${id}`, '[data-testid="upload-dropzone"]', "light");
   await uploadFiles([FIXTURE]);
-  await waitFor('[data-testid="pending-badge"]');
-  check(`${id}: pending badge shown`, true, true);
-  check(`${id}: Process disabled`,
-        await evaluate(`document.querySelector('[data-testid="button-process"]').disabled`), true);
-  check(`${id}: CTA reads Unavailable`,
-        await evaluate(`document.querySelector('[data-testid="button-process"]').textContent.trim()`), "Unavailable");
-  check(`${id}: configure panel marked not built`,
-        await evaluate(`!!document.querySelector('[data-testid="options-not-built"]')`), true);
-  await click('[data-testid="button-process"]');
-  check(`${id}: disabled button performs no request (no error panel)`,
-        await evaluate(`!document.querySelector('[data-testid="error-panel"]')`), true);
+  const panel = id === "sign" ? '[data-testid="sign-note"]' : '[data-testid="redact-note"]';
+  await waitFor(panel);
+  check(`${id}: no pending badge remains`,
+        await evaluate(`!document.querySelector('[data-testid="pending-badge"]')`), true);
+  check(`${id}: Process enabled`,
+        await evaluate(`!document.querySelector('[data-testid="button-process"]').disabled`), true);
+  check(`${id}: CTA no longer reads Unavailable`,
+        await evaluate(`document.querySelector('[data-testid="button-process"]').textContent.trim() !== "Unavailable"`), true);
+  check(`${id}: configure panel is built`,
+        await evaluate(`!document.querySelector('[data-testid="options-not-built"]')`), true);
 }
 await openThemed(`${BASE}/tools/sign`, '[data-testid="upload-dropzone"]', "dark");
 await uploadFiles([FIXTURE]);
-await waitFor('[data-testid="pending-badge"]');
-check("sign: dark pending workspace renders",
+await waitFor('[data-testid="sign-note"]');
+check("sign: dark workspace renders",
       await evaluate(`document.documentElement.classList.contains("dark")`), true);
-await shot("sign-pending-dark");
+await shot("sign-dark");
 
 console.log(`\n${results.filter((r) => r.pass).length}/${results.length} passed`);
 if (pageErrors.length) { console.log("PAGE ERRORS:"); for (const e of pageErrors) console.log("  " + e); }

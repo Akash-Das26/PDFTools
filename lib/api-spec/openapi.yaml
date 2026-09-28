@@ -1138,6 +1138,256 @@ paths:
         "503":
           description: OPENAI_API_KEY is not configured
 
+  /pdf/chat-with-document:
+    post:
+      operationId: chatWithDocument
+      tags: [pdf]
+      summary: Ask one question about a document, answered from its contents
+      description: Send the document as `file` plus a `question`. The text layer
+        is extracted and sent to the model with the question under a strict
+        contract — answer only from the document, and say plainly when it does
+        not contain the answer. No chunking and no vector store: the whole text
+        layer (to roughly 60000 characters) rides in one prompt, so this suits
+        documents of tens of pages rather than thousands. Needs an
+        `OPENAI_API_KEY`; when the key is absent the route answers 503.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [question]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to ask about.
+                question:
+                  type: string
+                  maxLength: 2000
+                  description: The question to answer.
+      responses:
+        "200":
+          description: The grounded answer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  question:
+                    type: string
+                  answer:
+                    type: string
+                  pageCount:
+                    type: integer
+                  markdown:
+                    type: string
+        "422":
+          description: No extractable text layer, or the model returned nothing usable
+        "503":
+          description: OPENAI_API_KEY is not configured
+
+  /pdf/redact:
+    post:
+      operationId: redactPdf
+      tags: [pdf]
+      summary: Permanently remove sensitive text from a document
+      description: Send the document as `file` plus a `terms` JSON array of
+        literal search strings. Every hit is removed from the file — the text
+        objects are deleted and a black box drawn in their place, not a
+        rectangle painted over live text. Matching is literal, case-insensitive
+        and non-overlapping (a hit inside text already redacted by an earlier
+        term on the same page is not counted again); a wrong term removes
+        nothing and a run that removes nothing is refused. Returns the
+        redacted PDF.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [terms]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to redact.
+                terms:
+                  type: string
+                  description: JSON array of literal terms to remove, e.g.
+                    `["42-1337-ALPHA", "grace@example.com"]`.
+      responses:
+        "200":
+          description: The redacted PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The terms payload is missing or empty
+        "422":
+          description: None of the terms were found in the document
+
+  /pdf/sign:
+    post:
+      operationId: signPdf
+      tags: [pdf]
+      summary: Cryptographically sign a document with a P12 certificate
+      description: |
+        Send the document as `file` and either an uploaded certificate part
+        `p12` with its `passphrase`, or just a `passphrase` — a self-signed
+        certificate is then generated for this run. The signature is a real
+        PKCS#7 detached signature (Adobe.PPKLite / adbe.pkcs7.detached) whose
+        ByteRange covers the whole file, with a visible stamp drawn on page 1
+        (signer name and time). No timestamp authority is contacted.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [passphrase]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to sign.
+                p12:
+                  type: string
+                  format: binary
+                  description: Optional PKCS#12 certificate (.p12/.pfx).
+                passphrase:
+                  type: string
+                  description: The certificate's passphrase; also protects the generated self-signed key.
+                signerName:
+                  type: string
+                  description: Name drawn on the visible stamp (and used for the generated certificate).
+      responses:
+        "200":
+          description: The signed PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Missing passphrase
+        "422":
+          description: The certificate could not be opened with that passphrase
+
+  /pdf/pdf-to-word:
+    post:
+      operationId: pdfToWord
+      tags: [pdf]
+      summary: Rebuild a PDF's text as an editable Word document
+      description: |
+        Send the document as `file`. The text layer is extracted page by page
+        and rebuilt as a DOCX — each page becomes a heading plus its
+        paragraphs. This is a text rebuild, honestly: layout, columns, fonts,
+        images and tables do not carry over. A scanned document without a
+        text layer is refused (run OCR first).
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to convert.
+      responses:
+        "200":
+          description: The DOCX document
+          content:
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+              schema:
+                type: string
+                format: binary
+        "422":
+          description: No extractable text layer
+
+  /pdf/pdf-to-powerpoint:
+    post:
+      operationId: pdfToPowerpoint
+      tags: [pdf]
+      summary: Turn a PDF's pages into an editable slide deck
+      description: |
+        Send the document as `file`. Each page becomes one slide carrying that
+        page's extracted text — a real editable deck, not a picture deck.
+        Text only: images, backgrounds and layout do not carry over, and a
+        text-free page becomes a slide noting that, so page count is always
+        preserved.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to convert.
+      responses:
+        "200":
+          description: The PPTX deck
+          content:
+            application/vnd.openxmlformats-officedocument.presentationml.presentation:
+              schema:
+                type: string
+                format: binary
+        "422":
+          description: The PDF has no pages
+
+  /pdf/edit:
+    post:
+      operationId: editPdfContent
+      tags: [pdf]
+      summary: Place text, rectangles and an image on top of a PDF
+      description: |
+        Send the document as `file` plus an `ops` JSON array of overlay
+        operations. This is composition on top of the page — the card's exact
+        promise — not a rewrite of existing text, which no PDF library can
+        reflow. One optional `image` part (JPG/PNG) backs every image op.
+        Coordinates are PDF points with the origin at the page's bottom-left.
+        Op shapes: `{"type":"text","page":1,"x":72,"y":700,"text":"hi",
+        "size":14,"color":"#111111"}`, `{"type":"rect","page":1,"x":72,
+        "y":600,"w":200,"h":80,"color":"#FFD24D","opacity":0.5}` and
+        `{"type":"image","page":1,"x":72,"y":450,"w":160}` (height follows
+        the image's aspect ratio; default width is a quarter of the page).
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [ops]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The PDF to edit.
+                ops:
+                  type: string
+                  description: JSON array of overlay operations (text, rect, image).
+                image:
+                  type: string
+                  format: binary
+                  description: Optional JPG/PNG used by image ops.
+      responses:
+        "200":
+          description: The edited PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Malformed ops, an out-of-range page, or an image op without the image part
+
 components:
   schemas:
     HealthStatus:

@@ -42,12 +42,19 @@ bash scripts/verify-ui/drive.sh batch5.mjs
 # html-to-pdf answers 503
 bash scripts/verify-ui/drive.sh batch6.mjs
 
-# 75-assertion Batch 7 suite (PDF Form Filler: the inspected inventory drives the
+# 76-assertion Batch 7 suite (PDF Form Filler: the inspected inventory drives the
 # panel, filled values proven by round-trip and by flatten; PDF to Excel: ruled
-# tables to CSV/ZIP with the delimiter proven both ways; Translate PDF's honest
-# 503 without a key) — NOTE: the translate section ASSERTS the 503, so it fails
-# by design if OPENAI_API_KEY is ever set; make it key-aware first
+# tables to CSV/ZIP with the delimiter proven both ways; Translate PDF: key-aware —
+# the live model with a key, the honest 503 without)
 bash scripts/verify-ui/drive.sh batch7.mjs
+
+# 110-assertion Batch 8 suite (Redact: the redacted string unextractable, the
+# removes-nothing refusal; Sign: openssl-parsed PKCS#7 with ByteRange coverage,
+# uploaded and generated certificates, wrong-passphrase 422; PDF to Word and
+# PDF to PowerPoint: real OOXML verified by unzip; Chat's key-aware 503; Edit:
+# placed text extractable, off-page anchors refused; catalog at 31/1/0) — needs
+# openssl and unzip on PATH for the signature/OOXML proofs
+bash scripts/verify-ui/drive.sh batch8.mjs
 
 # 44-assertion compression suite (Ghostscript profiles, the never-larger guarantee,
 # the engine header, the panel copy) — generate-and-compress, so it needs Ghostscript
@@ -95,14 +102,12 @@ everything down on exit.
   and the engine header says `pdf-lib`.
 - When adding a tool batch, add a `batchN.mjs` suite here following the `batch1.mjs` pattern
   and keep the per-suite assertion counts cited in REVIEW.md entries.
-- Landing-state assertions move with each batch: `verify.mjs` counts pending badges (6 after
-  Batch 7) and `batch4.mjs` names a still-pending Convert card for its example. When a batch
-  wires a tool those numbers change, and the suites must be updated in the same commit — older
-  suites' pending examples move too (Batch 7 retired batch3's pdf-form-filler example and
-  batch5/batch6's catalog counts).
-- `batch4.mjs` is 53 assertions (it lost one when Batch 6 retired its html-to-pdf pending
-  example and gained one new still-pending check), so the tracked total is **595**:
-  127 + 38 + 21 + 48 + 54 + 53 + 65 + 70 + 75 + 44.
+- Landing-state assertions moved with each batch: `verify.mjs` counted pending badges (14 → 9 →
+  6 → 0 after Batch 8 wired the last six) and older suites named still-pending cards as their
+  examples. Batch 8 emptied the pending set, so those examples are now inverted ("no longer
+  badged pending") and `verify.mjs`'s not-connected-chrome guarantee runs against the one
+  remaining `partial` tool (pdf-to-markdown) instead.
+- The counted suites total **706**: 127 + 38 + 21 + 48 + 54 + 53 + 65 + 70 + 76 + 110 + 44.
 - `verify.mjs` no longer points at a single wired-but-panel-less tool as its `options-not-built`
   example (Batch 4 gave every wired tool a panel). It now walks the whole catalog: every
   `implemented`/`partial` tool must render a Configure panel after an upload and stay runnable.

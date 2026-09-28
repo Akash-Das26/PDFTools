@@ -198,9 +198,10 @@ check("total cards = 32", dom.totalCards, 32);
 check("badges equal rendered card count", dom.badges.map(b=>parseInt(b,10)), dom.cardsPerSection);
 check("filter pills (reference order)", dom.pills, ["All Tools","Organize PDF","Convert to PDF","Convert from PDF","Edit PDF","Security","AI Document Tools"]);
 check("header nav (reference order)", dom.nav, ["Organize","Convert","Edit","Security","AI"]);
-// The pending count moves with every batch that wires a backend: 14 before
-// Batch 5, 9 after Scan/HTML to PDF, 6 after Form Filler/Excel/Translate.
-check("6 backend-pending cards badged", dom.pendingBadges, 6);
+// The pending count moved with every batch that wired a backend: 14 before
+// Batch 5, 9 after Scan/HTML to PDF, 6 after Form Filler/Excel/Translate, and
+// 0 since Batch 8 wired the last six — only pdf-to-markdown stays partial.
+check("no backend-pending cards badged", dom.pendingBadges, 0);
 check("2 Popular ribbons", dom.popularBadges, 2);
 check("hero quick-dropzone present", dom.quickDropzone, true);
 check("landing search bar present", dom.searchBar, true);
@@ -625,23 +626,26 @@ await shot("remove-pages-dark");
 
 /* ════════ 6. BACKEND-PENDING GUARANTEE (definition-of-done item 5) ════════ */
 
-// A pending tool must never be runnable: disabled Process + a visible badge.
-await goto(`${BASE}/tools/sign`, 1200, '[data-testid="upload-dropzone"]');
+// Batch 8 wired the last pending tool, so the guarantee is exercised on the
+// one remaining partial: pdf-to-markdown keeps its (previously implemented)
+// extract-text backend, and the workspace must NOT render the not-connected
+// chrome for it — while the disabled-CTA mechanics the guarantee protects
+// remain covered by the catalog walk below and every suite's real runs.
+await goto(`${BASE}/tools/pdf-to-markdown`, 1200, '[data-testid="upload-dropzone"]');
 await setTheme("light");
 await upload();
 await sleep(1200);
-const pendingTool = await evaluate(`(() => ({
+const partialTool = await evaluate(`(() => ({
   badge: !!document.querySelector('[data-testid="pending-badge"]'),
-  badgeText: (document.querySelector('[data-testid="pending-badge"]')?.innerText ?? '').slice(0, 60),
   processDisabled: document.querySelector('[data-testid="button-process"]')?.disabled,
   processLabel: document.querySelector('[data-testid="button-process"]')?.textContent.trim(),
   wire: document.querySelector('[data-testid="wire-status"]')?.dataset.status,
 }))()`);
-check("pending tool shows the not-connected badge", pendingTool.badge, true);
-check("pending tool: Process is disabled", pendingTool.processDisabled, true);
-check("pending tool: CTA reads Unavailable", pendingTool.processLabel, "Unavailable");
-check("pending tool wire status = pending", pendingTool.wire, "pending");
-await shot("pending-tool-sign");
+check("partial tool shows no not-connected badge", partialTool.badge, false);
+check("partial tool: Process stays enabled (it has a backend)", partialTool.processDisabled, false);
+check("partial tool: CTA reads Process, not Unavailable", partialTool.processLabel.startsWith("Process "), true);
+check("partial tool wire status = partial", partialTool.wire, "partial");
+await shot("partial-tool-pdf-to-markdown");
 
 // A wired tool with an unbuilt options panel must refuse to run, so the endpoint
 // is never called with silently-unset defaults. Until Batch 4 there was always a

@@ -227,12 +227,15 @@ for (const [id, route] of [
   check(`catalog: ${id} is implemented`, byId[id].status, "implemented");
   check(`catalog: ${id} points at ${route}`, byId[id].route, route);
 }
-// Batch 6 moved scan-to-pdf and html-to-pdf and Batch 7 the form filler,
-// excel and translate, so the counts this suite pinned at 20/11 are now 25/6.
-check("catalog: implemented count is 25",
-      tools.filter((t) => t.status === "implemented").length, 25);
-check("catalog: pending count is 6",
-      tools.filter((t) => t.status === "pending").length, 6);
+// Batch 6 moved scan-to-pdf and html-to-pdf, Batch 7 the form filler, excel
+// and translate, and Batch 8 the last six — the counts this suite pinned at
+// 20/11, then 25/6, settle at 31 implemented + 1 partial.
+check("catalog: implemented count is 31",
+      tools.filter((t) => t.status === "implemented").length, 31);
+check("catalog: the one partial is pdf-to-markdown",
+      tools.filter((t) => t.status === "partial").map((t) => t.id), ["pdf-to-markdown"]);
+check("catalog: nothing pending any more",
+      tools.filter((t) => t.status === "pending").length, 0);
 check("catalog: still 32 tools in total", tools.length, 32);
 
 /* ── 2. LANDING: Convert-to section reflects the new wires ───────────────── */
@@ -245,8 +248,8 @@ for (const id of ["word-to-pdf", "ppt-to-pdf", "excel-to-pdf"]) {
 }
 check("landing: html-to-pdf is no longer badged pending",
       await evaluate(`!document.querySelector('[data-testid="badge-pending-html-to-pdf"]')`), true);
-check("landing: pdf-to-word is still badged pending",
-      await evaluate(`!!document.querySelector('[data-testid="badge-pending-pdf-to-word"]')`), true);
+check("landing: pdf-to-word is no longer badged pending (wired in Batch 8)",
+      await evaluate(`!document.querySelector('[data-testid="badge-pending-pdf-to-word"]')`), true);
 check("landing: convert-to count still reads 6 Tools",
       await evaluate(`document.querySelector('[data-testid="count-convert-to"]')?.textContent.trim()`), "6 Tools");
 await shot("landing-convert-to");

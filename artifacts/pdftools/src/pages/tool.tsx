@@ -56,6 +56,12 @@ const PROCESS_LABELS: Record<string, string> = {
   "pdf-to-markdown": "Converting to Markdown...",
   "ai-summarize": "Asking the model for a summary...",
   "translate-pdf": "Translating page by page...",
+  "chat-with-document": "Answering from the document...",
+  redact: "Removing the matching text...",
+  sign: "Signing the document...",
+  "pdf-to-word": "Rebuilding the text as a Word file...",
+  "pdf-to-powerpoint": "Building the slide deck...",
+  "edit-pdf": "Placing the edits...",
   compare: "Diffing the two documents...",
 };
 
@@ -287,6 +293,54 @@ export default function Tool() {
         title: "A password is required",
         message:
           "Protect encrypts the document with the password you set. Enter one in the Configure step and run it again.",
+      });
+      return;
+    }
+    if (tool.id === "sign" &&
+        (typeof options.passphrase !== "string" || options.passphrase.length === 0)) {
+      // The endpoint 400s without a passphrase (it protects the generated
+      // self-signed certificate); surface the requirement before any request,
+      // exactly like the protect-password guard.
+      setPhase("error");
+      setError({
+        title: "A passphrase is required",
+        message:
+          "Signing protects the certificate's key with the passphrase you set. Enter one in the Configure step and run it again.",
+      });
+      return;
+    }
+    if (tool.id === "chat-with-document" &&
+        (typeof options.question !== "string" || options.question.trim().length === 0)) {
+      // An empty question would 400 at the endpoint; refuse it up front.
+      setPhase("error");
+      setError({
+        title: "Ask a question first",
+        message:
+          "Type what you want to know about the document in the Configure step and run it again.",
+      });
+      return;
+    }
+    if (tool.id === "redact" &&
+        (typeof options.terms !== "string" || options.terms.replace(/[\[\]\s"]|(\n)/g, "").length === 0)) {
+      // The panel sends a JSON array string; empty array means nothing to do
+      // and the endpoint 400s. Refuse the empty run up front.
+      setPhase("error");
+      setError({
+        title: "List at least one term",
+        message:
+          "Redaction needs the text to remove. Enter the terms in the Configure step and run it again.",
+      });
+      return;
+    }
+    if (tool.id === "edit-pdf" &&
+        (typeof options.ops !== "string" || options.ops.trim().length === 0)) {
+      // The panel leaves ops empty until there is text to place; an empty run
+      // would 400 at the endpoint.
+      setPhase("error");
+      setError({
+        title: "Nothing to place yet",
+        message:
+          "Enter the text to place on the document in the Configure step and run it again.",
       });
       return;
     }
@@ -593,6 +647,21 @@ function jsonResult(
       ],
       bodyLabel: "Translation",
       body: pages.map((page) => page.text).join("\n\n"),
+    };
+  }
+
+  if (toolId === "chat-with-document") {
+    const body = String(data.markdown ?? `# Answer\n\n${String(data.answer ?? "")}\n`);
+    const download = new Blob([body], { type: "text/markdown" });
+    return {
+      fileName: "chat-answer.md",
+      blob: download,
+      url: URL.createObjectURL(download),
+      meta: [
+        { label: "Pages", value: String(data.pageCount ?? "—") },
+      ],
+      bodyLabel: "Answer",
+      body: String(data.answer ?? ""),
     };
   }
 

@@ -29,6 +29,7 @@ import {
   WatermarkPdfOptions,
   WordToPdfOptions,
 } from "@workspace/api-zod";
+import { ChatWithDocumentOptions, EditPdfOptions, PdfToPowerpointOptions, PdfToWordOptions, RedactPdfOptions, SignPdfOptions } from "@workspace/api-zod";
 import { upload } from "../lib/upload";
 import { mergePdfs } from "../services/pdf/merge";
 import { splitPdf } from "../services/pdf/split";
@@ -53,6 +54,12 @@ import { pdfToExcel } from "../services/pdf/pdf-to-excel";
 import { translatePdf } from "../services/pdf/translate";
 import { getPdfPageInfo } from "../services/pdf/page-info";
 import { summarizePdf } from "../services/pdf/summarize";
+import { redactPdf } from "../services/pdf/redact";
+import { signPdfDocument } from "../services/pdf/sign";
+import { pdfToWord } from "../services/pdf/pdf-to-word";
+import { pdfToPowerpoint } from "../services/pdf/pdf-to-powerpoint";
+import { chatWithDocument } from "../services/pdf/chat";
+import { editPdfContent } from "../services/pdf/edit";
 
 const router: IRouter = Router();
 
@@ -139,5 +146,31 @@ router.post("/pdf/pdf-to-pdfa", upload.single("file"), withOptions(PdfToPdfAOpti
 // ─── AI ───────────────────────────────────────────────────────────────────────
 router.post("/pdf/ai-summarize", upload.single("file"), summarizePdf);
 router.post("/pdf/translate-pdf", upload.single("file"), withOptions(TranslatePdfOptions, translatePdf));
+router.post("/pdf/chat-with-document", upload.single("file"), withOptions(ChatWithDocumentOptions, chatWithDocument));
+
+// ─── Batch 8 ───────────────────────────────────────────────────────────────────
+// Redact rewrites content with mupdf; sign takes an optional certificate part
+// (a self-signed pair is generated when it is absent); edit takes an optional
+// image part consumed by its image ops. Both follow the watermark pattern of
+// `upload.fields` with the document under `file`.
+router.post("/pdf/redact", upload.single("file"), withOptions(RedactPdfOptions, redactPdf));
+router.post(
+  "/pdf/sign",
+  upload.fields([
+    { name: "file", maxCount: 1 },
+    { name: "p12", maxCount: 1 },
+  ]),
+  withOptions(SignPdfOptions, signPdfDocument),
+);
+router.post("/pdf/pdf-to-word", upload.single("file"), withOptions(PdfToWordOptions, pdfToWord));
+router.post("/pdf/pdf-to-powerpoint", upload.single("file"), withOptions(PdfToPowerpointOptions, pdfToPowerpoint));
+router.post(
+  "/pdf/edit",
+  upload.fields([
+    { name: "file", maxCount: 1 },
+    { name: "image", maxCount: 1 },
+  ]),
+  withOptions(EditPdfOptions, editPdfContent),
+);
 
 export default router;

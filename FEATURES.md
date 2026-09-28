@@ -2,6 +2,8 @@
 
 Audited 2026-09-25 against the actual code in `artifacts/api-server/src` (routes + services), `artifacts/pdftools/src` (pages + `components/tool-options` panels), and the tool catalog served by `routes/tools.ts`. Statuses reflect runtime-verified behaviour, not just the presence of a route.
 
+> **Updated 2026-09-28 (Batch 8):** the last six ❌ rows below shipped — PDF to Word, PDF to PowerPoint, Edit PDF (overlay), Sign PDF, Redact PDF, Chat with Document — taking the catalog to **31 implemented · 1 partial · 0 pending**. The audit's blocker notes for those rows are preserved in git history; the shipped implementations state their honest scope in the panels and the spec.
+
 > **Reconciled 2026-09-26 (frontend rebuild):** this table tracks *backend capabilities* (31 rows — it includes Repair and OCR, which have routes but no catalog card), while the UI catalog now serves **32 tools / 6 categories**: **17 implemented · 1 partial · 14 backend-pending** (pending tools render a disabled Process button and a visible badge — the UI never silently calls a missing endpoint). The 14 pending map to the ❌/🟡 rows below plus the Convert/Edit/AI tools the backend has not grown yet. Note `README.md` predates the rebuild and still describes the pre-rebuild frontend; run instructions remain correct.
 
 **19 implemented, 2 partial, 12 not implemented — see notes for blockers.** (The request referred to 32 items; the supplied list contains 33.) Four items are **approved and pending build** — feasible with current dependencies, deliberately not yet started: PDF Forms (fill/flatten), PDF to Excel (CSV), Translate PDF, Scan to PDF (camera UI).
@@ -25,23 +27,24 @@ Every tool marked ✅ has a route in `routes/pdf.ts`, a catalog entry in `routes
 | Excel to PDF | ❌ Not implemented | Same blocker as Word to PDF (LibreOffice headless / hosted) |
 | HTML to PDF | ❌ Not implemented | Needs a real HTML layout engine — headless Chromium (puppeteer/playwright); pdf-lib cannot lay out HTML |
 | PDF to JPG | ✅ Implemented | `POST /pdf/pdf-to-images` · JPG/PNG, width/quality options, ZIP for multi-page |
-| PDF to Word | ❌ Not implemented | Needs a DOCX writer dependency (e.g. `docx`) plus layout reconstruction — non-trivial fidelity problem |
-| PDF to PowerPoint | ❌ Not implemented | Needs a PPTX writer (e.g. `pptxgenjs`) — new dependency |
+| PDF to Word | ✅ Implemented | `POST /pdf/pdf-to-word` · `docx` writer text rebuild: per-page headings + paragraphs; layout/columns/images/tables do not carry over (stated in the panel and spec); text-free documents refused (OCR first) |
+| PDF to PowerPoint | ✅ Implemented | `POST /pdf/pdf-to-powerpoint` · `pptxgenjs` deck, one editable text slide per page; text-free pages noted so page count is preserved |
 | PDF to Excel | ❌ Not implemented | **Pending build** (CSV form): `pdf-parse.getTable()` exists, so per-page tables → CSV is buildable now; a true `.xlsx` writer (`exceljs`) remains a future dependency |
 | PDF to PDF/A | ✅ Implemented | `POST /pdf/pdf-to-pdfa` · `convertToPDFA` with conformance choice (1B–3U); XMP/OutputIntent verified |
 | Rotate PDF | ✅ Implemented | `POST /pdf/rotate` · per-page selection |
 | Add page numbers | ✅ Implemented | `POST /pdf/add-page-numbers` · position/format/start |
 | Add watermark | ✅ Implemented | `POST /pdf/watermark` · text or image, opacity/position/scale |
 | Crop PDF | ✅ Implemented | `POST /pdf/crop` · pt/percent margins, page selection |
-| Edit PDF | ❌ Not implemented | pdf-lib can add overlays but cannot rewrite existing text/objects; true editing needs mupdf-class tooling. Overlay-only "edit" would be misleading |
+| Edit PDF | ✅ Implemented | `POST /pdf/edit` · overlay composition (text/rect/one image) as a JSON ops array in PDF points, matching the card's exact promise; off-page anchors refused; existing text is **not** rewritten (the audit's warning stands — no reflow exists) |
 | PDF Forms | 🟡 Partial | **Pending build (approved).** Fill/flatten of *existing* interactive fields is buildable now (`@cantoo/pdf-lib` exposes `getForm()`); creating new form fields is future scope |
 | Unlock PDF | ✅ Implemented | `POST /pdf/unlock` · rebuilds page-by-page to shed `/Encrypt` |
 | Protect PDF | ✅ Implemented | `POST /pdf/protect` · AES-256/AES-128/RC4, permission flags |
-| Sign PDF | ❌ Not implemented | Real signatures need `@signpdf/*` + `node-forge` plus a capture/placement UI; a drawn-only signature would not be cryptographically valid |
-| Redact PDF | ❌ Not implemented | True redaction requires content removal (mupdf/muhammara/qpdf). Drawing black boxes over text leaves it extractable — unsafe to ship |
+| Sign PDF | ✅ Implemented | `POST /pdf/sign` · real PKCS#7 detached signature via `@signpdf` (uploaded `.p12` or per-run self-signed via node-forge); visible stamp; ByteRange self-check; no TSA |
+| Redact PDF | ✅ Implemented | `POST /pdf/redact` · true content removal via mupdf (WASM): text objects deleted, black box drawn; literal case-insensitive terms; the removes-nothing run is a 422, not an unchanged file |
 | Compare PDF | ✅ Implemented | `POST /pdf/compare` · bounded LCS line diff with set-based fallback, JSON report rendered in the UI + Markdown download; bidi-aware extraction for Arabic/Hebrew |
 | AI Summarizer | ✅ Implemented | `POST /pdf/ai-summarize` · OpenAI (gpt-5-mini / openrouter), JSON summary + key points |
-| Translate PDF | ❌ Not implemented | **Pending build.** Translatable with the **existing** OpenAI client (no new dependency); scope is page segmentation, prompt/cost controls, and target-language selection |
+| Translate PDF | ✅ Implemented | `POST /pdf/translate-pdf` · page-by-page model calls with a strict JSON contract; 50-page cap; 503 when the key is unset |
+| Chat with Document | ✅ Implemented | `POST /pdf/chat-with-document` · one grounded question per run over the whole text layer (≈60k chars); must answer only from the document; no chunking/vector store (honest scope); 503 when the key is unset |
 | PDF to Markdown | 🟡 Partial | `/pdf/extract-text?format=md` exports Markdown with heuristic headings/lists; tables are not converted to Markdown tables |
 
 ## Pending queue (approved, not started)

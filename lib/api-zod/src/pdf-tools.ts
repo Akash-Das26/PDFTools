@@ -360,6 +360,74 @@ export const TranslatePdfOptions = z.object({
   targetLanguage: z.enum(TRANSLATE_LANGUAGES).default("english"),
 });
 
+// ─── Redact ───────────────────────────────────────────────────────────────────
+
+/**
+ * Terms arrive as one JSON array string. Matching is literal and
+ * case-insensitive — no regex, no patterns: redaction that silently did less
+ * than the user believed is the one failure this tool must never have, so
+ * every term is reported with its hit count and a run that removes nothing
+ * is a 422 rather than an unchanged file.
+ */
+const redactTerms = z
+  .string()
+  .trim()
+  .min(1, { message: "List at least one term to redact" })
+  .max(20_000, { message: "The terms payload is too large" });
+
+export const RedactPdfOptions = z.object({
+  terms: redactTerms,
+});
+
+// ─── Sign ─────────────────────────────────────────────────────────────────────
+
+/**
+ * The certificate is either an uploaded .p12/.pfx part (`p12`) or, when that
+ * part is absent, a self-signed pair generated for this run. Either way a
+ * passphrase is required: uploaded P12 files are encrypted with it, and the
+ * generated one must not ship unprotected.
+ */
+export const SignPdfOptions = z.object({
+  signerName: z.string().trim().max(120).optional(),
+  passphrase: z.string().min(1, { message: "A passphrase is required" }).max(200),
+});
+
+// ─── PDF to Word / PowerPoint ─────────────────────────────────────────────────
+
+/** No options — the text rebuild is the whole contract. */
+export const PdfToWordOptions = z.object({});
+
+/** No options — one slide per page, text only. */
+export const PdfToPowerpointOptions = z.object({});
+
+// ─── Chat with Document ───────────────────────────────────────────────────────
+
+export const ChatWithDocumentOptions = z.object({
+  question: z
+    .string()
+    .trim()
+    .min(1, { message: "Ask a question about the document" })
+    .max(2000, { message: "The question is too long (2000 characters at most)" }),
+});
+
+// ─── Edit PDF Content ─────────────────────────────────────────────────────────
+
+/**
+ * Edit operations, posted as one JSON array string: text, rect and image
+ * placements in PDF points, page numbers 1-based. Shape-checked here for
+ * size only; the full per-op validation lives in the service where the
+ * errors can name the offending index.
+ */
+const editOps = z
+  .string()
+  .trim()
+  .min(1, { message: "Add at least one edit" })
+  .max(200_000, { message: "The edit payload is too large" });
+
+export const EditPdfOptions = z.object({
+  ops: editOps,
+});
+
 export type WordToPdfOptionsInput = z.infer<typeof WordToPdfOptions>;
 export type PptToPdfOptionsInput = z.infer<typeof PptToPdfOptions>;
 export type ExcelToPdfOptionsInput = z.infer<typeof ExcelToPdfOptions>;
@@ -387,3 +455,9 @@ export type PdfToImagesOptionsInput = z.infer<typeof PdfToImagesOptions>;
 export type ImagesToPdfOptionsInput = z.infer<typeof ImagesToPdfOptions>;
 export type ExportPdfTextOptionsInput = z.infer<typeof ExportPdfTextOptions>;
 export type OcrPdfOptionsInput = z.infer<typeof OcrPdfOptions>;
+export type RedactPdfOptionsInput = z.infer<typeof RedactPdfOptions>;
+export type SignPdfOptionsInput = z.infer<typeof SignPdfOptions>;
+export type PdfToWordOptionsInput = z.infer<typeof PdfToWordOptions>;
+export type PdfToPowerpointOptionsInput = z.infer<typeof PdfToPowerpointOptions>;
+export type ChatWithDocumentOptionsInput = z.infer<typeof ChatWithDocumentOptions>;
+export type EditPdfOptionsInput = z.infer<typeof EditPdfOptions>;

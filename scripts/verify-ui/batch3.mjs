@@ -177,8 +177,8 @@ for (const id of ["edit-pdf", "add-page-numbers", "watermark", "crop", "pdf-form
 }
 check("landing: edit count badge reads 5 Tools",
       await evaluate(`document.querySelector('[data-testid="count-edit"]')?.textContent.trim()`), "5 Tools");
-check("landing: edit-pdf shows backend-pending badge",
-      await evaluate(`!!document.querySelector('[data-testid="badge-pending-edit-pdf"]')`), true);
+check("landing: edit-pdf is no longer badged pending (wired in Batch 8)",
+      await evaluate(`!document.querySelector('[data-testid="badge-pending-edit-pdf"]')`), true);
 // Batch 7 moved pdf-form-filler to implemented, so edit-pdf carries this
 // section's still-pending example on its own.
 check("landing: pdf-form-filler is no longer badged pending",
@@ -296,24 +296,23 @@ check("crop: download enabled",
       await evaluate(`!document.querySelector('[data-testid="button-download"]').disabled`), true);
 await shot("crop-complete");
 
-/* ── 5. EDIT-PDF: the honest backend-pending workspace ───────────────── */
-// pdf-form-filler left the pending set in Batch 7 (batch7.mjs covers its real
-// panels and runs), so this section's pending example is edit-pdf alone.
+/* ── 5. EDIT-PDF: wired in Batch 8 — workspace guarantees hold, unpended ─── */
+// Pending when this suite was written (its last remaining example after the
+// form filler left the set in Batch 7); Batch 8 wired it and batch8.mjs covers
+// the real run. The workspace guarantees are re-asserted from the wired side.
 {
   const id = "edit-pdf";
   await openThemed(`${BASE}/tools/${id}`, '[data-testid="upload-dropzone"]', "light");
   await uploadFiles([FIXTURE]);
-  await waitFor('[data-testid="pending-badge"]');
-  check(`${id}: pending badge shown`, true, true);
-  check(`${id}: Process disabled`,
-        await evaluate(`document.querySelector('[data-testid="button-process"]').disabled`), true);
-  check(`${id}: CTA reads Unavailable`,
-        await evaluate(`document.querySelector('[data-testid="button-process"]').textContent.trim()`), "Unavailable");
-  check(`${id}: configure panel marked not built`,
-        await evaluate(`!!document.querySelector('[data-testid="options-not-built"]')`), true);
-  await click('[data-testid="button-process"]');
-  check(`${id}: disabled button performs no request (no error panel)`,
-        await evaluate(`!document.querySelector('[data-testid="error-panel"]')`), true);
+  await waitFor('[data-testid="edit-note"]');
+  check(`${id}: no pending badge remains`,
+        await evaluate(`!document.querySelector('[data-testid="pending-badge"]')`), true);
+  check(`${id}: Process enabled`,
+        await evaluate(`!document.querySelector('[data-testid="button-process"]').disabled`), true);
+  check(`${id}: CTA no longer reads Unavailable`,
+        await evaluate(`document.querySelector('[data-testid="button-process"]').textContent.trim() !== "Unavailable"`), true);
+  check(`${id}: configure panel is built`,
+        await evaluate(`!document.querySelector('[data-testid="options-not-built"]')`), true);
 }
 
 console.log(`\n${results.filter((r) => r.pass).length}/${results.length} passed`);

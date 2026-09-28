@@ -214,10 +214,10 @@ check("landing: convert-from count reads 6 Tools",
       await evaluate(`document.querySelector('[data-testid="count-convert-from"]')?.textContent.trim()`), "6 Tools");
 // word-to-pdf moved to implemented in Batch 5 and html-to-pdf in Batch 6, so
 // the still-pending Convert example is pdf-to-word; the list below grows.
-check("landing: pdf-to-word still badged pending",
-      await evaluate(`!!document.querySelector('[data-testid="badge-pending-pdf-to-word"]')`), true);
-check("landing: edit-pdf still badged pending",
-      await evaluate(`!!document.querySelector('[data-testid="badge-pending-edit-pdf"]')`), true);
+check("landing: pdf-to-word is no longer badged pending (wired in Batch 8)",
+      await evaluate(`!document.querySelector('[data-testid="badge-pending-pdf-to-word"]')`), true);
+check("landing: edit-pdf is no longer badged pending (wired in Batch 8)",
+      await evaluate(`!document.querySelector('[data-testid="badge-pending-edit-pdf"]')`), true);
 check("landing: no wired Convert tool is badged pending",
       await evaluate(`["images-to-pdf","word-to-pdf","ppt-to-pdf","excel-to-pdf","pdf-to-images","pdf-to-pdfa","pdf-to-markdown"].some((id) => !!document.querySelector('[data-testid="badge-pending-' + id + '"]'))`), false);
 

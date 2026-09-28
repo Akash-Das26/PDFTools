@@ -288,8 +288,10 @@ check("catalog: Convert to PDF is complete (6 implemented)",
       tools.filter((t) => t.category === "convert-to" && t.status === "implemented").length, 6);
 // Batch 7 moved form filler, excel and translate to implemented, so the
 // counts this suite pinned at 22/9 are now 25/6. Convert to PDF is untouched.
-check("catalog: implemented count is 25", tools.filter((t) => t.status === "implemented").length, 25);
-check("catalog: pending count is 6", tools.filter((t) => t.status === "pending").length, 6);
+check("catalog: implemented count is 31", tools.filter((t) => t.status === "implemented").length, 31);
+check("catalog: the one partial is pdf-to-markdown",
+      tools.filter((t) => t.status === "partial").map((t) => t.id), ["pdf-to-markdown"]);
+check("catalog: nothing pending any more", tools.filter((t) => t.status === "pending").length, 0);
 check("catalog: still 32 tools", tools.length, 32);
 
 // Open Item 12: a route the API serves but the spec omits cannot be uploaded by
@@ -314,9 +316,9 @@ for (const id of ["scan-to-pdf", "html-to-pdf"]) {
 }
 check("landing: no Convert to PDF card is badged pending",
       await evaluate(`["images-to-pdf","word-to-pdf","ppt-to-pdf","excel-to-pdf","scan-to-pdf","html-to-pdf"].some((id) => !!document.querySelector('[data-testid="badge-pending-' + id + '"]'))`), false);
-check("landing: pdf-to-word and sign are still badged pending",
-      await evaluate(`!!document.querySelector('[data-testid="badge-pending-pdf-to-word"]') &&
-                     !!document.querySelector('[data-testid="badge-pending-sign"]')`), true);
+check("landing: pdf-to-word and sign are no longer badged pending (Batch 8 wired them)",
+      await evaluate(`!document.querySelector('[data-testid="badge-pending-pdf-to-word"]') &&
+                     !document.querySelector('[data-testid="badge-pending-sign"]')`), true);
 check("landing: convert-to count still reads 6 Tools",
       await evaluate(`document.querySelector('[data-testid="count-convert-to"]')?.textContent.trim()`), "6 Tools");
 await shot("landing-convert-to");

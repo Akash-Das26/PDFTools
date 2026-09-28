@@ -332,8 +332,10 @@ for (const id of ["pdf-form-filler", "pdf-to-excel", "translate-pdf"]) {
 check("catalog: pdf-form-filler points at its route", byId["pdf-form-filler"].route, "/api/pdf/pdf-form-filler");
 check("catalog: pdf-to-excel points at its route", byId["pdf-to-excel"].route, "/api/pdf/pdf-to-excel");
 check("catalog: translate-pdf points at its route", byId["translate-pdf"].route, "/api/pdf/translate-pdf");
-check("catalog: implemented count is 25", tools.filter((t) => t.status === "implemented").length, 25);
-check("catalog: pending count is 6", tools.filter((t) => t.status === "pending").length, 6);
+check("catalog: implemented count is 31", tools.filter((t) => t.status === "implemented").length, 31);
+check("catalog: the one partial is pdf-to-markdown",
+      tools.filter((t) => t.status === "partial").map((t) => t.id), ["pdf-to-markdown"]);
+check("catalog: nothing pending any more", tools.filter((t) => t.status === "pending").length, 0);
 check("catalog: still 32 tools", tools.length, 32);
 
 // Open Item 12, machine-checked both ways (Batch 6 introduced this; the counts
@@ -356,10 +358,10 @@ for (const id of ["pdf-form-filler", "pdf-to-excel", "translate-pdf"]) {
   check(`landing: ${id} is no longer badged pending`,
         await evaluate(`!document.querySelector('[data-testid="badge-pending-${id}"]')`), true);
 }
-check("landing: pdf-to-word is still badged pending",
-      await evaluate(`!!document.querySelector('[data-testid="badge-pending-pdf-to-word"]')`), true);
-check("landing: sign is still badged pending",
-      await evaluate(`!!document.querySelector('[data-testid="badge-pending-sign"]')`), true);
+check("landing: pdf-to-word is no longer badged pending (wired in Batch 8)",
+      await evaluate(`!document.querySelector('[data-testid="badge-pending-pdf-to-word"]')`), true);
+check("landing: sign is no longer badged pending (wired in Batch 8)",
+      await evaluate(`!document.querySelector('[data-testid="badge-pending-sign"]')`), true);
 
 /* ── 7. FORM FILLER panel: inspection-driven inputs, real run ────────────── */
 await openThemed(`${BASE}/tools/pdf-form-filler`, '[data-testid="upload-dropzone"]', "light");

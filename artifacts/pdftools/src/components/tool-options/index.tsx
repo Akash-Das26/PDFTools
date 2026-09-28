@@ -8,12 +8,16 @@ import { ImagesToPdfOptions } from "@/components/tool-options/images-to-pdf";
 import { MergeOptions } from "@/components/tool-options/merge";
 import { AddPageNumbersOptions } from "@/components/tool-options/page-numbers";
 import { PdfFormFillerOptions } from "@/components/tool-options/pdf-form-filler";
+import { ChatWithDocumentOptions } from "@/components/tool-options/chat-with-document";
+import { EditPdfOptions } from "@/components/tool-options/edit-pdf";
 import { PdfToExcelOptions } from "@/components/tool-options/pdf-to-excel";
 import { PdfToImagesOptions } from "@/components/tool-options/pdf-to-images";
 import { PdfToMarkdownOptions } from "@/components/tool-options/pdf-to-markdown";
 import { PdfToPdfaOptions } from "@/components/tool-options/pdf-to-pdfa";
 import { PptToPdfOptions } from "@/components/tool-options/ppt-to-pdf";
 import { ProtectOptions } from "@/components/tool-options/protect";
+import { RedactOptions } from "@/components/tool-options/redact";
+import { SignOptions } from "@/components/tool-options/sign";
 import { ReorderPagesOptions } from "@/components/tool-options/reorder-pages";
 import { RemovePagesOptions } from "@/components/tool-options/remove-pages";
 import { RotateOptions } from "@/components/tool-options/rotate";
@@ -73,11 +77,21 @@ export const OPTION_PANELS: Record<string, ComponentType<ToolOptionsProps>> = {
   "pdf-to-excel": PdfToExcelOptions,
   "pdf-form-filler": PdfFormFillerOptions,
   "translate-pdf": TranslatePdfOptions,
+  "redact": RedactOptions,
+  sign: SignOptions,
+  "chat-with-document": ChatWithDocumentOptions,
+  "edit-pdf": EditPdfOptions,
   "ai-summarize": NoOptionsPanel({
     note: "Runs with the default summarizer settings — a short summary plus key points. No options to set.",
   }),
   compare: NoOptionsPanel({
     note: "Compares the two documents exactly as they are. No options to set.",
+  }),
+  "pdf-to-word": NoOptionsPanel({
+    note: "The document's text is rebuilt as a Word file you can keep editing — each page becomes a heading plus its paragraphs. Layout, columns, images and tables do not carry over; a scanned PDF needs OCR first.",
+  }),
+  "pdf-to-powerpoint": NoOptionsPanel({
+    note: "Each page becomes one editable slide carrying that page's text — a real deck you can rework, not a picture deck. Images, backgrounds and layout do not carry over; a text-free page becomes a slide noting that.",
   }),
 };
 
