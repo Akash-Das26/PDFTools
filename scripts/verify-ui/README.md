@@ -45,7 +45,8 @@ bash scripts/verify-ui/drive.sh batch6.mjs
 # 75-assertion Batch 7 suite (PDF Form Filler: the inspected inventory drives the
 # panel, filled values proven by round-trip and by flatten; PDF to Excel: ruled
 # tables to CSV/ZIP with the delimiter proven both ways; Translate PDF's honest
-# 503 without a key)
+# 503 without a key) — NOTE: the translate section ASSERTS the 503, so it fails
+# by design if OPENAI_API_KEY is ever set; make it key-aware first
 bash scripts/verify-ui/drive.sh batch7.mjs
 
 # 44-assertion compression suite (Ghostscript profiles, the never-larger guarantee,
