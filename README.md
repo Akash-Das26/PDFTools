@@ -568,9 +568,10 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
    longer crashes the API (Item 17); damaged-file recovery is disclosed via `X-PDF-Recovered`/`X-PDF-Skipped-Files`
    headers and a UI notice instead of silent 200s (Item 20); rate limiting is on by default (Item 18); CORS
    is an allow-list (Item 19); and `pnpm audit` is clean after pinning patched transitive versions (Item 16).
-   What still stands as honest scope: the UI bundle is a single 610 KB chunk (no code-splitting), translate
-   fidelity depends on the chosen model snapshot (limitation 2), and the audit's accessibility hardening
-   bundle (Item 24) and knip config error (Item 23) remain open.
+   What still stands as honest scope: translate fidelity depends on the chosen model snapshot (limitation 2),
+   and the audit's accessibility hardening bundle (Item 24) and knip config error (Item 23) remain open. The
+   UI bundle itself is code-split into cacheable vendor chunks (largest 186 KB; the build's largest-chunk
+   warning is retired — note pdfjs was never a frontend dependency, it lives in api-server).
 
 ---
 

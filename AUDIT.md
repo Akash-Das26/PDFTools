@@ -20,7 +20,8 @@
 | Accessibility | 2026-09-29 (first deep audit) | Keyboard + aria strong in page workspaces; 1 unlabeled button; tertiary token measured 13.16:1 (closes Item 9's measurement) | |
 | Performance | 2026-09-29 (first audit) | Bundle 610 KB / 117 KB CSS (no code-split); memoryStorage model bounded per request but does not scale | |
 | Reliability & error handling | 2026-09-29 (first audit; crash, status codes and recovery disclosure all fixed same day) | All High/Medium reliability findings closed (Items 17/20/21); verification suites green | |
-| Performance | 2026-09-29 (first audit; spill fixed same day) | Memory model closed (hybrid spill engine, Item 22); bundle size (Low) remains | |
+| Performance | 2026-09-29 (first audit; spill fixed same day) | Memory model closed (hybrid spill engine, Item 22); bundle size (Low) remains |
+| Performance | 2026-09-30 (bundle re-audit) | Bundle Low closed: code-split via manualChunks (react/radix/icons/query/vendor), largest 185.7 KB / 58.5 KB gzip, warning retired; recharts + framer-motion proven unused and tree-shaken | |
 | Docs/code reconciliation | 2026-09-29 (re-audit) | README holds; FEATURES.md carried a self-contradicting header + stale AI provider row (both corrected) | |
 
 No audit cadence has been agreed for any area, so no entry is marked overdue.
@@ -241,7 +242,7 @@ No audit cadence has been agreed for any area, so no entry is marked overdue.
 | Severity | Finding | Status |
 |---|---|---|
 | Medium | **Memory model does not scale to the advertised limits:** multer memoryStorage loads every upload fully into RAM (20×50 MB = up to ~1 GB per request wave), and response building adds at least one full copy (`sendBuffer`'s `Buffer.from(data)`); compress holds reserialised + Ghostscript candidates simultaneously. Fine for a single-user tool; multi-user deployment will OOM before any queue protects it (and there is no queue/rate limit — see the Security entry) | **Fixed 2026-09-29 (spill session):** hybrid engine — RAM below the threshold, streamed to per-request temp dirs above, lazy buffer getter, cleanup on any response close + boot sweep; probed at a 1 KB threshold |
-| Low | Frontend bundle: single 610 KB JS chunk (185 KB gzip) + 117 KB CSS, no code-splitting — the pdfjs/page-picker machinery ships on the landing page too. Responsive, but the largest-payload warning fired at build | Open → Open Item (bundle item) |
+| Low | Frontend bundle: single 610 KB JS chunk (185 KB gzip) + 117 KB CSS, no code-splitting — the pdfjs/page-picker machinery ships on the landing page too. Responsive, but the largest-payload warning fired at build | **Fixed 2026-09-30 (bundle session):** `manualChunks` splits node_modules into cacheable buckets (react / radix / icons / query / vendor); largest chunk 185.7 KB (58.5 KB gzip), no chunk over the 500 kB threshold, warning retired, verify suite 127/127. Composition note: pdfjs is server-side only, and recharts + framer-motion are installed but imported by nothing (tree-shaken entirely) |
 | Info | No dev dependencies leak into the production bundle (vite build output contains app code only; esbuild stays server-side dev-only) | — |
 **Verdict:** Honest for its design point (single-user tool): bundle is acceptable if unoptimised, and the backend is bounded per request — but the in-memory pipeline plus no rate limiting means "20 files × 50 MB" is a per-connection, not a system, capability.
 **Confidence:** Medium — measurements direct from build artifacts and source, but no runtime memory profiling was performed (read-only session).

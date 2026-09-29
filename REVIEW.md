@@ -35,6 +35,22 @@
 
 ---
 
+## 2026-09-30 (bundle session) — 610 KB chunk warning retired via manualChunks vendor split
+**Commits:** this session's commit (`vite.config.ts` only, README/AUDIT status updates, this entry).
+**Type:** Performance/build improvement (follow-up to the 2026-09-29 audit's Performance finding, user-directed).
+**Trigger:** User request: code-split the frontend bundle with manualChunks to retire the 610 KB largest-chunk warning.
+**Changes made (all in `artifacts/pdftools/vite.config.ts`):** `build.rollupOptions.output.manualChunks` splits node_modules into five cacheable buckets — `react` (react/react-dom/scheduler), `radix` (the @radix-ui set plus its runtime satellites aria-hidden/react-remove-scroll and the two packages built on Radix Dialog, cmdk and vaul), `icons` (lucide-react, react-icons), `query` (@tanstack), and `vendor` (everything else). Two iterations were driven by build evidence: the satellites were added after a `vendor → radix → vendor` circular-chunk warning (cmdk → @radix-ui/react-dialog → satellites), and the originally drafted `motion`/`charts` buckets were dropped after the first build proved **framer-motion and recharts are imported by nothing** — the only recharts touchpoint is the unreferenced shadcn template `components/ui/chart.tsx` — so Rollup tree-shakes both (11.3 MB of node_modules) out of the bundle entirely. Composition fact recorded: pdfjs is server-side only (api-server); it was never in the frontend bundle.
+**Verification performed:**
+- Build comparison, both runs full log: baseline (change stashed) fires `(!) Some chunks are larger than 500 kB after minification` with a single ~610 KB chunk; with the change, **no chunk warning and no circular-chunk warning** — chunks: react 185.7 KB (58.5 KB gzip), index (app) 178.9 KB (45.6 KB gzip), radix 133.6 KB (41.4 KB gzip), vendor 65.5 KB (22.9 KB gzip), query 33.8 KB, icons 14.6 KB, CSS unchanged 117.9 KB (19.5 KB gzip).
+- The four `Error when using sourcemap for reporting an error` lines on `components/ui/{command,dropdown-menu,progress,select}.tsx` reproduce on the stashed baseline too — pre-existing Rollup sourcemap-attribution noise, unrelated to chunking, exit 0.
+- `pnpm typecheck` exit 0; `bash scripts/verify-ui/drive.sh verify.mjs` **127/127** with no page console errors.
+**Confidence:** High — before/after builds captured, the regression suite exercises the rebuilt bundle end-to-end (127 assertions incl. pdfjs page-picker workspaces).
+**Result:** Verified working. Audit Performance category now fully closed (memory model Item 22 closed in the spill session; bundle Low closed here).
+**Follow-ups opened:** none. **Follow-ups closed:** the audit's bundle-size Low (was bundled in Item 22's note).
+*Session-boundary rule:* (c) follow-up — deliberate closure of the remaining Performance finding.
+
+---
+
 ## 2026-09-29 (hardening-trio session) — Items 16 (finished), 20 and 22 closed; the audit's blockers are done
 **Commits:** `cb134c7` (image-size 2.0.4 override — audit clean), this session's commit (shared.ts recovery detection, merge disclosure, upload.ts hybrid storage, index.ts sweep, UI notice, docs), plus this entry.
 **Type:** Security + reliability hardening (audit follow-ups, user-directed; three items in one session at the user's direction)

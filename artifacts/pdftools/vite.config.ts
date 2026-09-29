@@ -48,6 +48,36 @@ export default defineConfig(async ({ mode }) => ({
   build: {
     outDir: path.resolve(import.meta.dirname, 'dist/public'),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // Manual chunking retires the 500 kB-chunk warning by splitting the
+        // former single 610 kB bundle into cacheable vendor buckets. Bucketing
+        // by library family (not per-package) keeps request count low while
+        // letting browsers cache the rarely-changing vendors separately from
+        // app code. Buckets: react runtime; the Radix primitive set (28
+        // packages, but only imported components ship) plus its two runtime
+        // satellites (aria-hidden, react-remove-scroll) and the two packages
+        // built on Radix Dialog (cmdk, vaul) — co-locating those avoids a
+        // vendor↔radix circular-chunk warning; the icon pack; react-query;
+        // everything else node_modules → vendor.
+        // framer-motion and recharts are installed but imported by nothing
+        // (only the unreferenced components/ui/chart.tsx mentions recharts),
+        // so Rollup tree-shakes them out and no chunk is emitted for them.
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return undefined;
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return 'react';
+          if (
+            id.includes('@radix-ui') ||
+            /[\\/]node_modules[\\/](aria-hidden|react-remove-scroll|cmdk|vaul)[\\/]/.test(id)
+          ) {
+            return 'radix';
+          }
+          if (id.includes('lucide-react') || id.includes('react-icons')) return 'icons';
+          if (id.includes('@tanstack')) return 'query';
+          return 'vendor';
+        },
+      },
+    },
   },
   server: {
     port,
