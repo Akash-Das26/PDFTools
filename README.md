@@ -259,6 +259,10 @@ cp .env.example .env
 | `OPENAI_API_KEY` | Enables the three model-backed AI tools (AI PDF Summarizer, Translate PDF, Chat with Document) | Optional. Without it all other tools work and these three return an HTTP 503 JSON error naming this variable |
 | `OPENAI_BASE_URL` | Point the AI client at an OpenAI-protocol-compatible provider instead of OpenAI (see the ops note below) | Optional |
 | `OPENAI_MODEL` | Model name used for every AI call (see the ops note below) | Optional, default `gpt-5-mini` |
+| `CORS_ORIGINS` | Comma-separated allow-list of exact browser origins allowed to call the API cross-origin. Unset: dev defaults locally, refused cross-origin calls in production | Optional |
+| `RATE_LIMIT_API_MAX` / `RATE_LIMIT_UPLOAD_MAX` | Request budgets per window: 300 for `/api` overall, 30 for `/pdf` uploads, over `RATE_LIMIT_WINDOW_MINUTES` (default 15 min) | Optional |
+| `RATE_LIMIT_DISABLED` | Any non-empty value skips both limiters. The verification harness sets this itself; leave it unset in production | Optional |
+| `RATE_LIMIT_TRUST_PROXY` | Set `1` behind exactly one trusted reverse proxy so limits count the real client address | Optional |
 | `WEB_PORT` | Port for the Vite dev server when launched via `pnpm dev:local` | Optional, default `5173` |
 | `API_PORT` | Port for the API server when launched via `pnpm dev:local` | Optional, default `8080` |
 
@@ -559,12 +563,12 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
    routes, the 31/1/0 catalog split, the 36-path count, the `batch8.mjs` row, limitation 2 rewritten as the
    new tools' honest scope limits, and the roadmap re-pointed at the chat live-branch mock. [REVIEW.md](REVIEW.md) is the source of truth.
 9. **Production hardening gaps (2026-09-29 adversarial audit — Open Items 16–22)** — the tool is honest and
-   thorough for single-user use, but it is not hardened for multi-user deployment: a malformed PDF no longer
-   crashes the API (the pdfjs rejection class found by the audit is contained at the process level and in the
-   per-request parser teardown — fixed and re-verified the same day), but there is still no rate limiting
-   (Item 18), CORS is allow-all (Item 19), uploads sit fully in RAM, so the 20×50 MB limit is per-connection,
-   not systemic (Item 22), and the lockfile-pinned multer carries upstream HIGH DoS advisories on the upload
-   path (Item 16). None affects correctness of successful runs; the rest block a production deployment.
+   thorough for single-user use, and the audit's perimeter findings are now closed: rate limiting is on by
+   default (300 req/15 min for `/api`, 30 for `/pdf` uploads, env-tunable) and CORS is an explicit
+   `CORS_ORIGINS` allow-list rather than allow-all. A malformed PDF no longer crashes the API either
+   (contained at the process level and in the per-request parser teardown). What still stands: uploads sit
+   fully in RAM, so the 20×50 MB limit is per-connection, not systemic (Item 22), and the transitive
+   `image-size` carries unreachable-with-this-code HIGH advisories pending its major bump (Item 16).
 
 ---
 

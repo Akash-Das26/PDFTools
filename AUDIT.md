@@ -15,7 +15,7 @@
 |---|---|---|---|
 | UI/design conformance | never (deep audit) — standing `compare.mjs` reference suite runs MATCH checks every session since 2026-09-26 | — | |
 | Dead code / dependencies | 2026-09-29 (re-audit; first was 2026-09-26) | Item 14 unchanged; knip now errors on drizzle config; vendored-file count 46→58 | |
-| Security | 2026-09-29 (adversarial audit) | No secrets in tree or history; 18 advisories (10 prod, multer worst); no rate limiting; CORS wide-open | |
+| Security | 2026-09-29 (adversarial audit; perimeter fixed same day) | No secrets; advisories 20→3 (image-size latent pair deliberate); rate limiting + CORS allow-list live (probe-verified) | |
 | API/spec consistency | 2026-09-29 (adversarial re-check, supersedes standing-suite-only status) | Clean: 36/36 routes ↔ paths, every binary field present | |
 | Accessibility | 2026-09-29 (first deep audit) | Keyboard + aria strong in page workspaces; 1 unlabeled button; tertiary token measured 13.16:1 (closes Item 9's measurement) | |
 | Performance | 2026-09-29 (first audit) | Bundle 610 KB / 117 KB CSS (no code-split); memoryStorage model bounded per request but does not scale | |
@@ -150,8 +150,8 @@ No audit cadence has been agreed for any area, so no entry is marked overdue.
 | Severity | Finding | Status |
 |---|---|---|
 | High | **multer 2.2.0 (lockfile-pinned) carries 4 advisories, 2 HIGH DoS directly on the upload path** (file-descriptor leak on aborted uploads; crafted-multipart-field DoS), + moderate orphaned-disk-write + low fileFilter race. Live on every upload route. Fix exists upstream (≥2.4.0) — log-only per read-only rule | Open → Open Item |
-| Medium | **No rate limiting anywhere** (`grep rate.limit\|429` over `src/` → zero): unbounded 50 MB×20-file processing per client | Open → Open Item |
-| Medium | **CORS wide-open** (`app.use(cors())`, default allow-all origins) — tolerable for a stateless dev tool, not for production | Open → Open Item |
+| Medium | **No rate limiting anywhere** (`grep rate.limit\|429` over `src/` → zero): unbounded 50 MB×20-file processing per client | **Fixed 2026-09-29 (perimeter session):** `express-rate-limit` 8.7.0, two tiers (300/window `/api`, 30/window `/pdf` uploads, mounted before multer), env-tunable, healthz exempt, harness escape hatch; live probe: 4th upload → 429 `{error}` + RateLimit headers |
+| Medium | **CORS wide-open** (`app.use(cors())`, default allow-all origins) — tolerable for a stateless dev tool, not for production | **Fixed 2026-09-29 (perimeter session):** `CORS_ORIGINS` allow-list (dev defaults locally, refusal in production, `*` opt-out); live probe: allowed origin gets ACAO, disallowed origin gets none |
 | Medium | **fast-uri 3.1.4** (4 HIGH SSRF/host-confusion advisories) — transitive via `@scalar/openapi-parser`; reachable only on the spec-validation/docs path, not on user request flow | Open (bundled with dependency item) |
 | Medium | **image-size 1.2.1** (2 HIGH infinite-loop DoS) — transitive via pptxgenjs, but **verified unreachable**: no `addImage` call exists (`grep addImage` → zero) and `edit.ts` sniffs magic bytes itself and embeds via pdf-lib; latent, becomes live the day image embedding lands | Open (bundled) |
 | Medium | `qs` 2 moderate array/DoS advisories via express query parsing — reachable on any query string | Open (bundled) |

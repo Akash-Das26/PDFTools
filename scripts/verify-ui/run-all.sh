@@ -22,7 +22,9 @@ pkill -9 -f "vite --config vite[.]config" 2>/dev/null
 sleep 2
 
 echo "== starting api-server =="
-setsid node --enable-source-maps artifacts/api-server/dist/index.mjs > /tmp/api.log 2>&1 &
+# RATE_LIMIT_DISABLED: the suites' repeated runs are honest traffic from one
+# profile and must not trip the API's rate limiters (Open Item 18's escape hatch).
+setsid env RATE_LIMIT_DISABLED=1 node --enable-source-maps artifacts/api-server/dist/index.mjs > /tmp/api.log 2>&1 &
 API_PID=$!
 
 for i in $(seq 1 40); do

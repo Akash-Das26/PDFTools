@@ -28,7 +28,10 @@ cleanup
 sleep 2
 
 echo "== start api =="
-node --env-file-if-exists=.env --enable-source-maps artifacts/api-server/dist/index.mjs > /tmp/api.log 2>&1 &
+# RATE_LIMIT_DISABLED: the suites' repeated runs are honest traffic from one
+# Chrome profile and must not trip the API's rate limiters (the escape hatch
+# documented in rate-limit.ts and .env.example); production leaves it unset.
+RATE_LIMIT_DISABLED=1 node --env-file-if-exists=.env --enable-source-maps artifacts/api-server/dist/index.mjs > /tmp/api.log 2>&1 &
 API=$!
 for i in $(seq 1 40); do
   [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 2 http://127.0.0.1:8080/api/healthz)" = "200" ] && break

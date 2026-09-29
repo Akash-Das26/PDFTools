@@ -4,8 +4,63 @@ import multer from "multer";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { apiLimiter, uploadLimiter } from "./lib/rate-limit";
 
 const app: Express = express();
+
+// Behind exactly one trusted proxy (reverse proxy / load balancer), the real
+// client address is in X-Forwarded-For; RATE_LIMIT_TRUST_PROXY=1 makes req.ip
+// that address so the rate limiters count per client instead of per proxy.
+// Default is off — direct exposure, socket address, the safe choice.
+if (process.env.RATE_LIMIT_TRUST_PROXY === "1") app.set("trust proxy", 1);
+
+/**
+ * CORS (Open Item 19, production-readiness audit): the previous blanket
+ * `cors()` mirrored every origin. Cross-origin reads of API responses are not
+ * part of this app's design (the frontend is same-origin in every documented
+ * deployment: Vite dev proxy or the API serving its own built frontend), so an
+ * explicit allow-list costs nothing and removes the drive-by surface.
+ *
+ * `CORS_ORIGINS` is a comma-separated list of exact origins; a `*` entry opts
+ * back into the old blanket behaviour for exotic deployments. Unset, the
+ * defaults cover the documented local flows (Vite on :5173/:5174, loopback).
+ * In Production mode with no list configured, cross-origin calls are refused
+ * rather than silently allowed — a safer default than permissive.
+ */
+const corsOrigins = (process.env.CORS_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const corsAllowAll = corsOrigins.includes("*");
+
+if (corsAllowAll) {
+  app.use(cors());
+} else if (corsOrigins.length > 0) {
+  app.use(
+    cors({
+      origin(origin, callback) {
+        // Non-browser clients (curl, the CDP suites' Node fetch) send no Origin
+        // header at all; same-origin requests may also omit it. Those are not
+        // cross-origin and pass through.
+        if (!origin || corsOrigins.includes(origin)) callback(null, true);
+        else callback(null, false);
+      },
+    }),
+  );
+} else if (process.env.NODE_ENV === "production") {
+  logger.warn("CORS_ORIGINS unset in production — cross-origin browser calls will be refused");
+} else {
+  // Development defaults: the Vite dev server ports and loopback origins.
+  const devPort = process.env.WEB_PORT ?? "5173";
+  const apiPort = process.env.API_PORT ?? process.env.PORT ?? "8080";
+  const devOrigins = [
+    `http://localhost:${devPort}`,
+    `http://127.0.0.1:${devPort}`,
+    `http://localhost:${apiPort}`,
+    `http://127.0.0.1:${apiPort}`,
+  ];
+  app.use(cors({ origin: devOrigins }));
+}
 
 app.use(
   pinoHttp({
@@ -26,9 +81,15 @@ app.use(
     },
   }),
 );
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting (Open Item 18): the API backstop covers everything under /api,
+// and the upload tier sits ahead of the pdf router so a rejected request never
+// reaches multer's RAM buffering. Mounted after CORS so preflights are answered
+// before a client builds up a rate-limit debt it cannot see.
+app.use("/api", apiLimiter);
+app.use("/api/pdf", uploadLimiter);
 
 app.use("/api", router);
 

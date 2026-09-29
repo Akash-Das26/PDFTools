@@ -157,4 +157,13 @@ overrides:
   "@expo/ngrok-bin>@expo/ngrok-bin-win32-x64": "-"
   # drizzle-kit uses esbuild internally on an older version that's vulnerable, this overrides it
   "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0"
-  esbuild: "0.27.3"
+  # Security overrides (2026-09-29, Open Item 16): pin patched in-major versions
+  # over the vulnerable ones the dependency graph resolved. Bounded to the
+  # vulnerable ranges so future majors are never forced sideways.
+  "fast-uri@<3.1.7": ">=3.1.7 <4"
+  "qs@<6.16.0": ">=6.16.0 <7"
+  "js-yaml@<4.3.2": ">=4.3.2 <5"
+  "nanoid@<3.3.18": ">=3.3.18 <4"
+  "brace-expansion@<5.0.9": ">=5.0.9 <6"
+  # vite's own range allows ^0.27.0 || ^0.28.0; 0.27.3 is the vulnerable one
+  esbuild: ">=0.28.1 <0.29"
