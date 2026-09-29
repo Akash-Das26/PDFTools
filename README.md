@@ -526,12 +526,15 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
    Content is overlay-only (existing text is not rewritten — no tool can reflow a PDF's text layer); Sign
    uses self-signed or uploaded P12 certificates with no timestamp authority; Redact matches literal,
    case-insensitive terms only; Chat with Document is one grounded question per run with no chunking or
-   vector store, and its live model path is unexercised until an `OPENAI_API_KEY` exists.
+   vector store. The live model paths were exercised against a real provider on 2026-09-29 (both AI suites
+   green with a rotated key); translate fidelity depends on the chosen model snapshot — pin concrete
+   snapshots, not `*-latest` aliases (see [Swapping the AI provider](#swapping-the-ai-provider)).
 3. **Rotate picker rotations are preview-only** — `POST /pdf/rotate` applies ONE angle (optionally scoped by
    `pages`), so the page-picker's per-page rotate arrows cannot be honoured per-page yet. Product decision
    pending: extend the backend, or keep the honest preview-only framing.
-4. **`on-tertiary-container` contrast never measured** — the `tertiary-fixed` token family is ported but used
-   by nothing yet; it must be measured before first use.
+4. **`on-tertiary-container` contrast measured 2026-09-29: 13.16:1** on `tertiary-container` (passes WCAG
+   easily); the `tertiary-fixed` token family is ported but still used by no component, so the pair is
+   unexercised in real UIs — measure per-usage if it is ever adopted on non-default backgrounds.
 5. **No test runner** — the CDP suites are committed and reproducible (see
    [Testing & verification](#9-testing--verification)), but there is still no framework (`vitest`/`jest`/
    `playwright`) and CI runs install/typecheck/build only, so no automated run happens on push; the suites
@@ -552,9 +555,15 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
    remains. Refreshed for Batch 6 — Scan/HTML to PDF and their routes, the `capture` field on the Tool schema,
    the 22/1/9 catalog split, the `batch6.mjs` row, the 30-path count, and limitation 2 moved to Batch 7. Refreshed
    for Batch 7 — Form Filler/Excel/Translate rows and routes, the 25/1/6 catalog split, the 34-path count, the
-   `batch7.mjs` row, and limitation 2 moved to Batch 8. Refreshed for Batch 8 — the last six tool rows and
+   `batch7.mjs` row, and limitation 2 moved to Batch 8. Refreshed   for Batch 8 — the last six tool rows and
    routes, the 31/1/0 catalog split, the 36-path count, the `batch8.mjs` row, limitation 2 rewritten as the
    new tools' honest scope limits, and the roadmap re-pointed at the chat live-branch mock. [REVIEW.md](REVIEW.md) is the source of truth.
+9. **Production hardening gaps (2026-09-29 adversarial audit — Open Items 16–22)** — the tool is honest and
+   thorough for single-user use, but it is not hardened for multi-user deployment: a malformed PDF can crash
+   the API process (pdfjs unhandled rejection, Open Item 17); there is no rate limiting (Item 18); CORS is
+   allow-all (Item 19); uploads sit fully in RAM, so the 20×50 MB limit is per-connection, not systemic
+   (Item 22); and the lockfile-pinned multer carries upstream HIGH DoS advisories on the upload path
+   (Item 16). None affects correctness of successful runs; all block a production deployment.
 
 ---
 

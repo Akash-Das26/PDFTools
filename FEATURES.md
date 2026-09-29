@@ -6,7 +6,7 @@ Audited 2026-09-25 against the actual code in `artifacts/api-server/src` (routes
 
 > **Reconciled 2026-09-26 (frontend rebuild):** this table tracks *backend capabilities* (31 rows — it includes Repair and OCR, which have routes but no catalog card), while the UI catalog now serves **32 tools / 6 categories**: **17 implemented · 1 partial · 14 backend-pending** (pending tools render a disabled Process button and a visible badge — the UI never silently calls a missing endpoint). The 14 pending map to the ❌/🟡 rows below plus the Convert/Edit/AI tools the backend has not grown yet. Note `README.md` predates the rebuild and still describes the pre-rebuild frontend; run instructions remain correct.
 
-**19 implemented, 2 partial, 12 not implemented — see notes for blockers.** (The request referred to 32 items; the supplied list contains 33.) Four items are **approved and pending build** — feasible with current dependencies, deliberately not yet started: PDF Forms (fill/flatten), PDF to Excel (CSV), Translate PDF, Scan to PDF (camera UI).
+**31 implemented, 1 partial, 0 not implemented.** (The request referred to 32 items; the supplied list contains 33.) This line previously read "19 implemented, 2 partial, 12 not implemented — see notes for blockers", the 2026-09-25 audit-time counts; every item in that queue has since shipped (Batches 5–8). Corrected 2026-09-29 under the production-readiness audit — the stale line sat directly under the Batch 8 note and contradicted it.
 
 Every tool marked ✅ has a route in `routes/pdf.ts`, a catalog entry in `routes/tools.ts`, and an option panel in `components/tool-options`; most were verified this session with runtime smoke tests (real PDFs through the built server, headless-Chrome flows for the UI).
 
@@ -42,7 +42,7 @@ Every tool marked ✅ has a route in `routes/pdf.ts`, a catalog entry in `routes
 | Sign PDF | ✅ Implemented | `POST /pdf/sign` · real PKCS#7 detached signature via `@signpdf` (uploaded `.p12` or per-run self-signed via node-forge); visible stamp; ByteRange self-check; no TSA |
 | Redact PDF | ✅ Implemented | `POST /pdf/redact` · true content removal via mupdf (WASM): text objects deleted, black box drawn; literal case-insensitive terms; the removes-nothing run is a 422, not an unchanged file |
 | Compare PDF | ✅ Implemented | `POST /pdf/compare` · bounded LCS line diff with set-based fallback, JSON report rendered in the UI + Markdown download; bidi-aware extraction for Arabic/Hebrew |
-| AI Summarizer | ✅ Implemented | `POST /pdf/ai-summarize` · OpenAI (gpt-5-mini / openrouter), JSON summary + key points |
+| AI Summarizer | ✅ Implemented | `POST /pdf/ai-summarize` · OpenAI-protocol provider via `OPENAI_BASE_URL`/`OPENAI_MODEL` (default `gpt-5-mini`; runs on Gemini in this deployment), JSON summary + key points |
 | Translate PDF | ✅ Implemented | `POST /pdf/translate-pdf` · page-by-page model calls with a strict JSON contract; 50-page cap; 503 when the key is unset |
 | Chat with Document | ✅ Implemented | `POST /pdf/chat-with-document` · one grounded question per run over the whole text layer (≈60k chars); must answer only from the document; no chunking/vector store (honest scope); 503 when the key is unset |
 | PDF to Markdown | 🟡 Partial | `/pdf/extract-text?format=md` exports Markdown with heuristic headings/lists; tables are not converted to Markdown tables |
@@ -58,6 +58,7 @@ These four were classified as buildable with current dependencies and approved f
 
 ## Audit notes
 
+- **Known limitation (2026-09-29, production-readiness audit — see AUDIT.md / Open Item 22):** Translate PDF's fidelity depends on the chosen model snapshot. A `*-latest` alias was observed live echoing the English source on 4 of 6 pages while reporting `failedPages: 0`; the JSON contract and caps hold, but output quality rides on the model. The service sends `temperature: 0.2` and the suite asserts a majority of pages are genuinely translated; pin concrete snapshots after probing them (README "Swapping the AI provider").
 - **No duplicate implementations found.** No feature has two routes or two catalog entries. `pages/compare.tsx` (index of SEO competitor pages) and `pages/comparison.tsx` (single competitor page) are unrelated to the Compare PDF tool — both are content pages and neither duplicates a tool.
 - **Premise corrections vs. the request:** Repair PDF (blocker listed) is implemented with a working recovery strategy; Compare PDF (blocker listed) is implemented; OCR PDF (blocker listed) is implemented on tesseract.js.
 - Runtime verification this session covered: duplicate-pages, repair (healthy + corrupted), PDF/A, OCR (Latin/CJK/Arabic/Hindi/Hebrew text + searchable-PDF layers), compare (Latin + RTL), plus earlier verified tools (merge, split, rotate, remove/reorder, crop, watermark, protect, unlock, images-to-pdf, pdf-to-images, extract-text, ai-summarize).
