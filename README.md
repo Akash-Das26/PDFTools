@@ -209,9 +209,9 @@ Sourced from the workspace `package.json` files (no dependency is listed that is
 Notes: the three `@replit/vite-plugin-*` packages are dev-only, and each is gated differently in
 `vite.config.ts`: `runtime-error-modal` loads whenever Vite runs in `development` mode, while `cartographer`
 and `dev-banner` additionally require `REPL_ID` to be set — so a non-Replit checkout exercises only the error
-overlay, never the two Replit-hosted ones. Root declares `@replit/connectors-sdk` but no
-code imports it (tracked as an open cleanup item). `cookie-parser` is declared by the API server but unused by
-any source file (same).
+overlay, never the two Replit-hosted ones. `@replit/connectors-sdk` and `cookie-parser`
+were removed 2026-09-30 after confirming zero imports anywhere (the database is wired
+directly through `DATABASE_URL`/drizzle, not the Replit connectors layer).
 
 ---
 
@@ -545,9 +545,8 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
    need Chrome plus live servers on fixed ports.
 6. **Spec ↔ multer coupling** — every new `/pdf/*` route must add its binary part(s) to `openapi.yaml` with
    the exact field name (`file`/`files`/`image`), or the generated client cannot upload.
-7. **Unused dependencies** — `cookie-parser` + `@types/cookie-parser` (API server; zero imports) and root
-   `@replit/connectors-sdk` (zero imports; Replit platform coupling under review). Removal deliberately
-   deferred.
+7. ~~Unused dependencies~~ — resolved 2026-09-30: `cookie-parser` + `@types/cookie-parser` and root
+   `@replit/connectors-sdk` removed after zero-import confirmation (knip, depcheck and grep all agree).
 8. **This README** — authored 2026-09-26 against `feat/frontend-rebuild` @ `9ef1a7a`; refreshed 2026-09-27
    against `main` @ `8fed014` (after Batch 3) to realign the testing and roadmap sections, then audited claim
    by claim against the live tree (six stale claims corrected: merge's output, the CI badge's branch pin,
@@ -594,8 +593,8 @@ Ordered by REVIEW.md's actual open items and the queued work they reference — 
 5. **Wire the committed verification suites into CI** — `scripts/verify-ui/` (the regression, accent/contrast and
    batch 1–8 + compression suites, 706 counted assertions in total) is committed and reproducible locally; making a workflow run it
    (Chrome + live servers) is the natural next step now that CI covers install/typecheck/build.
-6. **Dependency hygiene** — remove `cookie-parser` if still unused; decide `@replit/connectors-sdk`'s platform
-   coupling before touching it.
+6. ~~Dependency hygiene~~ — done 2026-09-30: the two unused server deps and the unused root
+   connectors-sdk are gone.
 7. **Approved backend candidates** (from the feature audit): PDF form fill/flatten, PDF→Excel (CSV), Translate
    PDF — shipped in Batch 7 (Scan to PDF in Batch 6); PDF to Word, PDF to PowerPoint, Edit PDF Content, Sign,
    Redact and Chat with Document — shipped in Batch 8. The audit's list is exhausted and the catalog is

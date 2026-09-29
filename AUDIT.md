@@ -14,7 +14,7 @@
 | Area | Last audited | Verdict | Overdue? |
 |---|---|---|---|
 | UI/design conformance | never (deep audit) — standing `compare.mjs` reference suite runs MATCH checks every session since 2026-09-26 | — | |
-| Dead code / dependencies | 2026-09-29 (re-audit; first was 2026-09-26) | Item 14 unchanged; vendored-file count 46→58; knip unblocked 2026-09-30 (runs findings-only, exit 1) | |
+| Dead code / dependencies | 2026-09-29 (re-audit; first was 2026-09-26) | Item 14 closed 2026-09-30 (both unused deps removed); vendored-file count 46→58; knip unblocked 2026-09-30 (runs findings-only, exit 1) | |
 | Security | 2026-09-29 (adversarial audit; all findings closed same day) | No secrets; `pnpm audit` **zero vulnerabilities** after the override set; rate limiting + CORS allow-list live (probe-verified) | |
 | API/spec consistency | 2026-09-29 (adversarial re-check, supersedes standing-suite-only status) | Clean: 36/36 routes ↔ paths, every binary field present | |
 | Accessibility | 2026-09-29 (first deep audit) | Keyboard + aria strong in page workspaces; 1 unlabeled button; tertiary token measured 13.16:1 (closes Item 9's measurement) |
@@ -89,8 +89,8 @@ No audit cadence has been agreed for any area, so no entry is marked overdue.
 | Severity | Finding | Status |
 |---|---|---|
 | Low | 104 unused files (46 after cleanup — the vendored primitives awaiting Batch 2–6 panels) | Fixed same session (mockup-sandbox, Stitch zip, `.design/`, logo removed; reference folder + prompts kept with reasons) |
-| Low | `cookie-parser` + `@types/cookie-parser` unused (knip AND depcheck agree) | Deferred — Open Item 14 |
-| Low | Root `@replit/connectors-sdk` unused; platform coupling unknown | Deferred — Open Item 14 |
+| Low | `cookie-parser` + `@types/cookie-parser` unused (knip AND depcheck agree) | **Fixed 2026-09-30:** removed (Open Item 14) |
+| Low | Root `@replit/connectors-sdk` unused; platform coupling unknown | **Fixed 2026-09-30:** removed — the DB wires directly via `DATABASE_URL`/drizzle; the connectors layer is unused (Open Item 14) |
 | Low (false positives) | 82 "unused devDeps" per knip are the vendored-primitives pattern (import-the-primitives tree); depcheck cross-check agreed they are not real gaps | Documented, no action |
 | Info | 45 unused exports; `replit-agent` branch's 13 commits tree-identical to main | Documented / branch deleted |
 **Verdict:** Clean, net of two unused deps flagged for deferred removal (pending the connectors-sdk decision) and the documented vendored-primitives false positives.
@@ -196,7 +196,7 @@ No audit cadence has been agreed for any area, so no entry is marked overdue.
 |---|---|---|
 | Medium | **knip errors at start** (`Error loading lib/db/drizzle.config.ts (DATABASE_URL …)`) — the dead-code tool cannot run cleanly without a provisioned DB, so CI-ability is broken | **Fixed 2026-09-30 (audit-resolution session):** `knip.json` disables the drizzle plugin's config loading (knip's documented known-issues workaround) and anchors `drizzle.config.ts` as the lib/db entry; re-run by the same method — zero ERROR lines, exit 2 → exit 1 (findings-only), unused-file count preserved at 58 |
 | Low | Vendored-unused file count regressed 46 → 58 (knip); all still the import-the-primitives pattern awaiting batch panels | Documented (pattern unchanged) |
-| Low | Open Item 14 exactly as it was: `cookie-parser` + `@types/cookie-parser` flagged by depcheck; connectors-sdk coupling undecided — no new unused deps accumulated in the api-server | Open — Item 14 stands |
+| Low | Open Item 14 exactly as it was: `cookie-parser` + `@types/cookie-parser` flagged by depcheck; connectors-sdk coupling undecided — no new unused deps accumulated in the api-server | **Fixed 2026-09-30 (audit-resolution session):** both removed after the user decision and a zero-import census; knip + depcheck re-run clean, API boots (healthz 200), verify suite 127/127 |
 | Info | Zero `console.log`/`debugger` in the api-server production source | — |
 **Verdict:** Essentially unchanged since the 2026-09-26 sweep — no new dead deps — but knip's DB-config error means the tool itself is not cleanly runnable, which the original audit did not face.
 **Confidence:** High — both tools run this session, outputs parsed.
