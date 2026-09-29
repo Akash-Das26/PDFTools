@@ -69,6 +69,35 @@ export function failTool(req: Request, res: Response, err: unknown, logLabel: st
     res.status(422).json({ error: ENCRYPTED_PDF_MESSAGE });
     return;
   }
+  // Document-read failures are the CLIENT's file, not the server's fault — the
+  // audit (Open Item 21) measured text-named-.pdf and encrypted inputs answering
+  // generic 500s on several tools. Match the error shapes the libraries
+  // actually emit (verified by probe, not guessed): pdfjs names its parse
+  // exceptions `InvalidPDFException` / `FormatError` and its password error
+  // `PasswordException`; pdf-lib raises raw TypeErrors while walking a
+  // structure that never parsed (e.g. `Cannot read properties of undefined
+  // (reading 'Pages')`). Classification lives here so every tool answers 4xx
+  // consistently; genuinely unexpected failures still get the 500 fallback.
+  const name = (err as { name?: string } | null)?.name;
+  const message = String((err as { message?: unknown } | null)?.message ?? "");
+  // `UnknownErrorException` is pdf-parse's remap of pdfjs's unclassified parse
+  // errors — probe-verified on the corrupted fixture ("Command token too long"
+  // arrives under that name even though pdfjs's own class was FormatError).
+  const isDocumentReadFailure =
+    name === "InvalidPDFException" ||
+    name === "FormatError" ||
+    name === "PasswordException" ||
+    name === "UnknownErrorException" ||
+    (err instanceof TypeError && /reading '(Pages|Root)'\)/.test(message));
+  if (isDocumentReadFailure) {
+    const detail = name === "PasswordException" ? ENCRYPTED_PDF_MESSAGE : undefined;
+    res.status(422).json({
+      error:
+        detail ??
+        "This file could not be read as a PDF — it may be damaged, incomplete, or not a PDF at all.",
+    });
+    return;
+  }
   res.status(500).json({ error: fallback });
 }
 
@@ -85,7 +114,19 @@ export function requireUploadedFile(req: Request, message = "A file is required"
 }
 
 export function requirePdfFile(req: Request, message = "A PDF file is required"): Express.Multer.File {
-  return requireUploadedFile(req, message);
+  const file = requireUploadedFile(req, message);
+  // The cheapest honest classification: whatever the name says, the bytes must
+  // open with the PDF signature. Without this, a renamed text file sails past
+  // multer into pdfjs/pdf-lib, whose parse failures used to surface as generic
+  // 500s (Open Item 21) — and pdf-lib resolves its load lazily, so garbage even
+  // reached getPageCount() before throwing. "No header" is a client error: the
+  // file is not a PDF and no transformation could fix that.
+  if (file.buffer.length < 5 || file.buffer.subarray(0, 5).toString("latin1") !== "%PDF-") {
+    throw unprocessable(
+      `This file is not a PDF — it has no %PDF header under the name "${sanitizeFileName(file.originalname)}". Export it as a PDF first.`,
+    );
+  }
+  return file;
 }
 
 export function requireUploadedFiles(req: Request): Express.Multer.File[] {
