@@ -136,6 +136,25 @@ export function requireUploadedFiles(req: Request): Express.Multer.File[] {
   return files;
 }
 
+/**
+ * `requirePdfFile` for the `upload.array("files")` routes: every upload must
+ * carry the %PDF signature. Rotate turned out to answer a generic 500 on a
+ * text-named .pdf (found by re-running the Item 21 status matrix with the
+ * right multipart field), so the sniff is shared rather than per-route —
+ * image/capture routes (images-to-pdf, scan-to-pdf) keep plain
+ * `requireUploadedFiles` because their uploads are legitimately not PDFs.
+ */
+export function requirePdfFiles(req: Request): Express.Multer.File[] {
+  return requireUploadedFiles(req).map((file) => {
+    if (file.buffer.length < 5 || file.buffer.subarray(0, 5).toString("latin1") !== "%PDF-") {
+      throw unprocessable(
+        `This file is not a PDF — it has no %PDF header under the name "${sanitizeFileName(file.originalname)}". Export it as a PDF first.`,
+      );
+    }
+    return file;
+  });
+}
+
 /** Reads a single upload from a `upload.fields([...])` request. */
 export function uploadedField(req: Request, field: string): Express.Multer.File | undefined {
   const files = req.files as Record<string, Express.Multer.File[]> | undefined;

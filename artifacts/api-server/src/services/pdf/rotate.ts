@@ -6,7 +6,7 @@ import {
   failTool,
   loadPdf,
   parsePageSelection,
-  requireUploadedFiles,
+  requirePdfFiles,
   sanitizeFileName,
   sendPdf,
   sendZip,
@@ -43,7 +43,7 @@ function parsePerPageRotations(raw: string | undefined): Map<number, number> {
 
 export async function rotatePdf(req: Request, res: Response, options: RotatePdfOptionsInput): Promise<void> {
   try {
-    const files = requireUploadedFiles(req);
+    const files = requirePdfFiles(req);
     const perPage = parsePerPageRotations(options.rotations);
 
     const rotateFile = async (buffer: Buffer): Promise<Buffer> => {

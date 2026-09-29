@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { ComparePdfOptionsInput } from "@workspace/api-zod";
 import { extractDoc } from "./extract";
-import { badRequest, baseName, failTool, requireUploadedFiles } from "./shared";
+import { badRequest, baseName, failTool, requirePdfFiles } from "./shared";
 
 /**
  * LCS diff is O(n*m); beyond this many lines per document the table would cost
@@ -157,7 +157,7 @@ export async function comparePdfs(
   _options: ComparePdfOptionsInput,
 ): Promise<void> {
   try {
-    const files = requireUploadedFiles(req);
+    const files = requirePdfFiles(req);
     if (files.length !== 2) {
       throw badRequest(`Select exactly two PDFs to compare — ${files.length} were uploaded.`);
     }
