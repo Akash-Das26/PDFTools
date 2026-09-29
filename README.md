@@ -559,11 +559,12 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
    routes, the 31/1/0 catalog split, the 36-path count, the `batch8.mjs` row, limitation 2 rewritten as the
    new tools' honest scope limits, and the roadmap re-pointed at the chat live-branch mock. [REVIEW.md](REVIEW.md) is the source of truth.
 9. **Production hardening gaps (2026-09-29 adversarial audit — Open Items 16–22)** — the tool is honest and
-   thorough for single-user use, but it is not hardened for multi-user deployment: a malformed PDF can crash
-   the API process (pdfjs unhandled rejection, Open Item 17); there is no rate limiting (Item 18); CORS is
-   allow-all (Item 19); uploads sit fully in RAM, so the 20×50 MB limit is per-connection, not systemic
-   (Item 22); and the lockfile-pinned multer carries upstream HIGH DoS advisories on the upload path
-   (Item 16). None affects correctness of successful runs; all block a production deployment.
+   thorough for single-user use, but it is not hardened for multi-user deployment: a malformed PDF no longer
+   crashes the API (the pdfjs rejection class found by the audit is contained at the process level and in the
+   per-request parser teardown — fixed and re-verified the same day), but there is still no rate limiting
+   (Item 18), CORS is allow-all (Item 19), uploads sit fully in RAM, so the 20×50 MB limit is per-connection,
+   not systemic (Item 22), and the lockfile-pinned multer carries upstream HIGH DoS advisories on the upload
+   path (Item 16). None affects correctness of successful runs; the rest block a production deployment.
 
 ---
 

@@ -1,5 +1,6 @@
 import { DOMMatrix, ImageData, Path2D } from "@napi-rs/canvas";
 import type { PDFParse as PDFParseClass } from "pdf-parse";
+import { logger } from "../../lib/logger";
 
 // Polyfill the browser globals pdfjs-dist expects to find on the global object.
 //
@@ -41,7 +42,18 @@ function toPartial(indices: number[] | undefined): number[] | undefined {
   return indices?.map((index) => index + 1);
 }
 
-/** Opens a pdf-parse session, always destroying the parser when the callback settles. */
+/**
+ * Opens a pdf-parse session, always destroying the parser when the callback settles.
+ *
+ * Per-request isolation: every call gets a fresh parser whose pdfjs document is
+ * destroyed before the promise settles, so poisoned parser state cannot leak
+ * between requests. `destroy()` itself is guarded — on a malformed document the
+ * underlying pdfjs teardown can reject too, and letting THAT escape the finally
+ * would mask the caller's real error; it is logged instead. Any rejection that
+ * still escapes pdfjs's internals (its `getDocument` fires fire-and-forget
+ * cleanup promises on malformed input) lands in index.ts's process-level
+ * `unhandledRejection` containment — see Open Item 17 in REVIEW.md.
+ */
 export async function withPdfParser<T>(
   buffer: Buffer,
   run: (parser: PDFParseInstance) => Promise<T>,
@@ -50,7 +62,11 @@ export async function withPdfParser<T>(
   try {
     return await run(parser);
   } finally {
-    await parser.destroy();
+    try {
+      await parser.destroy();
+    } catch (destroyError) {
+      logger.warn({ err: destroyError }, "pdf-parse destroy() rejected after a failed parse (contained)");
+    }
   }
 }
 
