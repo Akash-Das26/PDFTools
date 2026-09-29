@@ -25,6 +25,23 @@
 
 ---
 
+## 2026-09-29 (key-rotation session) — rotated Google key verified live; alias model swapped for a faithful snapshot
+**Commits:** none (gitignored `.env` only — key value, model name) plus this entry.
+**Type:** Ops/verification
+**Trigger:** User rotated the Google API key that had been pasted in chat and asked to update `.env` and re-run batch7 + batch8 live.
+**Changes made:**
+- `.env`: new key written into `OPENAI_API_KEY`; no repo file references the key (old or new) — confirmed before and after.
+- `.env`: `OPENAI_MODEL` moved from the **alias `gemini-flash-lite-latest`** to the **snapshot `gemini-3.5-flash-lite`**. Diagnosis: after the rotation the alias resolved to a snapshot that **echoed the English source on 4 of 6 pages** (per-page API probe, `failedPages: 0` — the service was innocent, the model was not translating), while the concrete snapshot translated the same probe faithfully twice in ~1 s and `gemini-3.1-flash-lite` did too; `gemini-3.5-flash` remained 503-saturated. The alias's resilience trade-off is not worth unfaithful translations — future model changes should pin snapshots after probing them.
+**Verification performed:**
+- New key through the app's auth path: OpenAI-compatible models list 200 (61 models), translate-shape completion 200 returning genuine French.
+- User's exact native `generateContent` form with `gemini-flash-latest` → 503 "high demand" (model capacity, not key validity — established by the 200s on the same key moments earlier).
+- `bash scripts/verify-ui/drive.sh batch7.mjs` → **81/81, exit 0** (page 1: "Test de vérification PDFTools — page 1"); `batch8.mjs` → **113/113, exit 0**. One 80/81 run before the model switch showed the echo problem the probe then isolated.
+**Confidence:** High — rotated key proven on both live paths; the echo failure mode is now understood as a model-snapshot quality issue, not a service or suite bug.
+**Result:** Verified working. **Follow-ups opened:** none. **Follow-ups closed:** the rotation request.
+*Session-boundary rule:* (c) follow-up — user-requested key rotation and its verification.
+
+---
+
 ## 2026-09-29 (AI-upstream-hardening session) — model-call retries with clean 502s; partial-translate honesty preserved
 **Commits:** this session's commit (ai.ts, shared.ts, chat/translate/summarize.ts, batch7/batch8 wait+assertion updates, this entry).
 **Type:** Robustness (the follow-up the live regression's two upstream flakes pointed at) + small fixes
