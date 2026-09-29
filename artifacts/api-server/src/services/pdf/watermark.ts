@@ -6,7 +6,8 @@ import {
   clamp,
   failTool,
   imageKindOf,
-  loadPdf,
+  loadPdfWithRecovery,
+  markRecovered,
   parsePageSelection,
   requirePdfFile,
   sendPdf,
@@ -85,7 +86,8 @@ function originFor(
 export async function watermarkPdf(req: Request, res: Response, options: WatermarkPdfOptionsInput): Promise<void> {
   try {
     const file = requirePdfFile(req);
-    const document = await loadPdf(file.buffer);
+    const { document, recovered } = await loadPdfWithRecovery(file.buffer);
+    markRecovered(res, recovered);
     const targetPages = parsePageSelection(options.pages, document.getPageCount());
     const pages = document.getPages();
 

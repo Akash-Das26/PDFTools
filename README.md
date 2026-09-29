@@ -562,13 +562,15 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
    `batch7.mjs` row, and limitation 2 moved to Batch 8. Refreshed   for Batch 8 — the last six tool rows and
    routes, the 31/1/0 catalog split, the 36-path count, the `batch8.mjs` row, limitation 2 rewritten as the
    new tools' honest scope limits, and the roadmap re-pointed at the chat live-branch mock. [REVIEW.md](REVIEW.md) is the source of truth.
-9. **Production hardening gaps (2026-09-29 adversarial audit — Open Items 16–22)** — the tool is honest and
-   thorough for single-user use, and the audit's perimeter findings are now closed: rate limiting is on by
-   default (300 req/15 min for `/api`, 30 for `/pdf` uploads, env-tunable) and CORS is an explicit
-   `CORS_ORIGINS` allow-list rather than allow-all. A malformed PDF no longer crashes the API either
-   (contained at the process level and in the per-request parser teardown). What still stands: uploads sit
-   fully in RAM, so the 20×50 MB limit is per-connection, not systemic (Item 22), and the transitive
-   `image-size` carries unreachable-with-this-code HIGH advisories pending its major bump (Item 16).
+9. **Production hardening gaps (2026-09-29 adversarial audit — all findings closed the same week)** — the
+   audit's blockers are resolved: uploads under `UPLOAD_SPILL_THRESHOLD_BYTES` (default 10 MB) stay in RAM
+   and larger ones stream to per-request temp dirs cleaned up automatically (Item 22); a malformed PDF no
+   longer crashes the API (Item 17); damaged-file recovery is disclosed via `X-PDF-Recovered`/`X-PDF-Skipped-Files`
+   headers and a UI notice instead of silent 200s (Item 20); rate limiting is on by default (Item 18); CORS
+   is an allow-list (Item 19); and `pnpm audit` is clean after pinning patched transitive versions (Item 16).
+   What still stands as honest scope: the UI bundle is a single 610 KB chunk (no code-splitting), translate
+   fidelity depends on the chosen model snapshot (limitation 2), and the audit's accessibility hardening
+   bundle (Item 24) and knip config error (Item 23) remain open.
 
 ---
 

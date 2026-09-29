@@ -413,8 +413,17 @@ export default function Tool() {
 
       if (controller.signal.aborted) return;
 
+      // Recovery disclosures (Open Item 20): never celebrate a success that
+      // quietly dropped content.
+      const notice = outcome.recovered
+        ? "Some pages of this document were damaged — the result was recovered from what could be read, and content may be missing. Check the output carefully."
+        : outcome.skippedFiles
+          ? `${outcome.skippedFiles} of the uploaded files could not be read as PDFs and were skipped.`
+          : undefined;
+
       if (outcome.kind === "json") {
         const next = jsonResult(tool.id, outcome.json, tool.name);
+        if (notice) next.notice = notice;
         if (fileUrlRef.current) URL.revokeObjectURL(fileUrlRef.current);
         fileUrlRef.current = next.url ?? null;
         setResult(next);
@@ -426,6 +435,7 @@ export default function Tool() {
           fileName: outcome.fileName ?? `${tool.id}-result`,
           blob: outcome.blob,
           url,
+          notice,
           // Only Compress exists to change the size; elsewhere the metric is noise.
           comparable: tool.id === "compress",
           meta: [

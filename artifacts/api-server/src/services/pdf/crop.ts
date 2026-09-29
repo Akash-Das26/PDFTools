@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import type { CropPdfOptionsInput } from "@workspace/api-zod";
-import { badRequest, failTool, loadPdf, parsePageSelection, requirePdfFile, sendPdf } from "./shared";
+import { badRequest, failTool, loadPdfWithRecovery, markRecovered, parsePageSelection, requirePdfFile, sendPdf } from "./shared";
 
 const MIN_CROP_SIZE = 10; // points
 
@@ -8,7 +8,8 @@ const MIN_CROP_SIZE = 10; // points
 export async function cropPdf(req: Request, res: Response, options: CropPdfOptionsInput): Promise<void> {
   try {
     const file = requirePdfFile(req);
-    const document = await loadPdf(file.buffer);
+    const { document, recovered } = await loadPdfWithRecovery(file.buffer);
+    markRecovered(res, recovered);
     const targetPages = parsePageSelection(options.pages, document.getPageCount());
     const pages = document.getPages();
 

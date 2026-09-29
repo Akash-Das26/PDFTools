@@ -37,6 +37,10 @@ export interface ProcessOutcome {
   blob?: Blob;
   fileName?: string;
   json?: unknown;
+  /** Set when the server recovered a damaged document (X-PDF-Recovered). */
+  recovered?: boolean;
+  /** Set when the server skipped unparseable inputs (X-PDF-Skipped-Files). */
+  skippedFiles?: number;
 }
 
 /**
@@ -118,8 +122,14 @@ export async function postTool(
 
   const contentType = response.headers.get("content-type") ?? "";
 
+  // Recovery disclosures (Open Item 20): the server marks responses produced
+  // from a damaged document it had to repair, or inputs it had to skip.
+  const recovered = response.headers.get("x-pdf-recovered") === "1";
+  const skippedRaw = response.headers.get("x-pdf-skipped-files");
+  const skippedFiles = skippedRaw ? Number(skippedRaw) : undefined;
+
   if (contentType.includes("application/json")) {
-    return { kind: "json", json: await response.json() };
+    return { kind: "json", json: await response.json(), recovered, skippedFiles };
   }
 
   return {
@@ -129,6 +139,8 @@ export async function postTool(
       response.headers.get("content-disposition"),
       fallbackFileName,
     ),
+    recovered,
+    skippedFiles,
   };
 }
 

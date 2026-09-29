@@ -143,6 +143,16 @@ export function ResultPanel({
         </div>
       )}
 
+      {result.notice && (
+        <p
+          data-testid="result-notice"
+          role="status"
+          className="rounded-lg border border-border bg-surface px-space-md py-space-sm text-body-sm text-muted-foreground"
+        >
+          {result.notice}
+        </p>
+      )}
+
       {result.meta.length > 0 && (
         <dl className="grid grid-cols-1 gap-space-sm sm:grid-cols-2">
           {result.meta.map((entry) => (

@@ -40,6 +40,12 @@ export interface WorkspaceResult {
   /** Free text body — used by AI summary and Compare. */
   body?: string;
   bodyLabel?: string;
+  /**
+   * Disclosure notice (Open Item 20): set when the server had to recover a
+   * damaged document or skip unparseable inputs, so the success is never
+   * silent about lost content.
+   */
+  notice?: string;
 }
 
 export interface WorkspaceErrorInfo {

@@ -4,7 +4,8 @@ import type { SplitPdfOptionsInput } from "@workspace/api-zod";
 import {
   badRequest,
   failTool,
-  loadPdf,
+  loadPdfWithRecovery,
+  markRecovered,
   pageRange,
   parsePageSelection,
   requirePdfFile,
@@ -20,7 +21,8 @@ import {
 export async function splitPdf(req: Request, res: Response, options: SplitPdfOptionsInput): Promise<void> {
   try {
     const file = requirePdfFile(req);
-    const source = await loadPdf(file.buffer);
+    const { document: source, recovered } = await loadPdfWithRecovery(file.buffer);
+    markRecovered(res, recovered);
     const totalPages = source.getPageCount();
 
     // "pages" mode only reads the list when one was supplied — an empty list

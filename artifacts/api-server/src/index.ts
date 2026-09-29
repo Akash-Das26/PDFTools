@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { sweepSpillRoot } from "./lib/upload";
 
 // Contain, don't die: a malformed PDF can make pdfjs surface an error as an
 // unhandled promise rejection (reproduced 2026-09-29 with pdfjs' `FormatError:
@@ -20,6 +21,9 @@ const port = Number(rawPort);
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
+
+// Clear any upload spill left by a crashed predecessor (best-effort, async).
+void sweepSpillRoot();
 
 app.listen(port, (err) => {
   if (err) {

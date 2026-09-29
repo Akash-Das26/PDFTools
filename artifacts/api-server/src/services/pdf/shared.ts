@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { ZipArchive } from "archiver";
 import { EncryptedPDFError, PDFDocument } from "@cantoo/pdf-lib";
+import { getPdfPageCount } from "./pdfjs";
 
 // archiver v8 is ESM-only and exports archive classes rather than the old
 // `archiver("zip", …)` factory, so ZIPs are built from ZipArchive directly.
@@ -219,6 +220,60 @@ export async function loadPdf(buffer: Buffer, options: { ignoreEncryption?: bool
     if (isEncryptedPdfError(err)) throw unprocessable(ENCRYPTED_PDF_MESSAGE);
     throw err;
   }
+}
+
+/**
+ * Loads a document with explicit recovery detection (Open Item 20).
+ *
+ * Two detection layers, because neither alone is honest:
+ *  1. pdf-lib's strict parse (`throwOnInvalidObject`) catches genuinely broken
+ *     objects — but its laziness means trailer-level damage can load "fine".
+ *  2. An independent cross-check with the pdfjs parser (the same engine the
+ *     text tools use): if pdfjs cannot read the file at all, or disagrees with
+ *     pdf-lib about the page count, pdf-lib's result was assembled from a
+ *     damaged structure and content was likely dropped — `recovered: true`.
+ *
+ * The lenient fallback still refuses hopeless files with a 422, and callers
+ * disclose `recovered: true` via `markRecovered` — never silently.
+ */
+export async function loadPdfWithRecovery(
+  buffer: Buffer,
+): Promise<{ document: PDFDocument; recovered: boolean }> {
+  let document: PDFDocument;
+  let lenient = false;
+  try {
+    document = await PDFDocument.load(buffer, { throwOnInvalidObject: true });
+  } catch (strictError) {
+    if (isEncryptedPdfError(strictError)) throw unprocessable(ENCRYPTED_PDF_MESSAGE);
+    try {
+      document = await PDFDocument.load(buffer, {
+        throwOnInvalidObject: false,
+        updateMetadata: false,
+      });
+      lenient = true;
+    } catch {
+      throw unprocessable(
+        "This PDF could not be read — its page structure is too damaged to process.",
+      );
+    }
+  }
+
+  // Cross-check with the independent parser before trusting the load.
+  let recovered = lenient;
+  try {
+    const jsPageCount = await getPdfPageCount(buffer);
+    if (jsPageCount !== document.getPageCount()) recovered = true;
+  } catch {
+    // pdfjs refuses a file pdf-lib accepted: structure damage pdf-lib guessed
+    // its way through. (Encrypted files were already refused above.)
+    recovered = true;
+  }
+  return { document, recovered };
+}
+
+/** Sets the recovery disclosure header when (and only when) recovery happened. */
+export function markRecovered(res: Response, recovered: boolean): void {
+  if (recovered) res.set("X-PDF-Recovered", "1");
 }
 
 /**
