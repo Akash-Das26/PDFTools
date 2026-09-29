@@ -165,5 +165,9 @@ overrides:
   "js-yaml@<4.3.2": ">=4.3.2 <5"
   "nanoid@<3.3.18": ">=3.3.18 <4"
   "brace-expansion@<5.0.9": ">=5.0.9 <6"
+  # The only fix for image-size's two HIGH DoS advisories is the 2.x major,
+  # outside pptxgenjs's ^1.2.1 range — forced here after verifying pptxgenjs
+  # still works against it (2026-09-29). Remove if pptxgenjs ever drops the dep.
+  "image-size@<2.0.3": ">=2.0.3 <3"
   # vite's own range allows ^0.27.0 || ^0.28.0; 0.27.3 is the vulnerable one
   esbuild: ">=0.28.1 <0.29"
