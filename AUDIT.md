@@ -17,7 +17,8 @@
 | Dead code / dependencies | 2026-09-29 (re-audit; first was 2026-09-26) | Item 14 unchanged; vendored-file count 46→58; knip unblocked 2026-09-30 (runs findings-only, exit 1) | |
 | Security | 2026-09-29 (adversarial audit; all findings closed same day) | No secrets; `pnpm audit` **zero vulnerabilities** after the override set; rate limiting + CORS allow-list live (probe-verified) | |
 | API/spec consistency | 2026-09-29 (adversarial re-check, supersedes standing-suite-only status) | Clean: 36/36 routes ↔ paths, every binary field present | |
-| Accessibility | 2026-09-29 (first deep audit) | Keyboard + aria strong in page workspaces; 1 unlabeled button; tertiary token measured 13.16:1 (closes Item 9's measurement) | |
+| Accessibility | 2026-09-29 (first deep audit) | Keyboard + aria strong in page workspaces; 1 unlabeled button; tertiary token measured 13.16:1 (closes Item 9's measurement) |
+| Accessibility | 2026-09-30 (walkthrough re-audit) | Item 24 closed: standing `a11y.mjs` suite — name census clean on all three surfaces (55/11/11/51 elements), full keyboard walkthrough of the page-picker passes 15/15 | |
 | Performance | 2026-09-29 (first audit) | Bundle 610 KB / 117 KB CSS (no code-split); memoryStorage model bounded per request but does not scale | |
 | Reliability & error handling | 2026-09-29 (first audit; crash, status codes and recovery disclosure all fixed same day) | All High/Medium reliability findings closed (Items 17/20/21); verification suites green | |
 | Performance | 2026-09-29 (first audit; spill fixed same day) | Memory model closed (hybrid spill engine, Item 22); bundle size (Low) remains |
@@ -224,7 +225,7 @@ No audit cadence has been agreed for any area, so no entry is marked overdue.
 **Findings:**
 | Severity | Finding | Status |
 |---|---|---|
-| Medium | `file-strip.tsx`'s icon+text "Replace document" button carries **no accessible name mechanism issue** — it has visible text, so labelled — but the **page-picker template has 5 buttons with only 2 aria-labels**; the unlabelled three are text-bearing (back/process-class controls), so the real gap is the pattern's inconsistency, not an unusable control | Open → Open Item (bundle with a11y hardening) |
+| Medium | `file-strip.tsx`'s icon+text "Replace document" button carries **no accessible name mechanism issue** — it has visible text, so labelled — but the **page-picker template has 5 buttons with only 2 aria-labels**; the unlabelled three are text-bearing (back/process-class controls), so the real gap is the pattern's inconsistency, not an unusable control | **Closed 2026-09-30 (audit-resolution session):** the walkthrough the audit could not perform is now a standing suite (`scripts/verify-ui/a11y.mjs`) — live accessible-name census over landing/stepper/page-picker (upload + configured states) plus a real CDP keyboard walkthrough of the page-picker (Space/Arrows/Alt+Arrow/Tab-through-overlay/Enter) — **15/15**; the census also shows the source-counted arithmetic no longer holds (every actionable element on all three surfaces resolves a name; none title-only) |
 | Info | Keyboard support is real and verified in source: `page-thumbnail.tsx` implements full `onKeyDown` (Enter/Space select, Alt+Arrows reorder/rotate — the Alt+Arrow bug fixed 2026-09-26 lives here); all 5 thumbnail buttons have aria-labels; the thumbnail `<img>` has alt text | — |
 | Info | `:focus-visible` global style present (`index.css` line 422) | — |
 | Info | **Open Item 9's measurement is now done: `on-tertiary-container` = 13.16:1** on `tertiary-container` (light) — passes; the token is currently used by **zero** components, and the dark theme overrides the tertiary family with the 10.44:1 pairing | Item 9's measurement half closed in REVIEW.md |
