@@ -78,6 +78,38 @@ export const RotatePdfOptions = z.object({
     .int()
     .refine((value) => [90, 180, 270].includes(value), { message: "Rotation must be 90, 180, or 270 degrees" }),
   pages: pageSelection,
+  /** Per-page clockwise deltas as "page:degrees" pairs, e.g. "1:90,3:270".
+   *  Overrides `rotation` for the pages it names; each page may appear once,
+   *  degrees must be non-zero multiples of 90, and page numbers must be
+   *  unique positive integers (validated against the real page count in the
+   *  service, like `pages`). */
+  rotations: z
+    .string()
+    .trim()
+    .max(4000)
+    .refine(
+      (value) => value === "" || value.split(",").every((pair) => /^[1-9]\d*:[1-9]\d*0$/.test(pair.trim())),
+      { message: 'Rotations must be page:degrees pairs such as "1:90,3:270"' },
+    )
+    .refine(
+      (value) => {
+        if (value === "") return true;
+        const pages = value.split(",").map((pair) => pair.trim().split(":")[0]);
+        return new Set(pages).size === pages.length;
+      },
+      { message: "Each page may appear at most once in rotations" },
+    )
+    .refine(
+      (value) => {
+        if (value === "") return true;
+        return value.split(",").every((pair) => {
+          const degrees = Number(pair.trim().split(":")[1]);
+          return degrees > 0 && degrees < 360 && degrees % 90 === 0;
+        });
+      },
+      { message: "Per-page rotation must be 90, 180, or 270 degrees" },
+    )
+    .optional(),
 });
 
 // ─── Page info ────────────────────────────────────────────────────────────────

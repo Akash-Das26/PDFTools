@@ -21,10 +21,13 @@ import type {
 
 import type {
   AddPageNumbersBody,
+  ChatWithDocument200,
+  ChatWithDocumentBody,
   ComparePdfsBody,
   CompressPdfBody,
   CropPdfBody,
   DuplicatePdfPagesBody,
+  EditPdfContentBody,
   ExcelToPdfBody,
   ExportPdfTextBody,
   FillPdfFormBody,
@@ -43,13 +46,17 @@ import type {
   PdfToExcelBody,
   PdfToImagesBody,
   PdfToPdfABody,
+  PdfToPowerpointBody,
+  PdfToWordBody,
   PptToPdfBody,
   ProtectPdfBody,
+  RedactPdfBody,
   RemovePdfPagesBody,
   ReorderPdfPagesBody,
   RepairPdfBody,
   RotatePdfBody,
   ScanToPdfBody,
+  SignPdfBody,
   SplitPdfBody,
   Stats,
   SummarizePdf200,
@@ -642,7 +649,7 @@ export const getRotatePdfUrl = () => {
 }
 
 /**
- * Send the document as `file`, or several documents as repeated `files` parts.
+ * Send the document as `file`, or several documents as repeated `files` parts. `rotations` optionally overrides the single angle per page with page:degrees pairs ("1:90,2:270") — a page named there rotates by its own delta, pages only inside the `pages` selection get `rotation`.
  * @summary Rotate all or selected pages
  */
 export const rotatePdf = async (rotatePdfBody: RotatePdfBody, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
@@ -653,6 +660,9 @@ if(rotatePdfBody.files !== undefined) {
 formData.append(`rotation`, rotatePdfBody.rotation.toString())
 if(rotatePdfBody.pages !== undefined) {
  formData.append(`pages`, rotatePdfBody.pages);
+ }
+if(rotatePdfBody.rotations !== undefined) {
+ formData.append(`rotations`, rotatePdfBody.rotations);
  }
 
   return customFetch<void>(getRotatePdfUrl(),
@@ -2950,5 +2960,496 @@ export const useSummarizePdf = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getSummarizePdfMutationOptions(options));
+    }
+
+export const getChatWithDocumentUrl = () => {
+
+
+
+
+  return `/api/pdf/chat-with-document`
+}
+
+/**
+ * Send the document as `file` plus a `question`. The text layer is extracted and sent to the model with the question under a strict contract — answer only from the document, and say plainly when it does not contain the answer. No chunking and no vector store — the whole text layer (to roughly 60000 characters) rides in one prompt, so this suits documents of tens of pages rather than thousands. Needs an `OPENAI_API_KEY`; when the key is absent the route answers 503.
+ * @summary Ask one question about a document, answered from its contents
+ */
+export const chatWithDocument = async (chatWithDocumentBody: ChatWithDocumentBody, options?: Parameters<typeof customFetch>[1]): Promise<ChatWithDocument200> => {
+    const formData = new FormData();
+if(chatWithDocumentBody.file !== undefined) {
+ formData.append(`file`, chatWithDocumentBody.file);
+ }
+formData.append(`question`, chatWithDocumentBody.question);
+
+  return customFetch<ChatWithDocument200>(getChatWithDocumentUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getChatWithDocumentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatWithDocument>>, TError,{data: BodyType<ChatWithDocumentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatWithDocument>>, TError,{data: BodyType<ChatWithDocumentBody>}, TContext> => {
+
+const mutationKey = ['chatWithDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatWithDocument>>, {data: BodyType<ChatWithDocumentBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  chatWithDocument(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatWithDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof chatWithDocument>>>
+    export type ChatWithDocumentMutationBody = BodyType<ChatWithDocumentBody>
+    export type ChatWithDocumentMutationError = ErrorType<void>
+
+    /**
+ * @summary Ask one question about a document, answered from its contents
+ */
+export const useChatWithDocument = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatWithDocument>>, TError,{data: BodyType<ChatWithDocumentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof chatWithDocument>>,
+        TError,
+        {data: BodyType<ChatWithDocumentBody>},
+        TContext
+      > => {
+      return useMutation(getChatWithDocumentMutationOptions(options));
+    }
+
+export const getRedactPdfUrl = () => {
+
+
+
+
+  return `/api/pdf/redact`
+}
+
+/**
+ * Send the document as `file` plus a `terms` JSON array of literal search strings. Every hit is removed from the file — the text objects are deleted and a black box drawn in their place, not a rectangle painted over live text. Matching is literal, case-insensitive and non-overlapping (a hit inside text already redacted by an earlier term on the same page is not counted again); a wrong term removes nothing and a run that removes nothing is refused. Returns the redacted PDF.
+ * @summary Permanently remove sensitive text from a document
+ */
+export const redactPdf = async (redactPdfBody: RedactPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+    const formData = new FormData();
+if(redactPdfBody.file !== undefined) {
+ formData.append(`file`, redactPdfBody.file);
+ }
+formData.append(`terms`, redactPdfBody.terms);
+
+  return customFetch<Blob>(getRedactPdfUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getRedactPdfMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof redactPdf>>, TError,{data: BodyType<RedactPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof redactPdf>>, TError,{data: BodyType<RedactPdfBody>}, TContext> => {
+
+const mutationKey = ['redactPdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof redactPdf>>, {data: BodyType<RedactPdfBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  redactPdf(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RedactPdfMutationResult = NonNullable<Awaited<ReturnType<typeof redactPdf>>>
+    export type RedactPdfMutationBody = BodyType<RedactPdfBody>
+    export type RedactPdfMutationError = ErrorType<void>
+
+    /**
+ * @summary Permanently remove sensitive text from a document
+ */
+export const useRedactPdf = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof redactPdf>>, TError,{data: BodyType<RedactPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof redactPdf>>,
+        TError,
+        {data: BodyType<RedactPdfBody>},
+        TContext
+      > => {
+      return useMutation(getRedactPdfMutationOptions(options));
+    }
+
+export const getSignPdfUrl = () => {
+
+
+
+
+  return `/api/pdf/sign`
+}
+
+/**
+ * Send the document as `file` and either an uploaded certificate part
+ * `p12` with its `passphrase`, or just a `passphrase` — a self-signed
+ * certificate is then generated for this run. The signature is a real
+ * PKCS#7 detached signature (Adobe.PPKLite / adbe.pkcs7.detached) whose
+ * ByteRange covers the whole file, with a visible stamp drawn on page 1
+ * (signer name and time). No timestamp authority is contacted.
+ * @summary Cryptographically sign a document with a P12 certificate
+ */
+export const signPdf = async (signPdfBody: SignPdfBody, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+    const formData = new FormData();
+if(signPdfBody.file !== undefined) {
+ formData.append(`file`, signPdfBody.file);
+ }
+if(signPdfBody.p12 !== undefined) {
+ formData.append(`p12`, signPdfBody.p12);
+ }
+formData.append(`passphrase`, signPdfBody.passphrase);
+if(signPdfBody.signerName !== undefined) {
+ formData.append(`signerName`, signPdfBody.signerName);
+ }
+
+  return customFetch<Blob>(getSignPdfUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getSignPdfMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signPdf>>, TError,{data: BodyType<SignPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof signPdf>>, TError,{data: BodyType<SignPdfBody>}, TContext> => {
+
+const mutationKey = ['signPdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof signPdf>>, {data: BodyType<SignPdfBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  signPdf(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SignPdfMutationResult = NonNullable<Awaited<ReturnType<typeof signPdf>>>
+    export type SignPdfMutationBody = BodyType<SignPdfBody>
+    export type SignPdfMutationError = ErrorType<void>
+
+    /**
+ * @summary Cryptographically sign a document with a P12 certificate
+ */
+export const useSignPdf = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signPdf>>, TError,{data: BodyType<SignPdfBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof signPdf>>,
+        TError,
+        {data: BodyType<SignPdfBody>},
+        TContext
+      > => {
+      return useMutation(getSignPdfMutationOptions(options));
+    }
+
+export const getPdfToWordUrl = () => {
+
+
+
+
+  return `/api/pdf/pdf-to-word`
+}
+
+/**
+ * Send the document as `file`. The text layer is extracted page by page
+ * and rebuilt as a DOCX — each page becomes a heading plus its
+ * paragraphs. This is a text rebuild, honestly: layout, columns, fonts,
+ * images and tables do not carry over. A scanned document without a
+ * text layer is refused (run OCR first).
+ * @summary Rebuild a PDF's text as an editable Word document
+ */
+export const pdfToWord = async (pdfToWordBody: PdfToWordBody, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+    const formData = new FormData();
+if(pdfToWordBody.file !== undefined) {
+ formData.append(`file`, pdfToWordBody.file);
+ }
+
+  return customFetch<Blob>(getPdfToWordUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getPdfToWordMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pdfToWord>>, TError,{data: BodyType<PdfToWordBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof pdfToWord>>, TError,{data: BodyType<PdfToWordBody>}, TContext> => {
+
+const mutationKey = ['pdfToWord'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof pdfToWord>>, {data: BodyType<PdfToWordBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  pdfToWord(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PdfToWordMutationResult = NonNullable<Awaited<ReturnType<typeof pdfToWord>>>
+    export type PdfToWordMutationBody = BodyType<PdfToWordBody>
+    export type PdfToWordMutationError = ErrorType<void>
+
+    /**
+ * @summary Rebuild a PDF's text as an editable Word document
+ */
+export const usePdfToWord = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pdfToWord>>, TError,{data: BodyType<PdfToWordBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof pdfToWord>>,
+        TError,
+        {data: BodyType<PdfToWordBody>},
+        TContext
+      > => {
+      return useMutation(getPdfToWordMutationOptions(options));
+    }
+
+export const getPdfToPowerpointUrl = () => {
+
+
+
+
+  return `/api/pdf/pdf-to-powerpoint`
+}
+
+/**
+ * Send the document as `file`. Each page becomes one slide carrying that
+ * page's extracted text — a real editable deck, not a picture deck.
+ * Text only: images, backgrounds and layout do not carry over, and a
+ * text-free page becomes a slide noting that, so page count is always
+ * preserved.
+ * @summary Turn a PDF's pages into an editable slide deck
+ */
+export const pdfToPowerpoint = async (pdfToPowerpointBody: PdfToPowerpointBody, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+    const formData = new FormData();
+if(pdfToPowerpointBody.file !== undefined) {
+ formData.append(`file`, pdfToPowerpointBody.file);
+ }
+
+  return customFetch<Blob>(getPdfToPowerpointUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getPdfToPowerpointMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pdfToPowerpoint>>, TError,{data: BodyType<PdfToPowerpointBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof pdfToPowerpoint>>, TError,{data: BodyType<PdfToPowerpointBody>}, TContext> => {
+
+const mutationKey = ['pdfToPowerpoint'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof pdfToPowerpoint>>, {data: BodyType<PdfToPowerpointBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  pdfToPowerpoint(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PdfToPowerpointMutationResult = NonNullable<Awaited<ReturnType<typeof pdfToPowerpoint>>>
+    export type PdfToPowerpointMutationBody = BodyType<PdfToPowerpointBody>
+    export type PdfToPowerpointMutationError = ErrorType<void>
+
+    /**
+ * @summary Turn a PDF's pages into an editable slide deck
+ */
+export const usePdfToPowerpoint = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pdfToPowerpoint>>, TError,{data: BodyType<PdfToPowerpointBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof pdfToPowerpoint>>,
+        TError,
+        {data: BodyType<PdfToPowerpointBody>},
+        TContext
+      > => {
+      return useMutation(getPdfToPowerpointMutationOptions(options));
+    }
+
+export const getEditPdfContentUrl = () => {
+
+
+
+
+  return `/api/pdf/edit`
+}
+
+/**
+ * Send the document as `file` plus an `ops` JSON array of overlay
+ * operations. This is composition on top of the page — the card's exact
+ * promise — not a rewrite of existing text, which no PDF library can
+ * reflow. One optional `image` part (JPG/PNG) backs every image op.
+ * Coordinates are PDF points with the origin at the page's bottom-left.
+ * Op shapes: `{"type":"text","page":1,"x":72,"y":700,"text":"hi",
+ * "size":14,"color":"#111111"}`, `{"type":"rect","page":1,"x":72,
+ * "y":600,"w":200,"h":80,"color":"#FFD24D","opacity":0.5}` and
+ * `{"type":"image","page":1,"x":72,"y":450,"w":160}` (height follows
+ * the image's aspect ratio; default width is a quarter of the page).
+ * @summary Place text, rectangles and an image on top of a PDF
+ */
+export const editPdfContent = async (editPdfContentBody: EditPdfContentBody, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+    const formData = new FormData();
+if(editPdfContentBody.file !== undefined) {
+ formData.append(`file`, editPdfContentBody.file);
+ }
+formData.append(`ops`, editPdfContentBody.ops);
+if(editPdfContentBody.image !== undefined) {
+ formData.append(`image`, editPdfContentBody.image);
+ }
+
+  return customFetch<Blob>(getEditPdfContentUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getEditPdfContentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editPdfContent>>, TError,{data: BodyType<EditPdfContentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof editPdfContent>>, TError,{data: BodyType<EditPdfContentBody>}, TContext> => {
+
+const mutationKey = ['editPdfContent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof editPdfContent>>, {data: BodyType<EditPdfContentBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  editPdfContent(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EditPdfContentMutationResult = NonNullable<Awaited<ReturnType<typeof editPdfContent>>>
+    export type EditPdfContentMutationBody = BodyType<EditPdfContentBody>
+    export type EditPdfContentMutationError = ErrorType<void>
+
+    /**
+ * @summary Place text, rectangles and an image on top of a PDF
+ */
+export const useEditPdfContent = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editPdfContent>>, TError,{data: BodyType<EditPdfContentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof editPdfContent>>,
+        TError,
+        {data: BodyType<EditPdfContentBody>},
+        TContext
+      > => {
+      return useMutation(getEditPdfContentMutationOptions(options));
     }
 

@@ -31,7 +31,7 @@ Every tool marked ✅ has a route in `routes/pdf.ts`, a catalog entry in `routes
 | PDF to PowerPoint | ✅ Implemented | `POST /pdf/pdf-to-powerpoint` · `pptxgenjs` deck, one editable text slide per page; text-free pages noted so page count is preserved |
 | PDF to Excel | ❌ Not implemented | **Pending build** (CSV form): `pdf-parse.getTable()` exists, so per-page tables → CSV is buildable now; a true `.xlsx` writer (`exceljs`) remains a future dependency |
 | PDF to PDF/A | ✅ Implemented | `POST /pdf/pdf-to-pdfa` · `convertToPDFA` with conformance choice (1B–3U); XMP/OutputIntent verified |
-| Rotate PDF | ✅ Implemented | `POST /pdf/rotate` · per-page selection |
+| Rotate PDF | ✅ Implemented | `POST /pdf/rotate` · per-page selection · per-page angles via `rotations` (picker arrows post real overrides) |
 | Add page numbers | ✅ Implemented | `POST /pdf/add-page-numbers` · position/format/start |
 | Add watermark | ✅ Implemented | `POST /pdf/watermark` · text or image, opacity/position/scale |
 | Crop PDF | ✅ Implemented | `POST /pdf/crop` · pt/percent margins, page selection |

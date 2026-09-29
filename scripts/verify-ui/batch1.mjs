@@ -167,6 +167,13 @@ check("rotate: scope states all pages", await evaluate(`document.querySelector('
 await click('[data-testid="page-checkbox-3"]');
 await click('[data-testid="page-checkbox-5"]');
 check("rotate: scope narrows to selection", await evaluate(`document.querySelector('[data-testid="rotate-scope"]').textContent.includes("2 selected pages (3, 5)")`), true);
+// Per-page overrides (Open Item 13): rotating page 2 via the picker's own
+// arrows must surface in the scope line — the same plan the request builder
+// serialises into the `rotations` field.
+await click('[data-testid="page-rotate-cw-2"]');
+check("rotate: per-page arrow registers an override", await evaluate(`document.querySelector('[data-testid="rotate-scope"]').textContent.includes("2:90°")`), true);
+await click('[data-testid="page-rotate-cw-2"]');
+check("rotate: override accumulates to 180°", await evaluate(`document.querySelector('[data-testid="rotate-scope"]').textContent.includes("2:180°")`), true);
 await shot("rotate-configured");
 await click('[data-testid="button-process"]');
 await waitFor('[data-testid="result-panel"]');

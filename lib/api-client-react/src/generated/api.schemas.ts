@@ -201,6 +201,8 @@ export type RotatePdfBody = {
   rotation: RotatePdfBodyRotation;
   /** Page selection such as "1,3,5-8". Empty means every page. */
   pages?: string;
+  /** Per-page clockwise deltas as page:degrees pairs, e.g. "1:90,3:270". Degrees must be multiples of 90 (non-zero); a page named here rotates by its own delta instead of `rotation`. */
+  rotations?: string;
 };
 
 export type RemovePdfPagesBody = {
@@ -744,5 +746,59 @@ export type SummarizePdf200 = {
   keyPoints?: string[];
   wordCount?: number;
   pageCount?: number;
+};
+
+export type ChatWithDocumentBody = {
+  /** The PDF to ask about. */
+  file?: Blob;
+  /**
+     * The question to answer.
+     * @maxLength 2000
+     */
+  question: string;
+};
+
+export type ChatWithDocument200 = {
+  question?: string;
+  answer?: string;
+  pageCount?: number;
+  markdown?: string;
+};
+
+export type RedactPdfBody = {
+  /** The PDF to redact. */
+  file?: Blob;
+  /** JSON array of literal terms to remove, e.g. `["42-1337-ALPHA", "grace@example.com"]`. */
+  terms: string;
+};
+
+export type SignPdfBody = {
+  /** The PDF to sign. */
+  file?: Blob;
+  /** Optional PKCS#12 certificate (.p12/.pfx). */
+  p12?: Blob;
+  /** The certificate's passphrase; also protects the generated self-signed key. */
+  passphrase: string;
+  /** Name drawn on the visible stamp (and used for the generated certificate). */
+  signerName?: string;
+};
+
+export type PdfToWordBody = {
+  /** The PDF to convert. */
+  file?: Blob;
+};
+
+export type PdfToPowerpointBody = {
+  /** The PDF to convert. */
+  file?: Blob;
+};
+
+export type EditPdfContentBody = {
+  /** The PDF to edit. */
+  file?: Blob;
+  /** JSON array of overlay operations (text, rect, image). */
+  ops: string;
+  /** Optional JPG/PNG used by image ops. */
+  image?: Blob;
 };
 

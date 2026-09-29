@@ -589,7 +589,8 @@ Ordered by REVIEW.md's actual open items and the queued work they reference — 
    Office → PDF tools need LibreOffice; both degrade honestly in the API (`X-PDF-Compression-Engine`, a 503
    with a clear message) but the browser cannot tell whether this server has them, so a user picks a profile
    or a tool that may fall back. A capability endpoint (or the tool catalog) could carry that.
-4. **Rotate per-page decision** — extend the rotate endpoint to per-page angles or reframe the UI.
+4. ~~Rotate per-page decision~~ — decided 2026-09-30: the endpoint was extended; `POST /pdf/rotate` takes an optional
+   `rotations` field (page:degrees pairs) so the page-picker's rotate arrows post real per-page overrides.
 5. **Wire the committed verification suites into CI** — `scripts/verify-ui/` (the regression, accent/contrast and
    batch 1–8 + compression suites, 706 counted assertions in total) is committed and reproducible locally; making a workflow run it
    (Chrome + live servers) is the natural next step now that CI covers install/typecheck/build.

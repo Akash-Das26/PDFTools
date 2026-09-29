@@ -23,7 +23,8 @@
 | Reliability & error handling | 2026-09-29 (first audit; crash, status codes and recovery disclosure all fixed same day) | All High/Medium reliability findings closed (Items 17/20/21); verification suites green | |
 | Performance | 2026-09-29 (first audit; spill fixed same day) | Memory model closed (hybrid spill engine, Item 22); bundle size (Low) remains |
 | Performance | 2026-09-30 (bundle re-audit) | Bundle Low closed: code-split via manualChunks (react/radix/icons/query/vendor), largest 185.7 KB / 58.5 KB gzip, warning retired; recharts + framer-motion proven unused and tree-shaken | |
-| Docs/code reconciliation | 2026-09-29 (re-audit) | README holds; FEATURES.md carried a self-contradicting header + stale AI provider row (both corrected) | |
+| Docs/code reconciliation | 2026-09-29 (re-audit) | README holds; FEATURES.md carried a self-contradicting header + stale AI provider row (both corrected) |
+| API/spec consistency | 2026-09-30 (rotate extension) | openapi.yaml had been unparseable since Batch 8 (mid-text `": "` in a plain scalar, exposed when codegen was next run) — fixed; 36/36 route↔path equality re-established with rotate's new `rotations` field | |
 
 No audit cadence has been agreed for any area, so no entry is marked overdue.
 

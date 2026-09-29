@@ -268,7 +268,22 @@ export default function Tool() {
         return { ...options, order: kept.join(",") };
       case "rotate": {
         const pages = active.length > 0 ? active : kept;
-        return { ...options, pages: pages.join(",") };
+        // The picker's per-page arrows now reach the endpoint: each page the
+        // user rotated individually rides as a page:degrees pair in
+        // `rotations` and overrides the panel's shared angle for that page.
+        // Pages without their own delta (and zero full-turn deltas) stay on
+        // the shared angle.
+        const rotations = Object.entries(plan?.rotations ?? {})
+          .map(([page, delta]) => ({ page: Number(page), delta: Number(delta) % 360 }))
+          .filter(({ page, delta }) => delta !== 0 && pages.includes(page))
+          .sort((a, b) => a.page - b.page)
+          .map(({ page, delta }) => `${page}:${delta}`)
+          .join(",");
+        return {
+          ...options,
+          pages: pages.join(","),
+          ...(rotations ? { rotations } : {}),
+        };
       }
       case "crop":
         // The crop panel's own Pages field wins when the user typed one;
