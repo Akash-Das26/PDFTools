@@ -256,7 +256,9 @@ cp .env.example .env
 | Variable | Purpose | Required? |
 |---|---|---|
 | `DATABASE_URL` | PostgreSQL connection string used by Drizzle for job history and usage stats | **Required** — the API **fails to start** without it (checked in both `lib/db/src/index.ts` and `@workspace/db`'s drizzle config) |
-| `OPENAI_API_KEY` | Enables `/pdf/ai-summarize` | Optional. Without it all other tools work and `ai-summarize` returns an HTTP 503 JSON error telling you to set it |
+| `OPENAI_API_KEY` | Enables the three model-backed AI tools (AI PDF Summarizer, Translate PDF, Chat with Document) | Optional. Without it all other tools work and these three return an HTTP 503 JSON error naming this variable |
+| `OPENAI_BASE_URL` | Point the AI client at an OpenAI-protocol-compatible provider instead of OpenAI (see the ops note below) | Optional |
+| `OPENAI_MODEL` | Model name used for every AI call (see the ops note below) | Optional, default `gpt-5-mini` |
 | `WEB_PORT` | Port for the Vite dev server when launched via `pnpm dev:local` | Optional, default `5173` |
 | `API_PORT` | Port for the API server when launched via `pnpm dev:local` | Optional, default `8080` |
 
@@ -264,6 +266,26 @@ Additional variables read by the code but not needed for the standard flow: `POR
 default `8080`; Vite also reads it, default `5173`), `BASE_PATH` (Vite build base, default `/`),
 `API_URL` (dev-proxy target, defaults to `http://127.0.0.1:$API_PORT`), `REPL_ID` (gates Replit-only Vite
 plugins), `LOG_LEVEL` / `NODE_ENV` (logging).
+
+#### Swapping the AI provider
+
+Every AI tool speaks the OpenAI chat-completions protocol through one shared client, so any
+provider that speaks the same protocol works without code changes — set two variables in `.env`
+and restart the API server. This project itself runs against Google's OpenAI-compatible endpoint:
+
+```bash
+# Google Gemini via its OpenAI-compatible layer (needs a Google API key in OPENAI_API_KEY)
+OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+OPENAI_MODEL=gemini-3.5-flash-lite
+```
+
+Unset, the client targets OpenAI's default endpoint with `gpt-5-mini`; a key starting with
+`sk-or-` is treated as OpenRouter and gets that provider's base URL, attribution headers and
+`openai/gpt-5-mini` automatically. Pick a **concrete model snapshot** rather than a `*-latest`
+alias after probing it with a real request — aliases can silently resolve to a snapshot that
+behaves differently (this bit us: an alias began echoing the source text instead of translating).
+Upstream 5xx/timeouts are retried (3 attempts, ~1 s and ~4 s backoff) and surface as a clean 502
+naming the tool if the provider stays down.
 
 ### Codegen step
 
