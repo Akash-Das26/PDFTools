@@ -1,4 +1,6 @@
-import OpenAI from "openai";
+import OpenAI, { APIError } from "openai";
+import type { Request, Response } from "express";
+import { AiUpstreamError } from "./shared";
 
 /**
  * The one AI client, shared by every AI-backed tool.
@@ -18,6 +20,11 @@ const configuredModel = process.env.OPENAI_MODEL?.trim();
 export const openaiClient = configuredAiKey
   ? new OpenAI({
       apiKey: configuredAiKey,
+      // The per-call backoff lives in withAiRetry below; the SDK's own retries
+      // are turned off (and the wait for response headers bounded) so the
+      // server stays responsive and the per-call log line reflects the truth.
+      maxRetries: 0,
+      timeout: 120_000,
       ...(usesOpenRouter
         ? {
             baseURL: "https://openrouter.ai/api/v1",
@@ -37,6 +44,50 @@ export const openaiClient = configuredAiKey
  */
 export const aiModel =
   configuredModel || (usesOpenRouter ? "openai/gpt-5-mini" : "gpt-5-mini");
+
+/** Attempt 1 now, then two retries at ~1 s and ~4 s. */
+const AI_ATTEMPTS = 3;
+const AI_BACKOFF_MS = [0, 1_000, 4_000];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * One model call, retried while the provider itself is failing (5xx status or
+ * a connection-level error such as a socket timeout), so a brief capacity
+ * flap upstream is survivable instead of an error page. On giving up, throws
+ * `AiUpstreamError`, which `failTool` relays as a clean 502 naming the
+ * provider — never the generic 500, and never a lie about the user's file.
+ * Deterministic 4xx answers (bad key, malformed request) are not retried.
+ */
+export async function withAiRetry<T>(
+  call: () => Promise<T>,
+  req: Request,
+  res: Response,
+  toolLabel: string,
+): Promise<T> {
+  for (let attempt = 0; attempt < AI_ATTEMPTS; attempt += 1) {
+    await sleep(AI_BACKOFF_MS[attempt]);
+    try {
+      return await call();
+    } catch (err) {
+      const status = err instanceof APIError ? err.status : undefined;
+      if (typeof status === "number" && status < 500) throw err;
+      req.log.warn(
+        {
+          attempt: attempt + 1,
+          of: AI_ATTEMPTS,
+          status: status ?? "connection",
+          tool: toolLabel,
+          route: res.req?.route?.path,
+        },
+        "AI provider unavailable, retrying",
+      );
+    }
+  }
+  throw new AiUpstreamError(
+    `The AI provider is temporarily unavailable (${toolLabel} gave up after ${AI_ATTEMPTS} attempts). Try again shortly.`,
+  );
+}
 
 /** Thrown by AI tools when no key is configured; `failTool` relays the message as a 503. */
 export class AiNotConfiguredError extends Error {

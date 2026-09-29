@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import type { TranslatePdfOptionsInput } from "@workspace/api-zod";
-import { failTool, requirePdfFile, unprocessable } from "./shared";
+import { AiUpstreamError, failTool, requirePdfFile, unprocessable } from "./shared";
 import { extractPdfText } from "./pdfjs";
-import { AiNotConfiguredError, aiModel, openaiClient } from "./ai";
+import { AiNotConfiguredError, aiModel, openaiClient, withAiRetry } from "./ai";
 
 /**
  * Translate PDF, in the text-layer form the feature audit sanctioned: the
@@ -59,6 +59,7 @@ export async function translatePdf(
     if (!openaiClient) {
       throw new AiNotConfiguredError();
     }
+    const client = openaiClient;
 
     const file = requirePdfFile(req);
     const parsed = await extractPdfText(file.buffer);
@@ -84,28 +85,54 @@ export async function translatePdf(
 
     const translations: TranslatedPage[] = [];
     let failed = 0;
+    // A page the provider stays down for becomes a `failedPages` entry after
+    // its retries run out — the honest partial result — while a provider that
+    // is down for EVERY page surfaces as the clean 502 below instead of a
+    // misleading "no usable translation".
+    let upstreamFailure: AiUpstreamError | null = null;
     for (const page of pages) {
-      const completion = await openaiClient.chat.completions.create({
-        model: aiModel,
-        max_completion_tokens: 2048,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: JSON.stringify({
-              number: page.num,
-              text: page.text.slice(0, MAX_PAGE_CHARS),
-              targetLanguage: target,
+      let completion;
+      try {
+        completion = await withAiRetry(
+          () =>
+            client.chat.completions.create({
+              model: aiModel,
+              max_completion_tokens: 2048,
+              // Translation is a deterministic task; near-greedy decoding keeps
+              // the model faithful instead of occasionally relapsing to
+              // repeating the English source instead of translating it.
+              temperature: 0.2,
+              messages: [
+                { role: "system", content: SYSTEM_PROMPT },
+                {
+                  role: "user",
+                  content: JSON.stringify({
+                    number: page.num,
+                    text: page.text.slice(0, MAX_PAGE_CHARS),
+                    targetLanguage: target,
+                  }),
+                },
+              ],
             }),
-          },
-        ],
-      });
+          req,
+          res,
+          "Translate PDF",
+        );
+      } catch (err) {
+        if (err instanceof AiUpstreamError) {
+          upstreamFailure = upstreamFailure ?? err;
+          failed += 1;
+          continue;
+        }
+        throw err;
+      }
       const text = parsePageTranslation(completion.choices[0]?.message?.content, page.num);
       if (text) translations.push({ num: page.num, text });
       else failed += 1;
     }
 
     if (translations.length === 0) {
+      if (upstreamFailure) throw upstreamFailure;
       throw unprocessable("The model returned no usable translation — try again.");
     }
 
@@ -124,6 +151,10 @@ export async function translatePdf(
   } catch (err) {
     if (err instanceof AiNotConfiguredError) {
       res.status(503).json({ error: err.message });
+      return;
+    }
+    if (err instanceof AiUpstreamError) {
+      res.status(err.status).json({ error: err.message });
       return;
     }
     failTool(req, res, err, "Translate PDF failed", "Failed to translate the PDF");

@@ -45,6 +45,19 @@ export function isPasswordError(err: unknown): boolean {
  * status, encrypted sources become 422, everything else is logged and reported
  * as a generic 500 exactly like the original routes did.
  */
+/**
+ * Raised when the AI provider itself is unreachable — 5xx or connection
+ * failures that survived the client's retries (`withAiRetry` in ai.ts). A
+ * `ToolError`, so `failTool` relays it as a 502 that says what actually
+ * happened instead of the misleading generic 500.
+ */
+export class AiUpstreamError extends ToolError {
+  constructor(message: string) {
+    super(502, message);
+    this.name = "AiUpstreamError";
+  }
+}
+
 export function failTool(req: Request, res: Response, err: unknown, logLabel: string, fallback: string): void {
   req.log.error({ err }, logLabel);
   if (res.headersSent) return;

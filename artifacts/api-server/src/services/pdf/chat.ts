@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import type { ChatWithDocumentOptionsInput } from "@workspace/api-zod";
-import { failTool, requirePdfFile, unprocessable } from "./shared";
+import { AiUpstreamError, failTool, requirePdfFile, unprocessable } from "./shared";
 import { extractPdfText } from "./pdfjs";
-import { AiNotConfiguredError, aiModel, openaiClient } from "./ai";
+import { AiNotConfiguredError, aiModel, openaiClient, withAiRetry } from "./ai";
 
 /**
  * Chat with Document — one grounded question, one model call.
@@ -39,6 +39,7 @@ export async function chatWithDocument(
     if (!openaiClient) {
       throw new AiNotConfiguredError();
     }
+    const client = openaiClient;
 
     const file = requirePdfFile(req);
     const extracted = await extractPdfText(file.buffer);
@@ -56,21 +57,27 @@ export async function chatWithDocument(
     const question = options.question.trim();
     req.log.info({ pages: extracted.pageCount, chars: text.length }, "chat: calling the model");
 
-    const completion = await openaiClient.chat.completions.create({
-      model: aiModel,
-      max_completion_tokens: 2048,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: JSON.stringify({
-            pageCount: extracted.pageCount,
-            text: text.slice(0, MAX_DOC_CHARS),
-          }),
-        },
-        { role: "user", content: question },
-      ],
-    });
+    const completion = await withAiRetry(
+      () =>
+        client.chat.completions.create({
+          model: aiModel,
+          max_completion_tokens: 2048,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            {
+              role: "user",
+              content: JSON.stringify({
+                pageCount: extracted.pageCount,
+                text: text.slice(0, MAX_DOC_CHARS),
+              }),
+            },
+            { role: "user", content: question },
+          ],
+        }),
+      req,
+      res,
+      "Chat with Document",
+    );
 
     const answer = completion.choices[0]?.message?.content?.trim();
     if (!answer) {
@@ -86,6 +93,10 @@ export async function chatWithDocument(
   } catch (err) {
     if (err instanceof AiNotConfiguredError) {
       res.status(503).json({ error: err.message });
+      return;
+    }
+    if (err instanceof AiUpstreamError) {
+      res.status(err.status).json({ error: err.message });
       return;
     }
     failTool(req, res, err, "Chat with Document failed", "Failed to answer the question");

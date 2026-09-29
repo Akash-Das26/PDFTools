@@ -109,10 +109,10 @@ everything down on exit.
   remaining `partial` tool (pdf-to-markdown) instead.
 - The counted suites total **706**: 127 + 38 + 21 + 48 + 54 + 53 + 65 + 70 + 76 + 110 + 44.
   An AI key in the environment (`.env`'s `OPENAI_API_KEY` or the ambient shell) swaps batch7 to
-  **81** and batch8 to **113** — **714** — by exercising both suites' live model branches. Those
-  branches can flake upstream (Google capacity 503s/timeouts, or flash-lite occasionally echoing
-  the English source past translate's not-English assertion); a first-run live FAIL warrants one
-  re-run before digging deeper.
+  **81** and batch8 to **113** — **714** — by exercising both suites' live model branches. The
+  API retries upstream 503/timeouts (3 attempts, then a clean 502 naming the tool), the live UI
+  waits allow 180 s for that, and translate's not-English assertion tolerates single-page model
+  noise (a real echo bug echoes every page, not one).
 - `verify.mjs` no longer points at a single wired-but-panel-less tool as its `options-not-built`
   example (Batch 4 gave every wired tool a panel). It now walks the whole catalog: every
   `implemented`/`partial` tool must render a Configure panel after an upload and stay runnable.

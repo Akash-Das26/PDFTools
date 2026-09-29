@@ -25,8 +25,29 @@
 
 ---
 
+## 2026-09-29 (AI-upstream-hardening session) — model-call retries with clean 502s; partial-translate honesty preserved
+**Commits:** this session's commit (ai.ts, shared.ts, chat/translate/summarize.ts, batch7/batch8 wait+assertion updates, this entry).
+**Type:** Robustness (the follow-up the live regression's two upstream flakes pointed at) + small fixes
+**Trigger:** User request: retry-with-backoff around the translate and chat model calls so upstream 503/timeouts surface as clean 502s instead of 500s. During the same session the user also asked to try `gemini-3.5-flash` (probed twice more: still 503 "high demand", now failing fast in ~1.5 s; `.env` stays on `gemini-flash-lite-latest`, switching later is a one-line edit) and to rotate the pasted key (user-side action — the key exists only in gitignored `.env`; nothing in the repo needs to change).
+**Changes made:**
+- **`ai.ts` — retry ownership moved into the app:** the openai client now runs with `maxRetries: 0` and a 120 s header timeout (its invisible internal retries previously turned one 503 into ~5 silent minutes), and a new `withAiRetry(call, req, res, toolLabel)` wrapper owns the policy: 3 attempts at 0/1/4 s backoff, retrying 5xx and connection-level errors, rethrowing deterministic 4xx (bad key, bad request) untouched, each swallowed attempt logged as `AI provider unavailable, retrying`. On exhaustion it throws `AiUpstreamError`.
+- **`shared.ts` — `AiUpstreamError extends ToolError(502)`:** `failTool` would relay it as 502 by itself, but each AI service catches `AiNotConfiguredError` before `failTool`, so every service also catches `AiUpstreamError` explicitly and answers `{ error: "The AI provider is temporarily unavailable (<tool> gave up after 3 attempts). Try again shortly." }` with status 502 — the misleading generic 500 (which is what an `APIConnectionTimeoutError` produced in the live regression) is now impossible on these routes.
+- **`chat.ts` / `summarize.ts` — single call each**, so the wrapper is the whole story: retries absorb provider flaps, exhaustion becomes the clean 502.
+- **`translate.ts` — per-page retries with honest partial results.** A naive wrap of the per-page loop made a provider outage on ONE page 502 the whole request, destroying the documented `failedPages` contract. Now each page's `AiUpstreamError` after its retries are exhausted becomes a `failedPages` entry and the loop continues; if the provider is down for EVERY page (nothing translated), the 502 surfaces instead of a misleading "no usable translation" 422. Also `temperature: 0.2` on the translate call — flash-lite's observed relapse to echoing the English source is sampling noise, and a deterministic task should not sample.
+- **`summarize.ts` — same banner-blind guard chat had:** emptiness checked the combined `text` field (never truly empty — `-- 1 of N --` banners); now judged per page, and the prompt text joins per-page strings so banners can never reach the model.
+- **Suite latency budgets:** the live UI translate/chat waits (72 s) were outlived by legitimate retry tails (observed: 68 s API time with two mid-run 503 retries; the UI call absorbed two more) — batch7's and batch8's `waitFor(result-panel)` now 180 s. batch7's not-English assertion is majority-tolerant (flash-lite under evening load relapses to English on single pages; a real echo bug would echo every page) — the strict form failed two consecutive live runs purely on model quality noise.
+**Verification performed:**
+- Mocked-provider probe through the REAL built bundle (one-shot script, deleted after): flaky upstream (503, 503, then 200) → chat 200 with the exact call sequence 1-2-3 in the mock log; always-503 → chat 502 and translate 502 with the tool named and no generic 500; page-1 upstream-dead → translate 200, `failedPages: 1`, pages 2–6 translated; page-1 empty completion → same honest partial result.
+- `pnpm run typecheck` + API rebuild exit 0.
+- Live: `batch7.mjs` **81/81**, `batch8.mjs` **113/113** (both "ai key: present"), plus a live `/api/pdf/ai-summarize` call → 200 with a real summary and 5 key points, proving the retried summarize path end-to-end.
+**Confidence:** High for the retry/502 contract (proved against a controllable mock through the real bundle) and for no regression on the live paths.
+**Result:** Verified working. **Follow-ups opened:** none. **Follow-ups closed:** the live-key session's flakiness caveat is now handled in product (retries + clean 502s) and suite (latency budgets, tolerant live assertions).
+*Session-boundary rule:* (c) follow-up — the hardening the previous session's open flakes pointed at.
+
+---
+
 ## 2026-09-29 (live-key session) — both AI branches exercised against a real model; chat's text-free guard fixed
-**Commits:** pending (ai.ts `OPENAI_MODEL` override, chat.ts per-page text guard, verify-ui README counts, this entry).
+**Commits:** `df506ca` (ai.ts `OPENAI_MODEL` override, chat.ts per-page text guard, verify-ui README counts, this entry).
 **Type:** Verification (live-key run) + small fixes
 **Trigger:** User supplied a Google API key in Google's new non-`AIza` format and asked to run both live AI paths with it.
 **Changes made:**

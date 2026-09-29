@@ -538,7 +538,9 @@ if (!hasAiKey) {
         await evaluate(`(document.querySelector('[data-testid="error-panel"]')?.textContent ?? "").includes("OPENAI_API_KEY")`), true);
   await shot("chat-unconfigured");
 } else {
-  await waitFor('[data-testid="result-panel"]', 240);
+  // One model call plus upstream 503 retries — the generous wait compared to
+  // local tools; observed live latency up to ~68 s for six translate pages.
+  await waitFor('[data-testid="result-panel"]', 600);
   check("chat (live): a real run produces a result", true, true);
   check("chat (live): the answer text is shown in the panel",
         await evaluate(`(document.querySelector('[data-testid="result-panel"]')?.textContent ?? "").length > 40`), true);
