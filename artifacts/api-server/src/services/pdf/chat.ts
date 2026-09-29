@@ -42,12 +42,16 @@ export async function chatWithDocument(
 
     const file = requirePdfFile(req);
     const extracted = await extractPdfText(file.buffer);
-    const text = extracted.text ?? "";
-    if (text.trim().length === 0) {
+    // pdf-parse's combined `text` always carries its `-- 1 of N --` page
+    // banners, so it is never empty even for a scanned document; emptiness is
+    // judged per page instead, the same way the translator filters, so an
+    // image-only PDF is honestly refused instead of reaching the model.
+    if (!extracted.pages.some((page) => Boolean(page.text?.trim()))) {
       throw unprocessable(
         "No extractable text found. The PDF may be a scanned image without a text layer — run OCR on it first.",
       );
     }
+    const text = extracted.text ?? "";
 
     const question = options.question.trim();
     req.log.info({ pages: extracted.pageCount, chars: text.length }, "chat: calling the model");

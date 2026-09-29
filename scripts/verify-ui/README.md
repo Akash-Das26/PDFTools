@@ -42,16 +42,16 @@ bash scripts/verify-ui/drive.sh batch5.mjs
 # html-to-pdf answers 503
 bash scripts/verify-ui/drive.sh batch6.mjs
 
-# 76-assertion Batch 7 suite (PDF Form Filler: the inspected inventory drives the
+# 76-assertion Batch 7 suite (81 with the live AI branch) (PDF Form Filler: the inspected inventory drives the
 # panel, filled values proven by round-trip and by flatten; PDF to Excel: ruled
 # tables to CSV/ZIP with the delimiter proven both ways; Translate PDF: key-aware —
 # the live model with a key, the honest 503 without)
 bash scripts/verify-ui/drive.sh batch7.mjs
 
-# 110-assertion Batch 8 suite (Redact: the redacted string unextractable, the
+# 110-assertion Batch 8 suite (113 with the live AI branch) (Redact: the redacted string unextractable, the
 # removes-nothing refusal; Sign: openssl-parsed PKCS#7 with ByteRange coverage,
 # uploaded and generated certificates, wrong-passphrase 422; PDF to Word and
-# PDF to PowerPoint: real OOXML verified by unzip; Chat's key-aware 503; Edit:
+# PDF to PowerPoint: real OOXML verified by unzip; Chat's key-aware 503/live branch; Edit:
 # placed text extractable, off-page anchors refused; catalog at 31/1/0) — needs
 # openssl and unzip on PATH for the signature/OOXML proofs
 bash scripts/verify-ui/drive.sh batch8.mjs
@@ -108,6 +108,11 @@ everything down on exit.
   badged pending") and `verify.mjs`'s not-connected-chrome guarantee runs against the one
   remaining `partial` tool (pdf-to-markdown) instead.
 - The counted suites total **706**: 127 + 38 + 21 + 48 + 54 + 53 + 65 + 70 + 76 + 110 + 44.
+  An AI key in the environment (`.env`'s `OPENAI_API_KEY` or the ambient shell) swaps batch7 to
+  **81** and batch8 to **113** — **714** — by exercising both suites' live model branches. Those
+  branches can flake upstream (Google capacity 503s/timeouts, or flash-lite occasionally echoing
+  the English source past translate's not-English assertion); a first-run live FAIL warrants one
+  re-run before digging deeper.
 - `verify.mjs` no longer points at a single wired-but-panel-less tool as its `options-not-built`
   example (Batch 4 gave every wired tool a panel). It now walks the whole catalog: every
   `implemented`/`partial` tool must render a Configure panel after an upload and stay runnable.

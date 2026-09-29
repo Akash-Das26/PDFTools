@@ -25,6 +25,29 @@
 
 ---
 
+## 2026-09-29 (live-key session) — both AI branches exercised against a real model; chat's text-free guard fixed
+**Commits:** pending (ai.ts `OPENAI_MODEL` override, chat.ts per-page text guard, verify-ui README counts, this entry).
+**Type:** Verification (live-key run) + small fixes
+**Trigger:** User supplied a Google API key in Google's new non-`AIza` format and asked to run both live AI paths with it.
+**Changes made:**
+- **The key is not OpenAI/OpenRouter-shaped, and that is fine:** Google serves an **OpenAI-compatible endpoint** at `https://generativelanguage.googleapis.com/v1beta/openai/`, which the openai SDK already reaches via `OPENAI_BASE_URL` — no code needed for the transport. Probes confirmed the key authenticates (models list 200) and that the services' exact request shapes are accepted: translate's `max_completion_tokens: 2048` + system/user JSON contract (a real French translation came back in the `{"number","text"}` shape) and chat's back-to-back user messages (a correct grounded answer).
+- **`ai.ts` — one env-gated model override:** `aiModel` was hardcoded `gpt-5-mini`, which Google rejects by name. `OPENAI_MODEL` (trimmed) now overrides the default; unset behaviour is unchanged (`openai/gpt-5-mini` behind OpenRouter, `gpt-5-mini` otherwise). Model availability for this new-format key: 2.5-flash/2.5-flash-lite are **retired for new keys** (404 naming `gemini-3.8-flash`), 3.8-flash and `gemini-flash-latest` flip between 503 "high demand" (~30 s per response) and occasional 200s, and 3.1-pro is 429-quota'd on the free tier. Settled on **`gemini-flash-lite-latest`** (an alias, so future retirements do not strand the config; the flash-lite tier answered 200 in 1–2 s on every probe). `.env` gains `OPENAI_BASE_URL` + `OPENAI_MODEL` beside the key; suites must export the `.env` values into their shell so the key-aware branches engage.
+- **`chat.ts` — real bug the live branch caught on its first-ever run:** the text-free 422 guard checked the combined `text` field, but **pdf-parse always includes its `-- 1 of N --` page banners in that field** — an image-only PDF's combined text is `"\\n\\n-- 1 of 1 --\\n\\n"` (16 chars, never empty), so the guard passed and the empty document reached the model (200). The keyless branch never executes this assertion (it lives in the live-only `else`), which is why 110/110 never saw it. The guard now judges **per page** (`extracted.pages.some(page => page.text?.trim())`), the banner-immune pattern translate.ts already uses; verified on both textless fixtures (batch7's and batch8's `pages[0].text` are `""` under the same extractor). Fix verified live: the same fixture now 422s while the real chat call keeps passing.
+- `scripts/verify-ui/README.md`: batch7 noted as 76 (81 live), batch8 as 110 (113 live), with the 706/**714** totals explained and the live branches' upstream flakiness documented (one re-run before digging deeper).
+**Verification performed:**
+- Direct endpoint probes: models list 200; translate-shape and chat-shape completions 200 with contract-shaped replies, using verbatim the request shapes the services send.
+- `bash scripts/verify-ui/drive.sh batch7.mjs` with the key exported → **81/81, exit 0** ("ai key: present — exercising the live translate path"); the first attempt against `gemini-3.5-flash` stalled ~5 min in upstream 503 retries (suite fetch timeout — upstream capacity, not a suite fault) and passed once switched to the flash-lite tier.
+- `bash scripts/verify-ui/drive.sh batch8.mjs` with the key exported → first run **112/113** (the chat text-free 422 got 200 — the guard bug above), then **113/113, exit 0** after the fix, with the live answer recorded: "This document is a PDFTools verification fixture containing repeating lines of body text a…".
+- `pnpm run typecheck` and an API rebuild exit 0 after both code changes.
+- Keyed-run blast radius checked: only `batch7.mjs`/`batch8.mjs` assert 503/OPENAI behaviour, so the key remaining in `.env` affects no other suite.
+- Full 13-suite regression re-run with the key exported, all exit 0: `verify.mjs` **127/127**, `batch1` **21/21**, `batch2` **46/46**, `batch3` **53/53**, `batch4` **54/54**, `batch5` **66/66**, `batch6` **71/71**, `batch7` **81/81**, `batch8` **113/113**, `accent` **38/38**, `compress` **44/44**, `contrast`/`compare` exit 0 — tracked total **714** (706 + 5 + 3 live assertions). Two transient upstream flakes observed and cleared on re-run: one flash-lite page echoed the English source past batch7's not-English assertion, and one `APIConnectionTimeoutError` (openai SDK transport timeout during a Google capacity flap) 500'd a chat call whose neighbours succeeded in the same run; the guard fix's 422 held in both directions throughout.
+**Confidence:** High — both AI services proven end-to-end against a real provider, through the real client, routes, and UI panels.
+**Result:** Verified working. The batch-8 entry's chat caveat is **superseded**: the live branch now has real-provider proof, and a future keyless regression run needs only the 503 branch, which remains intact.
+**Follow-ups opened:** none. **Follow-ups closed:** the Batch 8 entry's "extend mock-openai.mjs to speak chat's request shape" (superseded by real-provider proof; the mock remains useful for translate-only keyless demos).
+*Session-boundary rule:* (c) follow-up — completing the previous session's deferred live-key run, plus the fixes it surfaced.
+
+---
+
 ## 2026-09-28 (batch 8) — the last six tools built and verified; the catalog is complete
 **Commits:** feature commit (9 pinned deps, redact/sign/pdf-to-word/pdf-to-powerpoint/chat/edit services, schemas, routes, spec paths, catalog, panels, tool-page guards, mupdf build external), suite commit (`batch8.mjs`, pending-example inversions across verify/batch2–batch7, READMEs), this entry's commit (REVIEW.md only).
 **Type:** Feature (Batch 8) + Docs
