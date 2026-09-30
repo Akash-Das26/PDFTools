@@ -17,6 +17,12 @@ import { cn } from "@/lib/utils";
  * tile uses the tool's own accent token (so an Edit tool is tertiary and an AI
  * tool is `secondary-hover`), and the subtitle is the catalog description —
  * the same string shown on the card.
+ *
+ * Breadcrumb (Open Item 33, decided intentional 2026-09-30): the mock's middle
+ * crumb is a link labelled "Optimize" — a grouping that exists nowhere in the
+ * reference's own nav taxonomy (Organize/Convert/Edit/Security/AI). The real
+ * category label IS the taxonomy, so the crumb stays plain text here; only the
+ * "PDFTools" root links out.
  */
 export function ToolHeader({ tool }: { tool: Tool }) {
   const Icon = iconForTool(tool);
