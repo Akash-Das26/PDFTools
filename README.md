@@ -380,7 +380,7 @@ bootstrap from `.env.example`, then launch. The Replit workspace button runs the
 ## 7. API reference
 
 All routes are mounted under `/api` (`app.use("/api", router)` in `artifacts/api-server/src/app.ts`) and are
-modelled in `lib/api-spec/openapi.yaml` (34 paths total). Uploads are multipart form-data; limits are
+modelled in `lib/api-spec/openapi.yaml` (40 paths total). Uploads are multipart form-data; limits are
 **50 MB per file, 20 files max** (`artifacts/api-server/src/lib/upload.ts`), enforced with JSON error
 responses (413 for oversized files).
 
@@ -561,16 +561,28 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
    `batch7.mjs` row, and limitation 2 moved to Batch 8. Refreshed   for Batch 8 — the last six tool rows and
    routes, the 31/1/0 catalog split, the 36-path count, the `batch8.mjs` row, limitation 2 rewritten as the
    new tools' honest scope limits, and the roadmap re-pointed at the chat live-branch mock. [REVIEW.md](REVIEW.md) is the source of truth.
-9. **Production hardening gaps (2026-09-29 adversarial audit — all findings closed the same week)** — the
-   audit's blockers are resolved: uploads under `UPLOAD_SPILL_THRESHOLD_BYTES` (default 10 MB) stay in RAM
-   and larger ones stream to per-request temp dirs cleaned up automatically (Item 22); a malformed PDF no
-   longer crashes the API (Item 17); damaged-file recovery is disclosed via `X-PDF-Recovered`/`X-PDF-Skipped-Files`
-   headers and a UI notice instead of silent 200s (Item 20); rate limiting is on by default (Item 18); CORS
-   is an allow-list (Item 19); and `pnpm audit` is clean after pinning patched transitive versions (Item 16).
-   What still stands as honest scope: translate fidelity depends on the chosen model snapshot (limitation 2),
-   and the audit's accessibility hardening bundle (Item 24) and knip config error (Item 23) remain open. The
-   UI bundle itself is code-split into cacheable vendor chunks (largest 186 KB; the build's largest-chunk
-   warning is retired — note pdfjs was never a frontend dependency, it lives in api-server).
+9. **Production hardening gaps (2026-09-29 adversarial audit; re-audited 2026-09-30)** — the
+    audit's blockers were resolved: uploads under `UPLOAD_SPILL_THRESHOLD_BYTES` (default 10 MB) stay in RAM
+    and larger ones stream to per-request temp dirs (Item 22 — **but see limitation 10: the spill path is
+    currently broken and must not be relied on**); a malformed PDF no
+    longer crashes the API (Item 17); damaged-file recovery is disclosed via `X-PDF-Recovered`/`X-PDF-Skipped-Files`
+    headers and a UI notice instead of silent 200s (Item 20); rate limiting is on by default (Item 18); CORS
+    is an allow-list (Item 19); and `pnpm audit` is clean after pinning patched transitive versions (Item 16).
+    The 2026-09-30 re-audit re-probed all of those and they hold, but opened seven new findings — the spill
+    deadlock, an unbounded multipart body, malformed-multipart answering 500 instead of 4xx, a pdf-lib
+    recovery-path cost of ~5 s per MB, an encrypted-input no-op in Compress, a database required to boot,
+    and three dead statements. What still stands as honest scope: translate fidelity
+    depends on the chosen model snapshot (limitation 2). The
+    UI bundle itself is code-split into cacheable vendor chunks (largest 186 KB; the build's largest-chunk
+    warning is retired — note pdfjs was never a frontend dependency, it lives in api-server).
+10. **Uploads above the spill threshold currently hang (2026-09-30 re-audit, Item 28) — do not raise
+    `UPLOAD_SPILL_THRESHOLD_BYTES` expecting it to help.** The hybrid storage engine hands the same
+    half-consumed stream to `pipeline()` after iterating it, so any upload that crosses the threshold and
+    spans more than one busboy chunk (64 KB) never completes and leaves its temp dir behind; the health
+    endpoint stays up, so it presents as a silently stuck request. At the 10 MB default that affects the
+    10–50 MB band the API otherwise advertises. Setting the threshold very high (or `0`) avoids the hang by
+    keeping everything in RAM, which trades it back for the memory model Item 22 was opened to close. Both
+    sides of that trade are open; the fix is a one-line change to how the spill consumes the stream.
 
 ---
 

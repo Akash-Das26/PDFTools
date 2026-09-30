@@ -28,6 +28,130 @@
 
 No audit cadence has been agreed for any area, so no entry is marked overdue.
 
+| Area | Last audited | Verdict | Overdue? |
+|---|---|---|---|
+| Security | 2026-09-30 (adversarial re-audit) | Perimeter clean and re-probed (rate limiting, CORS, 50 MB/20-file caps, no traversal, no secrets, `pnpm audit` zero). **One new Medium:** multer sets no `fields`/`parts` cap, so nothing bounds the request *body* — a 1 GB all-fields request was fully buffered before the 400 |
+| Reliability & error handling | 2026-09-30 (adversarial re-audit) | **One High regression:** the Item 22 hybrid spill engine deadlocks on every real spill — any upload crossing the threshold and spanning more than one busboy chunk hangs forever and leaks a temp dir. Process containment, 422 handling and recovery disclosure all re-verified intact |
+| Dead code / dependencies | 2026-09-30 (re-audit) | knip's single `prettier` finding stands as justified; depcheck clean; zero debugger/console/TODO residue. Three unused locals newly surfaced under `--noUnusedLocals` |
+| API/spec consistency | 2026-09-30 (fresh bidirectional cross-check) | Clean: 36 ↔ 36 both directions, every binary field present with matching cardinality, zero ghosts either way |
+| Accessibility | 2026-09-30 (standing suites re-run) | `a11y.mjs` **15/15** live; `contrast.mjs` every text token passes. Tinted icon tiles remain 1.02–1.34:1 but are decorative and redundant with the adjacent title. No screen-reader run (none available) |
+| Performance | 2026-09-30 (adversarial re-audit) | **One new High:** pdf-lib's *recovery* path costs ~5.05 s per MB of trailing filler — a valid 9.29 MB PDF loads in 676 ms while 8 MB of filler takes 39 891 ms; 6 concurrent 2 MB uploads drove `/api/healthz` to p50 23.5 s. Bundle re-verified healthy (largest chunk 185.7 kB) |
+| Docs/code reconciliation | 2026-09-30 (harsh pass) | **Two Medium:** README claims 34 spec paths against an actual 40, and its limitation 9 asserts the spill engine "cleans up automatically" — the exact behaviour found broken this session |
+
+---
+
+## 2026-09-30 — Security (adversarial re-audit, post-perimeter)
+**Corresponding REVIEW.md entry:** 2026-09-30 (production-readiness re-audit session).
+**Audit type:** Security
+**Scope:** The 2026-09-29 perimeter work (Items 16/18/19) re-probed live rather than assumed; upload-path input handling; request-body bounds; dependency and secret posture. Out of scope: authentication (none exists by design — a stateless self-hosted tool), network/TLS, host hardening.
+**Method:** `pnpm audit --json` (full tree) and `--prod --json`; secret sweeps over tracked files and full git history (`sk-or-`, `AIza`, `AKIA`, `ghp_`, PEM headers, long key-like assignments, `-S 'sk-or-'`); source read of `lib/upload.ts`, `lib/rate-limit.ts`, `app.ts`; live probes against the built server for the per-file cap (51 MB → 413), the file-count cap (21 files → 400), traversal-shaped filenames, MIME spoofing (PDF bytes declared `text/plain`), CORS preflight from an unlisted origin, and limiter tiers (`RATE_LIMIT_UPLOAD_MAX=3` / `RATE_LIMIT_API_MAX=5`); a multer-limit inventory via a scripted `upload.single|array|fields|any` census.
+**Findings:**
+| Severity | Finding | Status |
+|---|---|---|
+| Medium | **Nothing bounds the request body.** `upload.ts` sets `fileSize` and `files` but no `fields`/`parts`/`fieldSize`. Probed: 5 000 × 4 KB (19.9 MB body) → **200**; 20 000 × 4 KB (79.5 MB) → **200**; 2 000 × 64 KB (125.1 MB) → **200**; and 4 000 × 256 KB — a **1 GB** body with no file at all — fully buffered in 2.5 s before the handler's own 400 (server RSS observed at 434 MB). Per-file and per-count caps do not cover this; only the limiter's request count stands between it and the host | Open (new Item 26) |
+| Low | Malformed multipart → **500 `text/html`**, not 4xx JSON: a NUL in `filename` raises a non-`MulterError` busboy error that the app's MulterError-only handler misses. Production returns `Internal Server Error`; development additionally leaks `Error: Malformed part header` with absolute paths and stack frames. Error-contract violation, not a breach (cross-listed under Reliability) | Open (new Item 27) |
+| Info | `lib/db/src/index.ts` throws at import when `DATABASE_URL` is unset, so **all 32 PDF tools refuse to start** even though only `/api/jobs` and `/api/stats` need a database. Verified: bare boot without the var exits with `Error: DATABASE_URL must be set.` and `/api/healthz` never binds | Open (new Item 31, Low — a deployment constraint, not a defect) |
+| — | **Verified good:** `pnpm audit` zero vulnerabilities across 513 dependencies (243 prod); no secret values in tracked files or history; CORS is a production-refusing allow-list; rate limiting returns 429 with `RateLimit`/`RateLimit-Policy`/`Retry-After` and leaves `/api/healthz` at 200; 51 MB → 413 `{"error":"File is too large. The limit is 50 MB per file."}`; 21 files → 400; traversal-shaped names stay inside the temp dir; PDF bytes declared `text/plain` are correctly accepted by byte-sniffing; no `upload.any()` anywhere (36/36 routes use `single`/`array`/`fields`) | — |
+**Verdict:** The perimeter built on 2026-09-29 holds under live re-probing — every one of its four fixes still behaves as documented. The one new Medium is a bounds gap rather than a bypass: the advertised per-file and per-count caps are real, but the multipart *body* above them is unbounded.
+**Confidence:** High — dependencies and secrets by tool; every behavioural claim by a live probe against the built server; limits read from source and confirmed at the boundary.
+
+---
+
+## 2026-09-30 — Reliability & error handling (adversarial re-audit)
+**Corresponding REVIEW.md entry:** 2026-09-30 (production-readiness re-audit session).
+**Audit type:** Reliability & error handling
+**Scope:** Whether the 2026-09-29 reliability fixes (Items 17/20/21/22) still hold, with primary focus on the Item 22 spill engine. Out of scope: Office/LibreOffice and Ghostscript rendering paths beyond a compress probe; DB-backed job behaviour (no database provisioned this session).
+**Method:** An **isolated four-variant experiment** (`/tmp/opencode/pdfaudit/variant.mjs`) replaying the shipped storage control flow against raw busboy with the PDF work replaced by an instant response, so the storage engine is the only variable: `shipped` (for-await then `pipeline` on the same stream), `no-forawait` (`pipeline` only), `forawait-only`, `tee`. Size sweep 10–300 KB at a 1 KB threshold. Live repro on the built server at the **default** 10 MB threshold with an 11 MB valid PDF. Encrypted-input matrix (hand-built RC4 `/Encrypt` PDF) across five routes. Encrypted compress output inspected with `pdftotext`. Boot without `DATABASE_URL`. Containment checked via the server log after every matrix.
+**Findings:**
+| Severity | Finding | Status |
+|---|---|---|
+| High | **The Item 22 spill engine deadlocks on every real spill.** `lib/upload.ts` `_handleFile` iterates `file.stream` with `for await`, and on crossing the threshold hands **the same, now half-consumed stream** to `pipeline()`. The variant experiment isolates it beyond doubt: `shipped` **HUNG**; `no-forawait` 204 in 35 ms; `forawait-only` 200 in 32 ms; `tee` 200 in 33 ms. The cutoff is exactly busboy's 64 KB chunk boundary (60 KB succeeds, 64 KB hangs) — files that fit in one chunk only "work" because the stream has already ended. At the default 10 MB threshold an 11 MB valid PDF hung for the full 40 s budget and **leaked its temp dir**, with `/api/healthz` still 200. Any upload in the 10–50 MB band the README advertises never answers | Open (new Item 28) — reopens Item 22 |
+| Low | Compress answers **200** on a password-protected PDF with `X-PDF-Compression-Engine: pdf-lib` and a byte-for-byte unshrunk, still-encrypted result, where `split`/`extract-text`/`page-info` all 422 with the unlock message and `merge` 422s with `X-PDF-Skipped-Files: 2`. A user gets a "compressed" file that is neither compressed nor usable | Open (new Item 29) |
+| — | **Verified intact:** process containment held — `/api/healthz` returned 200 after every malformed-input matrix and the log recorded zero unhandled rejections; encrypted input → 422 with the unlock message on the text/PDF routes; merge discloses `X-PDF-Skipped-Files: 2` and refuses when nothing survives; temp dirs for sub-threshold uploads cleaned on both success and error | — |
+**Verdict:** The 2026-09-29 crash-class fix (Item 17) and its error-quality work (Items 20/21) hold under live probing. The spill engine closed as part of the same sweep does not work: it was verified at a 1 KB threshold using a fixture smaller than one busboy chunk — the one input shape that cannot deadlock it.
+**Confidence:** High — the defect is reproduced on the shipped server and its mechanism isolated by a controlled four-way experiment whose non-shipped variants all pass.
+
+---
+
+## 2026-09-30 — Dead code & dependencies (re-audit)
+**Corresponding REVIEW.md entry:** 2026-09-30 (production-readiness re-audit session).
+**Audit type:** Dead code / dependencies
+**Scope:** Unused files, dependencies, exports and dead statements across the workspace; debugger/leftover-debug residue. Out of scope: the deliberate vendored-primitives pool, which prior entries already documented as a standing rationale.
+**Method:** `npx knip --no-progress` (6.38.0) and `npx depcheck --ignores=prettier`, cross-checked against each other; `tsc --noEmit --noUnusedLocals --noUnusedParameters` per workspace project (`artifacts/api-server`, `lib/api-client-react`, `lib/api-zod`, `lib/db`); a residue grep for `console.log|debugger;|TODO|FIXME|HACK|XXX` across `artifacts/*/src` and `lib/*/src`.
+**Findings:**
+| Severity | Finding | Status |
+|---|---|---|
+| Low | Three dead statements surfaced under `--noUnusedLocals`, invisible to the project's own typecheck (the root `tsconfig.json` sets `"files": []` with references only, and the base sets `noUnusedLocals: false`): `routes/jobs.ts:2` imports `sum` from drizzle and never uses it; `services/pdf/edit.ts:3` imports `PDFDocument` and never uses it; `services/pdf/translate.ts:37` declares a `num` parameter it never reads | Open (new Item 30) |
+| — | knip reports exactly one finding, `prettier` — already documented as justified (orval's formatter integration), with no config file present | — |
+| — | Zero `console.log`/`debugger`/`TODO`/`FIXME`/`HACK`/`XXX` in any shipped source file; `lib/*` projects clean under both unused checks | — |
+**Verdict:** Dependency hygiene holds — knip and depcheck agree there is nothing to remove, and no debug residue ships. The only gap is three dead statements that no configured check is looking for.
+**Confidence:** High — three tools run directly, each finding cited to file and line.
+
+---
+
+## 2026-09-30 — API/spec consistency (fresh bidirectional cross-check)
+**Corresponding REVIEW.md entry:** 2026-09-30 (production-readiness re-audit session).
+**Audit type:** API/spec consistency
+**Scope:** Both directions of route ↔ spec agreement, multipart field names and cardinality, and runtime option requirements. Out of scope: response-schema fidelity (not machine-checked this session) and client codegen.
+**Method:** Two independent scripts. Forward: `openapi.yaml` parsed with `yaml` and compared against `routes/pdf.ts`, checking that every route's `upload.single/array/fields` field name and every options-object key appears in the spec's `multipart/form-data` schema, plus `array`-vs-`string` cardinality. Reverse: every spec `POST /pdf/*` path checked for a matching registered route. **Method lesson carried forward:** the first forward pass reported 33 false mismatches — its 30-line look-ahead window bled each route's field names into the next route's block; corrected by splitting the source on `router.post(` and bounding each block, which is why this entry records a clean result.
+**Findings:**
+| Severity | Finding | Status |
+|---|---|---|
+| — | **No findings.** 36 registered `/pdf/*` POST routes ↔ 36 documented paths, exactly: **0 spec-only** (documented but unimplemented) and **0 code-only** (implemented but undocumented). Every binary field (`file`/`files`/`image`/`p12`/`capture`/`html`) is present under its exact multer name, and every array-vs-single cardinality matches the route's `upload.array`/`single`/`fields` call | — |
+| — | `openapi.yaml` parses cleanly (40 paths, 41 operations: 36 `/pdf/*` POST + `/healthz`, `/tools`, `/stats`, `/jobs`), confirming the Batch 8 YAML fix still holds | — |
+**Verdict:** Spec ↔ router coupling (Open Item 12) is intact in both directions; the file-name-exactness rule it states has not been broken by any tool added since.
+**Confidence:** High — machine-checked both directions, with the forward pass re-run after its own harness defect was found and corrected.
+
+---
+
+## 2026-09-30 — Accessibility (standing suites re-run)
+**Corresponding REVIEW.md entry:** 2026-09-30 (production-readiness re-audit session).
+**Audit type:** Accessibility
+**Scope:** The two standing suites committed under `scripts/verify-ui/`. Out of scope: screen-reader verification (no assistive technology available in this environment — recorded as a standing limitation, not a pass), and every surface beyond the three the census covers.
+**Method:** `bash scripts/verify-ui/drive.sh a11y.mjs` and `.../drive.sh contrast.mjs`, both against a live API + web pair.
+**Findings:**
+| Severity | Finding | Status |
+|---|---|---|
+| — | **No new findings.** Accessible-name census clean on all four states (landing 55, compress 11, page-picker upload 11, page-picker configured 51 actionable elements, every one resolving a name); keyboard walkthrough of the page-picker **15/15** (focus entry, Space toggle, Arrow navigation, Alt+Arrow reorder, Tab into the two hover-overlay micro-actions, Enter rotate/remove, live summary). Contrast: every text token passes in both themes (worst muted 4.55:1 light) | — |
+| — | The tinted icon tiles still measure 1.02–1.34:1 for non-text contrast. Re-inspected `components/landing/tool-card.tsx`: the glyph is decorative and redundant with the tool title rendered as text beside it in the same link, so WCAG 1.4.11 non-text contrast does not apply — consistent with the 2026-09-30 sweep's conclusion, not a regression | — |
+| — | Open Item 9's half-measurement (`on-tertiary-container` at 13.16:1) remains unexercised: the token family is still consumed by zero components, so the value remains unproven on any real surface | Carried forward (Item 9 unchanged) |
+**Verdict:** The hardening work closed on 2026-09-30 holds; both standing suites are green from the committed location. Confidence is bounded by the same gap it always was — a real screen-reader pass has still never been performed.
+**Confidence:** Medium-High — suites executed live and passing, but no AT run (explicitly not claimed).
+
+---
+
+## 2026-09-30 — Performance (adversarial re-audit)
+**Corresponding REVIEW.md entry:** 2026-09-30 (production-readiness re-audit session).
+**Audit type:** Performance
+**Scope:** Request-handling cost under the advertised upload ceiling, and bundle composition. Out of scope: sustained load testing, database query performance, and Office/Ghostscript rendering benchmarks beyond a compress probe.
+**Method:** In-process timing of `@cantoo/pdf-lib` `PDFDocument.load` across a trailing-filler sweep (0/1/2/4/8/16 MB) with a least-squares fit, contrasted against genuinely valid multi-thousand-page PDFs at comparable sizes; live per-route timing on the built server; an **event-loop-blockage probe** polling `/api/healthz` while a slow parse was in flight; a six-way concurrent storm with health latency sampling; `vite build` for bundle composition.
+**Findings:**
+| Severity | Finding | Status |
+|---|---|---|
+| High | **pdf-lib's recovery path costs ~5.05 s per MB of trailing filler, and the cost is in the recovery path rather than the size.** A *valid* 9.29 MB / 5 000-page PDF loads in **676 ms**; 8 MB of trailing filler takes **39 891 ms** — 59× worse at a comparable size. Measured 1 MB → 4 937 ms, 2 MB → 9 930 ms, 4 MB → 19 742 ms, 8 MB → 39 891 ms, 16 MB → 80 704 ms (linear, intercept ≈ −288 ms). Extrapolated to the shipped 50 MB cap: **~252 s of blocked event loop per request**, and ~84 min for the 20 × 50 MB `merge` ceiling. Confirmed live: one 2 MB malformed upload pushed `/api/healthz` latency to **10 627 ms**; **six concurrent 2 MB uploads** drove it to **p50 23.5 s / max 47.5 s** — every one of the six still returned 200. Unauthenticated, and constructible by appending filler to any valid PDF | Open (new Item 32) |
+| — | Bundle healthy and the documented claim verified: largest chunk **185.71 kB** (58.51 kB gzip) across seven cacheable chunks (react / radix / index / vendor / query / icons), CSS 67.99 kB (12.00 kB gzip), no largest-chunk warning. Matches README's "largest 186 KB" | — |
+| — | The Item 22 spill hang (see the Reliability entry) is also a performance defect — it converts a bounded request into an unbounded one | Cross-listed (Item 28) |
+**Verdict:** The frontend bundle work holds. The backend has a worse problem than the memory model the first audit found: single-threaded, event-loop-blocking work whose cost scales with attacker-chosen trailing bytes, not document size.
+**Confidence:** High — cost curve fitted from six measured points, mechanism separated from size by the valid-PDF control, and impact demonstrated live through an independent endpoint.
+
+---
+
+## 2026-09-30 — Documentation accuracy (harsh pass)
+**Corresponding REVIEW.md entry:** 2026-09-30 (production-readiness re-audit session).
+**Audit type:** Docs/code reconciliation
+**Scope:** Claims in README.md and FEATURES.md that this session's findings directly contradict, plus the recorded verification behind a now-refuted closure. Out of scope: stylistic or editorial review, and claims unrelated to the findings above.
+**Method:** Line-level comparison of the specific claims against the measured behaviour of the built server.
+**Findings:**
+| Severity | Finding | Status |
+|---|---|---|
+| Medium | **README §7 understates the spec surface:** "modelled in `lib/api-spec/openapi.yaml` (**34 paths total**)" against an actual **40** paths (36 `/pdf/*` POST + `/healthz`, `/tools`, `/stats`, `/jobs`). The 34 figure is the Batch 7 count; the same file's own changelog line 562 says 36, so the document disagrees with itself as well as the tree | Corrected this session (README) |
+| Medium | **README limitation 9 asserts the behaviour this session found broken:** "uploads under `UPLOAD_SPILL_THRESHOLD_BYTES` (default 10 MB) stay in RAM and larger ones stream to per-request temp dirs **cleaned up automatically** (Item 22)". In fact every upload that crosses the threshold hangs and leaks its temp dir. The surrounding sentence ("all findings closed the same week") is now inaccurate | Corrected this session (README) |
+| Low | **REVIEW.md's Item 22 closure note records verification that could not have detected the defect** — "Verified with a 1 KB threshold: spilled extract-text/merge process correctly, dirs cleaned". A 1 KB threshold with the sub-64 KB fixture exercises the single-busboy-chunk path, the one shape that cannot deadlock. Left in place as history; the new Item 28 carries the correction | Recorded, not rewritten (history) |
+| — | Other README claims checked this session and **hold**: the 32-tool catalog (live `/api/tools` = 32, split 31 implemented / 1 partial, categories 7/6/6/5/4/4), "50 MB per file, 20 files max" with 413s, the 413 error wording, and FEATURES.md's translate-fidelity limitation | — |
+| — | UI-NON-REGRESSION-RULES.md: no new recurring *UI* risk pattern surfaced — both new Highs are backend resource-handling defects, not UI conventions. File left untouched per the brief | — |
+**Verdict:** The README's substantive and security claims hold, but two claims are now known-false — one a stale count, one an assertion of exactly the behaviour that broke.
+**Confidence:** High — both corrections are line-specific and each was checked against a live measurement.
+
 ---
 
 ## 2026-09-27 — README claim-by-claim audit
