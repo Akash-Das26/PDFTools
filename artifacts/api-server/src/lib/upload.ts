@@ -1,7 +1,7 @@
 import multer from "multer";
 import { randomBytes } from "node:crypto";
 import { createWriteStream } from "node:fs";
-import { readFile, rm, mkdir } from "node:fs/promises";
+import { rm, mkdir } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -141,15 +141,5 @@ export async function sweepSpillRoot(): Promise<void> {
     if (Number.isFinite(stamp) && stamp < cutoff) {
       void rm(path.join(SPILL_ROOT, entry), { recursive: true, force: true }).catch(() => {});
     }
-  }
-}
-
-/** Exposed for verification probes: read a spilled file's bytes on disk. */
-export async function readSpilledIfAny(filePath: string | undefined): Promise<Buffer | null> {
-  if (!filePath) return null;
-  try {
-    return await readFile(filePath);
-  } catch {
-    return null;
   }
 }

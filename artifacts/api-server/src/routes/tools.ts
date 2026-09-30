@@ -30,7 +30,7 @@ const HTML_ACCEPT = [".html", ".htm"];
  * Tools with `status: "pending"` have `route: null` and must render a disabled
  * Process button plus a visible badge rather than calling a missing endpoint.
  */
-export const PDF_TOOLS: Tool[] = [
+const PDF_TOOLS: Tool[] = [
   // ─── Organize PDF ───────────────────────────────────────────────────────────
   {
     id: "merge",

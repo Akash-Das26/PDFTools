@@ -30,18 +30,13 @@ export function useTool(toolId: string | undefined): {
   return { tool: tools.find((entry) => entry.id === toolId), isLoading };
 }
 
-/** Total tool count — the landing hero quotes this number. */
-export function countTools(tools: Tool[]): number {
-  return tools.length;
-}
-
 /**
  * Search matching, following the reference markup: each card carries
  * `data-title` and `data-keywords`, and the inline search matches on name,
  * description and those synonyms. That is why "shrink" finds Compress and
  * "bates" finds Add Page Numbers.
  */
-export function matchesQuery(tool: Tool, query: string): boolean {
+function matchesQuery(tool: Tool, query: string): boolean {
   const needle = query.trim().toLowerCase();
   if (!needle) return true;
 

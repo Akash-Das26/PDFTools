@@ -60,10 +60,3 @@ export interface ProgressInfo {
   percent: number;
   label: string;
 }
-
-/** Step labels are per-tool because the reference names step 2 after the tool. */
-export interface StepLabels {
-  upload: string;
-  configure: string;
-  download: string;
-}

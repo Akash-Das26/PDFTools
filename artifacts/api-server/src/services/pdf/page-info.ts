@@ -6,7 +6,7 @@ import { failTool, loadPdf, pageRange, requirePdfFile } from "./shared";
 /** Rendering previews for a huge document would blow up the JSON response. */
 const MAX_THUMBNAIL_PAGES = 40;
 
-export interface PdfPageInfoPage {
+interface PdfPageInfoPage {
   number: number;
   width: number;
   height: number;
@@ -15,7 +15,7 @@ export interface PdfPageInfoPage {
   thumbnail?: string;
 }
 
-export interface PdfPageInfo {
+interface PdfPageInfo {
   pageCount: number;
   pages: PdfPageInfoPage[];
   thumbnailsIncluded: boolean;

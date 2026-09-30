@@ -57,7 +57,7 @@ const MULTI_FILE_ROUTES = new Set([
 ]);
 
 /** Build multipart form data from the selected files plus the tool's options. */
-export function buildFormData(
+function buildFormData(
   files: File[],
   options: Record<string, unknown>,
   route?: string,

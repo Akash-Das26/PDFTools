@@ -35,6 +35,22 @@
 
 ---
 
+## 2026-09-30 (unused-exports session) — knip's 16 unused exports + 6 types cleared by un-export or deletion
+**Commits:** this session's commit (10 source files, AUDIT dead-code row + this entry).
+**Type:** Dead-code cleanup (the recorded knip backlog, user-directed).
+**Trigger:** User request: remove or wire up the 16 unused exported functions/classes and 6 types.
+**Changes made:** a usage census first, then two treatments.
+- **Deleted as genuinely dead (declaration-only, zero references of any kind):** `readSpilledIfAny` (upload.ts — its `readFile` import went with it), `downloadBlob` (file-utils.ts), `countTools` (tool-catalog.ts), `StepLabels` (workspace.ts).
+- **Un-exported (internally used, export surface was the only dead part):** `PDF_TOOLS`, `loadCanvas`, `OPTION_PANELS`, `OptionsNotBuilt`, `PDFA_LEVELS`, `selectedPdfa`, `reducer`, `toast` (kept internally; only `useToast` leaves the module), `fallbackIcon`, `buildFormData`, `matchesQuery`, `ApiError`, `ResponseParseError`, and the types `FormFieldInfo`, `PdfPageInfoPage`, `PdfPageInfo`, `ComparisonFaq`, `ComparisonRow`.
+- Two census traps resolved before editing: the `buildFormData` hit in watermark.tsx was a code comment, not an import; `OptionsNotBuilt` stays rendered (its `options-not-built` testid is asserted by verify/batch2/batch3) — only its export keyword went. `toaster.tsx`'s `useToast` import is the one real use-toast consumer and is untouched.
+**Verification performed:** `pnpm run typecheck` exit 0; knip's "Unused exports" and "Unused exported types" sections **gone** (report now only the vendored devDeps + prettier); full `pnpm run build` exit 0 — **API dist rebuilt** with the changed server source, frontend bundle byte-identical (`index-CK6Gq_wo.js` 179.34 kB); `verify.mjs` **127/127**, which live-exercises the un-exported `OPTION_PANELS` lookup, the `OptionsNotBuilt` fallback's absence-path, `fallbackIcon` and the search path through the real app.
+**Confidence:** High — every symbol's remaining references counted before treatment; no import statements removed except the now-dead `readFile` in upload.ts.
+**Result:** Verified working. knip's actionable backlog is now fully drained: what remains is the documented vendored keep-pattern (26 devDeps incl. justified `prettier`) and nothing else.
+**Follow-ups opened:** none. **Follow-ups closed:** the unused-exports pass.
+*Session-boundary rule:* (c) follow-up — user-directed dead-code cleanup.
+
+---
+
 ## 2026-09-30 (orphaned-deps session) — knip's genuinely-dead devDependencies removed; one removal reverted by the proof
 **Commits:** this session's commit (pdftools/api-server package.json + pnpm-workspace.yaml + vite.config.ts comment + AUDIT touch + this entry).
 **Type:** Dependency cleanup (the recorded knip backlog, user-directed).

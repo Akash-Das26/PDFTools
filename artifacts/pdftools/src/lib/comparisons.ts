@@ -1,9 +1,9 @@
-export interface ComparisonFaq {
+interface ComparisonFaq {
   question: string;
   answer: string;
 }
 
-export interface ComparisonRow {
+interface ComparisonRow {
   label: string;
   pdfTools: string;
   competitor: string;

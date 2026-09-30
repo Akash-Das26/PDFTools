@@ -104,7 +104,7 @@ const REGISTRY: Record<string, LucideIcon> = {
 };
 
 /** Fallback for a catalog entry whose icon name is unknown. */
-export const fallbackIcon: LucideIcon = FileText;
+const fallbackIcon: LucideIcon = FileText;
 
 /** Resolve the catalog's lucide export name to a component. */
 export function iconForTool(tool: Pick<Tool, "icon">): LucideIcon {

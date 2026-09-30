@@ -33,7 +33,7 @@ import {
  */
 
 /** The shape `inspect` answers with and the panel consumes. */
-export interface FormFieldInfo {
+interface FormFieldInfo {
   name: string;
   type: "text" | "checkbox" | "dropdown" | "optionlist" | "radio" | "signature" | "button";
   /** Current text value, for text fields. */

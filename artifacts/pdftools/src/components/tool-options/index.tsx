@@ -52,7 +52,7 @@ function NoOptionsPanel({ note }: { note: string }) {
   };
 }
 
-export const OPTION_PANELS: Record<string, ComponentType<ToolOptionsProps>> = {
+const OPTION_PANELS: Record<string, ComponentType<ToolOptionsProps>> = {
   compress: CompressOptions,
   merge: MergeOptions,
   split: SplitOptions,
@@ -100,7 +100,7 @@ export function hasOptionsPanel(toolId: string): boolean {
 }
 
 /** Fallback shown for tools whose Configure panel has not been built yet. */
-export function OptionsNotBuilt({ toolId }: { toolId: string }) {
+function OptionsNotBuilt({ toolId }: { toolId: string }) {
   return (
     <div
       data-testid="options-not-built"

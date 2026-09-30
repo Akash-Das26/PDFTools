@@ -6,7 +6,7 @@ let cached: CanvasModule | null = null;
  * `@napi-rs/canvas` is a native module, so it is loaded lazily (and kept out of
  * the server bundle) — only the image conversion tools ever need it.
  */
-export function loadCanvas(): CanvasModule {
+function loadCanvas(): CanvasModule {
   if (!cached) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     cached = require("@napi-rs/canvas") as CanvasModule;

@@ -11,14 +11,14 @@ import type { ToolOptionsProps } from "@/components/tool-options/types";
  * the note is deliberately narrow: the export filter writes the archival marker,
  * but a compliance claim belongs to a validator, not to this panel.
  */
-export const PDFA_LEVELS = [
+const PDFA_LEVELS = [
   { value: "off", label: "PDF", description: "Plain PDF 1.7 — opens anywhere." },
   { value: "1b", label: "PDF/A-1b", description: "ISO 19005-1, visual fidelity." },
   { value: "2b", label: "PDF/A-2b", description: "Part 2, visual fidelity." },
   { value: "3b", label: "PDF/A-3b", description: "Part 3, attachments allowed." },
 ] as const;
 
-export function selectedPdfa(options: Record<string, unknown>): string {
+function selectedPdfa(options: Record<string, unknown>): string {
   return typeof options.pdfa === "string" && PDFA_LEVELS.some((level) => level.value === options.pdfa)
     ? options.pdfa
     : "off";
