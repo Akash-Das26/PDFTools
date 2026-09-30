@@ -5,6 +5,7 @@ import { rm, mkdir } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { StorageEngine } from "multer";
 
@@ -60,36 +61,61 @@ function hybridStorage(): StorageEngine {
       void (async () => {
         const chunks: Buffer[] = [];
         let inMemory = true;
-        let spilled: { dir: string; filePath: string } | null = null;
+        // Holder object on purpose: TS flow-narrows a plain `let` to `null`
+        // here because assignments happen inside the sink's closures.
+        const spill: { ref: { dir: string; filePath: string } | null } = { ref: null };
         let size = 0;
-        let streamError: Error | null = null;
+        let target: ReturnType<typeof createWriteStream> | null = null;
 
-        file.stream.on("error", (err: Error) => {
-          streamError = err;
+        // The upload stream is consumed EXACTLY ONCE, by this sink (Item 28):
+        // the earlier two-phase shape iterated the stream with `for await` and
+        // then handed the same half-consumed stream to `pipeline()`, which
+        // deadlocks on the second consumer (cutoff exactly at busboy's 64 KB
+        // chunk boundary). Instead a single `pipeline(file.stream, sink)` runs
+        // for the whole upload; the sink buffers to memory until the threshold
+        // is crossed, then opens the target in-file and streams the rest with
+        // real backpressure (it only asks for the next chunk once the disk
+        // write has room).
+        const sink = new Writable({
+          write(chunk: Buffer, _enc, next) {
+            size += chunk.length;
+            if (target) {
+              if (!target.write(chunk)) target.once("drain", () => next());
+              else next();
+              return;
+            }
+            chunks.push(chunk);
+            if (size > SPILL_THRESHOLD) {
+              // Crossed the threshold: flush what we hold and stream on.
+              void (async () => {
+                const state = await dirFor(_req);
+                const filePath = path.join(state.dir, `${file.fieldname}-${state.index++}`);
+                const ws = createWriteStream(filePath);
+                // Disk errors must fail the request, not hang the pipeline.
+                ws.on("error", (err) => sink.destroy(err));
+                for (const held of chunks) {
+                  if (!ws.write(held)) await new Promise<void>((resolve) => ws.once("drain", resolve));
+                }
+                chunks.length = 0;
+                target = ws;
+                inMemory = false;
+                spill.ref = { dir: state.dir, filePath };
+                next();
+              })().catch(next);
+              return;
+            }
+            next();
+          },
+          final(cb) {
+            if (target) target.end(() => cb());
+            else cb();
+          },
         });
 
         try {
-          for await (const chunk of file.stream as AsyncIterable<Buffer>) {
-            size += chunk.length;
-            if (inMemory) {
-              chunks.push(chunk);
-              if (size > SPILL_THRESHOLD) {
-                // Crossed the threshold: flush what we hold and stream on.
-                const state = await dirFor(_req);
-                const filePath = path.join(state.dir, `${file.fieldname}-${state.index++}`);
-                const target = createWriteStream(filePath);
-                for (const held of chunks) target.write(held);
-                chunks.length = 0;
-                inMemory = false;
-                spilled = { dir: state.dir, filePath };
-                await pipeline(file.stream, target);
-                break; // pipeline consumed the rest
-              }
-            }
-          }
-          if (streamError) throw streamError;
+          await pipeline(file.stream, sink);
         } catch (err) {
-          if (spilled) void rm(spilled.filePath, { force: true }).catch(() => {});
+          if (spill.ref) void rm(spill.ref.filePath, { force: true }).catch(() => {});
           cb(err as Error);
           return;
         }
@@ -105,11 +131,11 @@ function hybridStorage(): StorageEngine {
         // MUST be enumerable: multer reconstructs the file object by spreading
         // `{...file, ...info}`, and a non-enumerable property silently vanishes
         // (first live test caught exactly that).
-        const info: Record<string, unknown> = { size, path: spilled!.filePath };
+        const info: Record<string, unknown> = { size, path: spill.ref!.filePath };
         let cache: Buffer | null = null;
         Object.defineProperty(info, "buffer", {
           get() {
-            cache ??= readFileSync(spilled!.filePath);
+            cache ??= readFileSync(spill.ref!.filePath);
             return cache;
           },
           enumerable: true,

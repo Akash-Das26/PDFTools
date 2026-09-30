@@ -563,26 +563,26 @@ Pulled verbatim in substance from REVIEW.md's Open Items (nothing softened):
    new tools' honest scope limits, and the roadmap re-pointed at the chat live-branch mock. [REVIEW.md](REVIEW.md) is the source of truth.
 9. **Production hardening gaps (2026-09-29 adversarial audit; re-audited 2026-09-30)** — the
     audit's blockers were resolved: uploads under `UPLOAD_SPILL_THRESHOLD_BYTES` (default 10 MB) stay in RAM
-    and larger ones stream to per-request temp dirs (Item 22 — **but see limitation 10: the spill path is
-    currently broken and must not be relied on**); a malformed PDF no
+    and larger ones stream to per-request temp dirs that are cleaned up on response end (Item 22 — see
+    limitation 10 for the spill defect the re-audit found and its same-day fix); a malformed PDF no
     longer crashes the API (Item 17); damaged-file recovery is disclosed via `X-PDF-Recovered`/`X-PDF-Skipped-Files`
     headers and a UI notice instead of silent 200s (Item 20); rate limiting is on by default (Item 18); CORS
     is an allow-list (Item 19); and `pnpm audit` is clean after pinning patched transitive versions (Item 16).
-    The 2026-09-30 re-audit re-probed all of those and they hold, but opened seven new findings — the spill
-    deadlock, an unbounded multipart body, malformed-multipart answering 500 instead of 4xx, a pdf-lib
-    recovery-path cost of ~5 s per MB, an encrypted-input no-op in Compress, a database required to boot,
-    and three dead statements. What still stands as honest scope: translate fidelity
+    The 2026-09-30 re-audit re-probed all of those live and they hold, but opened seven new findings
+    (REVIEW.md Open Items 26–32), resolved in severity order by the audit-resolution sessions that follow.
+    What still stands as honest scope: translate fidelity
     depends on the chosen model snapshot (limitation 2). The
     UI bundle itself is code-split into cacheable vendor chunks (largest 186 KB; the build's largest-chunk
     warning is retired — note pdfjs was never a frontend dependency, it lives in api-server).
-10. **Uploads above the spill threshold currently hang (2026-09-30 re-audit, Item 28) — do not raise
-    `UPLOAD_SPILL_THRESHOLD_BYTES` expecting it to help.** The hybrid storage engine hands the same
-    half-consumed stream to `pipeline()` after iterating it, so any upload that crosses the threshold and
-    spans more than one busboy chunk (64 KB) never completes and leaves its temp dir behind; the health
-    endpoint stays up, so it presents as a silently stuck request. At the 10 MB default that affects the
-    10–50 MB band the API otherwise advertises. Setting the threshold very high (or `0`) avoids the hang by
-    keeping everything in RAM, which trades it back for the memory model Item 22 was opened to close. Both
-    sides of that trade are open; the fix is a one-line change to how the spill consumes the stream.
+10. **The spill path deadlocked on every real spill (2026-09-30 re-audit, Item 28) — found and fixed the
+    same day.** The first hybrid storage engine iterated the upload stream with `for await` and then handed
+    the same half-consumed stream to `pipeline()`, so any upload that crossed the threshold and spanned more
+    than one busboy chunk (64 KB) hung forever and leaked its temp dir while `/api/healthz` stayed up —
+    silently stuck requests across the whole 10–50 MB band the API advertises. The engine now consumes the
+    stream exactly once: a single pipeline whose sink buffers to memory until the threshold is crossed, then
+    streams the remainder to disk with backpressure. Re-verified with the re-audit's own probes: an 11 MB
+    upload at the 10 MB default answers 200 in under a second with no temp-dir leak, the 64 KB boundary no
+    longer hangs, and a 51 MB upload still 413s with the documented per-file message.
 
 ---
 
