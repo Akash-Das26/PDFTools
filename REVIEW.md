@@ -51,6 +51,23 @@
 
 ---
 
+## 2026-09-30 (prune-triage session) — the vendored-coupled devDependencies mapped for the shadcn prune decision (read-only)
+**Commits:** docs-only commit (this entry).
+**Type:** Triage/analysis for a future product decision — no code or dependency changed.
+**Trigger:** User request: triage knip's 25 vendored-coupled devDependencies (26 minus justified `prettier`) for a future shadcn prune decision.
+**Method (all greps/closures computed live this session):** knip's 26-entry list enumerated; every `components/ui/*.tsx` (55 files) mapped to its third-party deps; app-importer counts computed from all of `src/` (12 files genuinely used: input ×12, switch ×4, button ×3, select/toast ×2, card/command/dropdown-menu/progress/radio-group/slider/toaster/tooltip ×1); a **reverse import closure** over the 13 app-reachable files computed the full keep-set — 14 files (the 13 + `dialog.tsx`, which command/dropdown-menu/sheet-family import), and closure validated both directions (the only intra-ui imports among kept files are `dialog` and `toast`, both kept). `next-themes` checked outside `ui/` (theme-provider/theme-toggle use it — stays, and it is not even in knip's list).
+**Findings — the keep-set is 14 of 55 files; all 25 knip entries land on prunable files:** the earlier impulse to keep `recharts` (chart.tsx) and `react-day-picker` (calendar.tsx) **evaporates** — both files are unreferenced once the closure is computed correctly, and the dependent `form.tsx`/`label.tsx` (react-hook-form, @radix-ui/react-label) are pruned too.
+- **Tier A — clean prune, no decision needed (mechanical, if the prune is chosen):** the 19 @radix-ui/* entries + `react-day-picker` + `react-hook-form` + `embla-carousel-react` + `input-otp` + `react-resizable-panels` — each has exactly one prunable importer file.
+- **Tier B — prune with a one-line consequence each:** `sonner` (its file imports next-themes' `useTheme`, which itself stays), `vaul` (react-remove-scroll remains via kept radix-dialog regardless), `recharts` (its removal also retires the audit's standing type-only exception and the vite.config comment about it).
+- **Keep regardless:** `prettier` (orval `prettier: true`), `next-themes` (not in the list; app-used).
+- **Sizing (honest):** ~16.5 MB of the 877 MB pnpm store across the 25 dirs — the win is dependency-hygiene (audit surface, install graph, knip's report reaching zero findings), not disk or bundle (already byte-identical either way, tree-shaking proven).
+**Decision points for the user:** (1) prune at all — the standing rationale is the batch-panel pattern: vendored files await future tools (33 unreferenced shadcn templates are the pool; nothing in the current roadmap names calendar/drawer/sonner/chart); (2) prune whole (55→14 files, 25 deps out, knip to zero) vs. partial (Tier A only, keep sonner/vaul/recharts on speculation); (3) keep the shadcn re-add path open — components are one `npx shadcn add` away, which is the argument that this is reversible and low-stakes either way.
+**Verification performed:** read-only — `git status` clean before and after; no install, no build, no source change. Every number in this entry recomputable from the greps recorded above.
+**Confidence:** High on the graph (double-direction closure validated); the only soft spot is future intent — whether an unbuilt tool will want drawer/sonner/calendar — which is exactly the product judgment this brief parks with the user.
+**Result:** Triage complete; awaiting the prune decision. **Follow-ups opened:** the prune decision itself. *Session-boundary rule:* (c) follow-up — user-directed analysis.
+
+---
+
 ## 2026-09-30 (orphaned-deps session) — knip's genuinely-dead devDependencies removed; one removal reverted by the proof
 **Commits:** this session's commit (pdftools/api-server package.json + pnpm-workspace.yaml + vite.config.ts comment + AUDIT touch + this entry).
 **Type:** Dependency cleanup (the recorded knip backlog, user-directed).
