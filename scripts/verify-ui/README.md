@@ -19,24 +19,24 @@ bash scripts/verify-ui/drive.sh verify.mjs
 # 38-assertion accent/contrast suite (WCAG contrast computed from rendered pixels)
 bash scripts/verify-ui/drive.sh accent.mjs
 
-# 21-assertion Batch 1 suite (all seven Organize panels through real routes)
+# 23-assertion Batch 1 suite (all seven Organize panels through real routes, plus the per-page rotate override assertions)
 bash scripts/verify-ui/drive.sh batch1.mjs
 
-# 48-assertion Batch 2 suite (Protect/Unlock round-trips, Sign/Redact pending UX)
+# 46-assertion Batch 2 suite (Protect/Unlock round-trips, Sign/Redact pending UX)
 bash scripts/verify-ui/drive.sh batch2.mjs
 
-# 59-assertion Batch 3 suite (Watermark text+image, Page Numbers, Crop)
+# 53-assertion Batch 3 suite (Watermark text+image, Page Numbers, Crop)
 bash scripts/verify-ui/drive.sh batch3.mjs
 
 # 54-assertion Batch 4 suite (Image to PDF, PDF to JPG, PDF/A, PDF to Markdown, and the
 # shared move-up/move-down/remove row list)
 bash scripts/verify-ui/drive.sh batch4.mjs
 
-# 65-assertion Batch 5 suite (Word/PowerPoint/Excel to PDF, PDF/A export, fit-to-page,
+# 66-assertion Batch 5 suite (Word/PowerPoint/Excel to PDF, PDF/A export, fit-to-page,
 # and the container guards) — needs LibreOffice on PATH, or those tools answer 503
 bash scripts/verify-ui/drive.sh batch5.mjs
 
-# 70-assertion Batch 6 suite (Scan to PDF: composed captures, geometry, the optional
+# 71-assertion Batch 6 suite (Scan to PDF: composed captures, geometry, the optional
 # OCR text layer read back as real text; HTML to PDF: PDF/A markers and the markup
 # sniff that rejects a text file named .html) — needs LibreOffice on PATH, or
 # html-to-pdf answers 503
@@ -66,6 +66,10 @@ bash scripts/verify-ui/drive.sh compare.mjs
 
 # Informational WCAG audit (reports ratios; exit code never gates)
 bash scripts/verify-ui/drive.sh contrast.mjs
+
+# 15-assertion accessibility suite (accessible-name census on landing/compress/page-picker
+# + a real CDP keyboard walkthrough of the page-picker)
+bash scripts/verify-ui/drive.sh a11y.mjs
 
 # Everything: bash scripts/verify-ui/run-all.sh   (runs verify.mjs)
 # Or from the repo root: pnpm verify:ui [suite.mjs]
@@ -107,9 +111,9 @@ everything down on exit.
   examples. Batch 8 emptied the pending set, so those examples are now inverted ("no longer
   badged pending") and `verify.mjs`'s not-connected-chrome guarantee runs against the one
   remaining `partial` tool (pdf-to-markdown) instead.
-- The counted suites total **706**: 127 + 38 + 21 + 48 + 54 + 53 + 65 + 70 + 76 + 110 + 44.
+- The counted suites total **723**: 127 + 15 + 38 + 44 + 23 + 46 + 53 + 54 + 66 + 71 + 76 + 110.
   An AI key in the environment (`.env`'s `OPENAI_API_KEY` or the ambient shell) swaps batch7 to
-  **81** and batch8 to **113** — **714** — by exercising both suites' live model branches. The
+  **81** and batch8 to **113** — **731** — by exercising both suites' live model branches. The
   API retries upstream 503/timeouts (3 attempts, then a clean 502 naming the tool), the live UI
   waits allow 180 s for that, and translate's not-English assertion tolerates single-page model
   noise (a real echo bug echoes every page, not one).

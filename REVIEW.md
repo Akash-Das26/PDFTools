@@ -35,6 +35,21 @@
 
 ---
 
+## 2026-09-30 (regression-sweep session) — all 13 verify-ui suites run fresh; a harness key-forwarding bug found and fixed
+**Commits:** this session's commits (drive.sh fix; verify-ui README counts + AUDIT coverage touch + this entry).
+**Type:** Verification sweep (user-directed) + harness bug fix the sweep surfaced.
+**Trigger:** User request: run the full verify-ui regression suite as a fresh sweep.
+**Changes made:**
+- `scripts/verify-ui/drive.sh` — **key-forwarding bug (real, caught by the sweep):** since `03842af` the server receives its key via `--env-file-if-exists` (node semantics: ambient env wins, `.env` fills gaps) while the suite process only ever saw an *ambient* key — so a `.env`-only key made the server run the live model while batch7 asserted the no-key 503 branch and died waiting for an error panel a live run never renders (observed this sweep; the API log proved the server side: translate 200, 6 pages, 9.7 s). Fixed by mirroring the server's exact precedence: the `.env` key is forwarded to the suite only when ambient is unset, with a banner. Two draft syntax errors were caught by `bash -n`/isolated runs and corrected before anything shipped; both precedence paths verified (forward on unset, ambient preserved).
+- `scripts/verify-ui/README.md` — per-suite assertion counts refreshed from measured ground truth (batch1 23, batch2 46 — the old "48" was a dangling claim for two beta assertions never added — batch3 53, batch5 66, batch6 71), the a11y suite added, total corrected 706 → **723** (731 with both live branches).
+**Verification performed (the full fresh sweep):** verify **127/127**, a11y **15/15**, accent **38/38**, compress **44/44**, batch1 **23/23**, batch2 **46/46**, batch3 **53/53**, batch4 **54/54**, batch5 **66/66**, batch6 **71/71**, batch7 **81/81 live** (after one 80/81 — the documented Item-25 model-noise assertion flake, green on immediate re-run), batch8 **113/113 live**; compare all-MATCH exit 0; contrast exit 0 (informational). Counted total **723/723** (731/731 with the live branches). One new informational observation recorded: contrast.mjs's tinted icon tiles measure 1.02–1.34:1 — decorative icons under WCAG 1.4.11 (every control carries a text label or accessible name per the a11y census), not a defect.
+**Confidence:** High — every suite ran against the live app this session; the single flake was re-run to green rather than excused.
+**Result:** Verified working. The sweep paid for itself: it exposed a latent harness bug that only a `.env`-only key state reveals, now fixed at the layer that made the promise.
+**Follow-ups opened:** none. **Follow-ups closed:** none (verification session).
+*Session-boundary rule:* (c) follow-up — user-directed fresh regression sweep.
+
+---
+
 ## 2026-09-30 (dependency-cleanup session) — knip's newly visible findings resolved
 **Commits:** this session's commit (`knip.json` + `pnpm-workspace.yaml`, coverage-row touch, this entry).
 **Type:** Dependency/tooling cleanup (follow-up to the audit-resolution session's recorded knip findings, user-directed).
