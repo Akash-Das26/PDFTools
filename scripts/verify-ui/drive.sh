@@ -51,6 +51,23 @@ echo "web: $(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.
 grep -q "ready in" /tmp/web.log && echo "vite: ready" || { echo "vite log:"; tail -12 /tmp/web.log; }
 
 echo "== run $TARGET =="
+# The key-aware suites (batch7/batch8) branch on OPENAI_API_KEY. The server
+# above got its key via --env-file-if-exists, which — like node's env-file
+# loading generally — never overrides an already-set variable: ambient wins.
+# Mirror that exact precedence here, or a .env-only key makes the server run
+# the live model while the suite asserts the no-key 503 branch (observed
+# 2026-09-30: batch7 died waiting for an error panel a live run never renders).
+if [ -z "${OPENAI_API_KEY:-}" ] && [ -f "$REPO_ROOT/.env" ]; then
+  KEY_FROM_ENV_FILE="$(sed -n 's/^OPENAI_API_KEY=//p' "$REPO_ROOT/.env" | head -1 | tr -d '\r')"
+  case "$KEY_FROM_ENV_FILE" in
+    \"*) KEY_FROM_ENV_FILE="${KEY_FROM_ENV_FILE#\"}"; KEY_FROM_ENV_FILE="${KEY_FROM_ENV_FILE%\"}" ;;
+    \'*) KEY_FROM_ENV_FILE="${KEY_FROM_ENV_FILE#\'}"; KEY_FROM_ENV_FILE="${KEY_FROM_ENV_FILE%\'}" ;;
+  esac
+  if [ -n "$KEY_FROM_ENV_FILE" ]; then
+    export OPENAI_API_KEY="$KEY_FROM_ENV_FILE"
+    echo "ai key: .env key forwarded to the suite (ambient unset)"
+  fi
+fi
 cd "$SCRIPT_DIR"
 node "$TARGET"
 STATUS=$?
