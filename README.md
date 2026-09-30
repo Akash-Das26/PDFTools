@@ -383,7 +383,9 @@ bootstrap from `.env.example`, then launch. The Replit workspace button runs the
 All routes are mounted under `/api` (`app.use("/api", router)` in `artifacts/api-server/src/app.ts`) and are
 modelled in `lib/api-spec/openapi.yaml` (40 paths total). Uploads are multipart form-data; limits are
 **50 MB per file, 20 files max** (`artifacts/api-server/src/lib/upload.ts`), enforced with JSON error
-responses (413 for oversized files).
+responses (413 for oversized files). The request body itself is bounded too: non-file form fields are
+capped at 40 fields / 2 MB per value (70 parts total), so a malformed or hostile form is refused early
+with a 400 instead of being buffered in full.
 
 | Method | Path | Upload field(s) | Purpose |
 |---|---|---|---|

@@ -105,6 +105,13 @@ app.use((err: unknown, _req: Request, res: Response, next: NextFunction): void =
     LIMIT_FILE_SIZE: "File is too large. The limit is 50 MB per file.",
     LIMIT_FILE_COUNT: "Too many files. You can upload up to 20 files at once.",
     LIMIT_UNEXPECTED_FILE: "Unexpected file field. Reload the page and try again.",
+    // Body-bound rejects (Open Item 26): client-error 400s naming the bound,
+    // answered as soon as multer crosses the limit instead of after the whole
+    // body has been read and buffered.
+    LIMIT_PART_COUNT: "The submitted form has too many parts. Reload the page and try again.",
+    LIMIT_FIELD_COUNT: "Too many form fields. Reload the page and try again.",
+    LIMIT_FIELD_VALUE: "A form field value is too large.",
+    LIMIT_FIELD_NAME: "A form field name is too long.",
   };
 
   res.status(err.code === "LIMIT_FILE_SIZE" ? 413 : 400).json({

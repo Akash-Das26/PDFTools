@@ -154,7 +154,20 @@ function hybridStorage(): StorageEngine {
 
 export const upload = multer({
   storage: hybridStorage(),
-  limits: { fileSize: 50 * 1024 * 1024, files: 20 }, // 50MB per file, 20 files max
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB per file
+    files: 20, // 20 files max
+    // Body bounds (Open Item 26): per-file and per-count caps leave the
+    // multipart body itself unbounded — a request of thousands of non-file
+    // fields was fully buffered before any 400 (a 1 GB all-fields body took
+    // ~1 GB of RSS). The largest documented form sends 3 text fields, so 40
+    // fields and a 2 MB value cap are wide guard bands; parts bounds the
+    // total (fields + files + stray parts) at 70; field names are URL-short.
+    fields: 40,
+    fieldSize: 2 * 1024 * 1024,
+    parts: 70,
+    fieldNameSize: 200,
+  },
 });
 
 /** Best-effort sweep of the spill root at boot (crashed processes' leftovers). */
