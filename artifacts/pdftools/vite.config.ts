@@ -60,9 +60,10 @@ export default defineConfig(async ({ mode }) => ({
         // built on Radix Dialog (cmdk, vaul) — co-locating those avoids a
         // vendor↔radix circular-chunk warning; the icon pack; react-query;
         // everything else node_modules → vendor.
-        // framer-motion and recharts are installed but imported by nothing
-        // (only the unreferenced components/ui/chart.tsx mentions recharts),
-        // so Rollup tree-shakes them out and no chunk is emitted for them.
+        // recharts stays installed only because the unreferenced (but
+        // type-checked) components/ui/chart.tsx imports it; framer-motion and
+        // react-icons were removed outright (2026-09-30, knip pass) — imported
+        // by nothing. No chunk is emitted for any of them either way.
         manualChunks(id: string) {
           if (!id.includes('node_modules')) return undefined;
           if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return 'react';
