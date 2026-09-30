@@ -14,7 +14,7 @@
 | Area | Last audited | Verdict | Overdue? |
 |---|---|---|---|
 | UI/design conformance | never (deep audit) — standing `compare.mjs` reference suite runs MATCH checks every session since 2026-09-26 | — | |
-| Dead code / dependencies | 2026-09-29 (re-audit; first was 2026-09-26) | Item 14 closed 2026-09-30 (both unused deps removed); vendored-file count 46→58; knip unblocked 2026-09-30 (runs findings-only, exit 1) | |
+| Dead code / dependencies | 2026-09-29 (re-audit; first was 2026-09-26) | Item 14 closed 2026-09-30 (both unused deps removed); knip unblocked 2026-09-30 (findings-only, exit 1) and its report made fully actionable the same day — zero unused files (vendored primitives ignored as the documented pattern, verify-ui suites registered as drive.sh-driven entries), catalog + hint noise gone; remaining findings (32 devDeps, 16 exports, 6 types) are the recorded future-cleanup backlog | |
 | Security | 2026-09-29 (adversarial audit; all findings closed same day) | No secrets; `pnpm audit` **zero vulnerabilities** after the override set; rate limiting + CORS allow-list live (probe-verified) | |
 | API/spec consistency | 2026-09-29 (adversarial re-check, supersedes standing-suite-only status) | Clean: 36/36 routes ↔ paths, every binary field present | |
 | Accessibility | 2026-09-29 (first deep audit) | Keyboard + aria strong in page workspaces; 1 unlabeled button; tertiary token measured 13.16:1 (closes Item 9's measurement) |

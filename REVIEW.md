@@ -35,6 +35,22 @@
 
 ---
 
+## 2026-09-30 (dependency-cleanup session) — knip's newly visible findings resolved
+**Commits:** this session's commit (`knip.json` + `pnpm-workspace.yaml`, coverage-row touch, this entry).
+**Type:** Dependency/tooling cleanup (follow-up to the audit-resolution session's recorded knip findings, user-directed).
+**Trigger:** User request: resolve the unused `wouter` catalog entry and the two workspace configuration hints knip began reporting once Item 23 unblocked it.
+**Changes made:**
+- `pnpm-workspace.yaml` — the `wouter` catalog entry removed. Census first: wouter itself is heavily used (11 imports across the app) but pdftools declares it as a literal `^3.3.5`, never `catalog:` — the dead thing was the indirection, not the dependency. `pnpm install` after removal: lockfile byte-identical (empty diff), proving the entry was annotation-only.
+- `knip.json` — the two configuration hints answered: `artifacts/pdftools` ignores `src/components/ui/**` + `use-mobile.tsx` (the documented vendored-shadcn keep-pattern — 42 files awaiting batch panels; knip now reports the tree's true unused-file count: zero) and `scripts` gains real entries (`verify-ui/**/*.mjs` are `drive.sh`-driven entry points knip could never see; plus `src/**/*.ts`). The new visibility surfaced two honest unlisted findings, both true-by-design and silenced with the exact knobs: `@cantoo/pdf-lib` in `make-batch7-fixtures.mjs` (deliberately resolved cross-workspace via `createRequire` anchored at api-server — the file's own header documents this) and the `openssl` binary in `batch8.mjs` (a system tool, not an npm package).
+- One mis-step caught by the harness itself: the first edit both removed the catalog entry and pointed pdftools at `catalog:` — `pnpm install` refused with `ERR_PNPM_CATALOG_ENTRY_NOT_FOUND_FOR_SPEC`; reverted to the literal declaration (the state knip actually found).
+**Verification performed:** `npx knip --no-progress` — "Unused catalog entries" and "Configuration hints" sections gone, zero unused files, zero unlisted deps/binaries, exit 1 (findings-only; the remaining findings are the pre-recorded 32 devDeps + 16 exports + 6 types, deliberately untouched — most are the vendored primitives' coupled deps, a future pass); `pnpm install` clean with an untouched lockfile; workspace `pnpm run typecheck` exit 0; `pnpm audit` still "No known vulnerabilities found"; `pnpm --filter @workspace/pdftools build` exit 0, no chunk warning, index 179.34 kB byte-identical; `verify.mjs` **127/127**, no page console errors.
+**Confidence:** High — every tool re-run post-change; the build output's byte-identity proves no runtime surface moved.
+**Result:** Verified working. knip's report is now fully actionable: everything it lists is either a deliberate documented pattern (ignored) or a genuine future-cleanup finding.
+**Follow-ups opened:** none. **Follow-ups closed:** the audit-resolution session's recorded knip tool findings (wouter catalog entry, 2 config hints).
+*Session-boundary rule:* (c) follow-up — deliberate resolution of the recorded tool findings.
+
+---
+
 ## 2026-09-30 (audit-resolution session) — bug-resolution sweep over the audit's open findings
 **Commits:** per-fix commits (Fix 1 = Item 23: `knip.json` + logs; Fix 2 = Item 24: `a11y.mjs` suite + logs; Fix 3 = markdown-it advisory: override + lockfile; Item 14 = dependency removals; Item 13 = per-page rotate backend extension).
 **Type:** Audit follow-ups (user-directed: fix Bug-class findings in severity order, each re-verified by its original detection method, logs updated per fix; product decisions listed for user choice).

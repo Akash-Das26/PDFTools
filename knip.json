@@ -6,6 +6,24 @@
   "workspaces": {
     "lib/db": {
       "entry": ["drizzle.config.ts"]
+    },
+    "artifacts/pdftools": {
+      "ignore": [
+        "src/components/ui/**",
+        "src/hooks/use-mobile.tsx"
+      ]
+    },
+    "scripts": {
+      "entry": [
+        "verify-ui/**/*.mjs",
+        "src/**/*.ts"
+      ],
+      "ignoreDependencies": [
+        "@cantoo/pdf-lib"
+      ],
+      "ignoreBinaries": [
+        "openssl"
+      ]
     }
   }
 }
