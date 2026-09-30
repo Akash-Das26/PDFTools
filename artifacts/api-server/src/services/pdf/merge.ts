@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { getPdfPageCount } from "./pdfjs";
+import { loadPdfViaWorker } from "./parse-worker";
 import { sendPdf } from "./shared";
 
 /**
@@ -24,7 +25,10 @@ export async function mergePdfs(req: Request, res: Response): Promise<void> {
 
     for (const file of files) {
       try {
-        const source = await PDFDocument.load(file.buffer);
+        // Worker-normalised load (Item 32): the parse runs in a
+        // terminated-on-deadline worker thread; the document is rebuilt from
+        // the normalised bytes it returns.
+        const { document: source } = await loadPdfViaWorker(file.buffer);
         // Cross-check with the independent parser before trusting the load:
         // pdf-lib resolves lazily, so trailer-level damage "loads" and would
         // silently merge a mangled page tree without this.

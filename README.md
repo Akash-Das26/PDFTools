@@ -263,6 +263,7 @@ cp .env.example .env
 | `RATE_LIMIT_API_MAX` / `RATE_LIMIT_UPLOAD_MAX` | Request budgets per window: 300 for `/api` overall, 30 for `/pdf` uploads, over `RATE_LIMIT_WINDOW_MINUTES` (default 15 min) | Optional |
 | `RATE_LIMIT_DISABLED` | Any non-empty value skips both limiters. The verification harness sets this itself; leave it unset in production | Optional |
 | `RATE_LIMIT_TRUST_PROXY` | Set `1` behind exactly one trusted reverse proxy so limits count the real client address | Optional |
+| `PDF_PARSE_DEADLINE_MS` | Hard deadline for parsing an uploaded PDF in the parse worker (Item 32): a pathological document is terminated and refused with 422 instead of stalling the process. Default 30 000; legitimate documents parse in well under a second | Optional |
 | `WEB_PORT` | Port for the Vite dev server when launched via `pnpm dev:local` | Optional, default `5173` |
 | `API_PORT` | Port for the API server when launched via `pnpm dev:local` | Optional, default `8080` |
 

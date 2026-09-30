@@ -7,6 +7,12 @@
     "lib/db": {
       "entry": ["drizzle.config.ts"]
     },
+    "artifacts/api-server": {
+      "entry": [
+        "src/index.ts",
+        "src/services/pdf/parse-worker-child.ts"
+      ]
+    },
     "artifacts/pdftools": {
       "ignore": [
         "src/components/ui/**"

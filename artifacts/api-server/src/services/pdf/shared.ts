@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { ZipArchive } from "archiver";
 import { EncryptedPDFError, PDFDocument } from "@cantoo/pdf-lib";
 import { getPdfPageCount } from "./pdfjs";
+import { loadPdfViaWorker } from "./parse-worker";
 
 // archiver v8 is ESM-only and exports archive classes rather than the old
 // `archiver("zip", …)` factory, so ZIPs are built from ZipArchive directly.
@@ -234,7 +235,8 @@ export function parsePageSelection(
 
 export async function loadPdf(buffer: Buffer, options: { ignoreEncryption?: boolean } = {}): Promise<PDFDocument> {
   try {
-    return await PDFDocument.load(buffer, { ignoreEncryption: options.ignoreEncryption ?? false });
+    const { document } = await loadPdfViaWorker(buffer, { ignoreEncryption: options.ignoreEncryption ?? false });
+    return document;
   } catch (err) {
     if (isEncryptedPdfError(err)) throw unprocessable(ENCRYPTED_PDF_MESSAGE);
     throw err;
@@ -261,14 +263,19 @@ export async function loadPdfWithRecovery(
   let document: PDFDocument;
   let lenient = false;
   try {
-    document = await PDFDocument.load(buffer, { throwOnInvalidObject: true });
+    ({ document } = await loadPdfViaWorker(buffer, { throwOnInvalidObject: true }));
   } catch (strictError) {
     if (isEncryptedPdfError(strictError)) throw unprocessable(ENCRYPTED_PDF_MESSAGE);
+    // A parse-deadline refusal (Item 32) must not fall through to the lenient
+    // retry: the lenient attempt parses the same structure at the same cost,
+    // so it would only burn a second deadline on the same pathological input
+    // before surfacing under a misleading "damaged" message. Stop here.
+    if (strictError instanceof ToolError) throw strictError;
     try {
-      document = await PDFDocument.load(buffer, {
+      ({ document } = await loadPdfViaWorker(buffer, {
         throwOnInvalidObject: false,
         updateMetadata: false,
-      });
+      }));
       lenient = true;
     } catch {
       throw unprocessable(

@@ -15,7 +15,13 @@ async function buildAll() {
   await rm(distDir, { recursive: true, force: true });
 
   await esbuild({
-    entryPoints: [path.resolve(artifactDir, "src/index.ts")],
+    entryPoints: [
+      path.resolve(artifactDir, "src/index.ts"),
+      // The Item 32 parse worker: uploads are parsed in a terminated-on-
+      // deadline worker thread so a pathological PDF cannot block the event
+      // loop. Sibling chunk beside index.mjs; see services/pdf/parse-worker.ts.
+      path.resolve(artifactDir, "src/services/pdf/parse-worker-child.ts"),
+    ],
     platform: "node",
     bundle: true,
     format: "esm",

@@ -1,8 +1,10 @@
 import type { Request, Response } from "express";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import type { RepairPdfOptionsInput } from "@workspace/api-zod";
+import { loadPdfViaWorker } from "./parse-worker";
 import {
   ENCRYPTED_PDF_MESSAGE,
+  ToolError,
   baseName,
   failTool,
   isEncryptedPdfError,
@@ -38,16 +40,20 @@ export async function repairPdf(
       // accept damaged objects here and make the recovery pass below
       // unreachable. Force strict parsing so genuinely broken files take the
       // recovery branch and clients see an honest X-Repair-Recovered value.
-      document = await PDFDocument.load(file.buffer, { throwOnInvalidObject: true });
+      // Both loads run in the deadline-terminated parse worker (Item 32).
+      ({ document } = await loadPdfViaWorker(file.buffer, { throwOnInvalidObject: true }));
     } catch (strictError) {
       if (isEncryptedPdfError(strictError)) throw unprocessable(ENCRYPTED_PDF_MESSAGE);
+      // Same rule as loadPdfWithRecovery (Item 32): a parse-deadline refusal
+      // stops here — the lenient retry costs a second deadline for nothing.
+      if (strictError instanceof ToolError) throw strictError;
 
       try {
-        document = await PDFDocument.load(file.buffer, {
+        ({ document } = await loadPdfViaWorker(file.buffer, {
           throwOnInvalidObject: false,
           warnOnInvalidObjects: true,
           updateMetadata: false,
-        });
+        }));
         recovered = true;
       } catch {
         throw unprocessable(

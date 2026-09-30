@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import type { ProtectPdfOptionsInput, UnlockPdfOptionsInput } from "@workspace/api-zod";
+import { loadPdfViaWorker } from "./parse-worker";
 import {
   failTool,
   isEncryptedPdfError,
@@ -55,8 +56,9 @@ export async function unlockPdf(req: Request, res: Response, options: UnlockPdfO
 
     let encrypted = false;
     try {
-      const probe = await PDFDocument.load(file.buffer, { ignoreEncryption: true });
-      encrypted = probe.isEncrypted;
+      // Worker parse (Item 32): untrusted bytes never hit the main thread.
+      const probe = await loadPdfViaWorker(file.buffer, { ignoreEncryption: true });
+      encrypted = probe.parsed.encrypted;
     } catch (err) {
       if (isEncryptedPdfError(err)) encrypted = true;
       else throw err;
@@ -70,7 +72,7 @@ export async function unlockPdf(req: Request, res: Response, options: UnlockPdfO
 
     let source: PDFDocument;
     try {
-      source = await PDFDocument.load(file.buffer, { password: options.password ?? "" });
+      ({ document: source } = await loadPdfViaWorker(file.buffer, { password: options.password ?? "" }));
     } catch (err) {
       if (isPasswordError(err)) {
         throw unprocessable(
