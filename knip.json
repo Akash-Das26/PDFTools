@@ -9,8 +9,7 @@
     },
     "artifacts/pdftools": {
       "ignore": [
-        "src/components/ui/**",
-        "src/hooks/use-mobile.tsx"
+        "src/components/ui/**"
       ]
     },
     "scripts": {

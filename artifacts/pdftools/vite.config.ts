@@ -60,10 +60,10 @@ export default defineConfig(async ({ mode }) => ({
         // built on Radix Dialog (cmdk, vaul) — co-locating those avoids a
         // vendor↔radix circular-chunk warning; the icon pack; react-query;
         // everything else node_modules → vendor.
-        // recharts stays installed only because the unreferenced (but
-        // type-checked) components/ui/chart.tsx imports it; framer-motion and
-        // react-icons were removed outright (2026-09-30, knip pass) — imported
-        // by nothing. No chunk is emitted for any of them either way.
+        // The vendored shadcn pool was pruned 2026-09-30 (55 → 14 files) and
+        // its 25 coupled devDependencies removed with it — framer-motion,
+        // react-icons, recharts et al. are gone outright. The react/radix
+        // buckets below cover only what the kept files really import.
         manualChunks(id: string) {
           if (!id.includes('node_modules')) return undefined;
           if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return 'react';
