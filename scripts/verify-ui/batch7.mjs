@@ -18,6 +18,7 @@ const FIXTURES = OUT + "fixtures/";
 const FORM_PDF = FIXTURES + "form.pdf";
 const TABLE_PDF = FIXTURES + "table.pdf";
 const NOTFORM_PDF = FIXTURES + "notform.pdf";
+const TRANSLATE_PDF = FIXTURES + "translate.pdf";
 const PDF_FIXTURE = FIXTURES + "fixture.pdf";
 const TEXTLESS_PNG = "/tmp/batch7-textless.png";
 const TEXTLESS_PDF = "/tmp/batch7-textless.pdf";
@@ -282,11 +283,11 @@ check("api pdf-to-excel: both tables come back zipped",
 const hasAiKey = Boolean(process.env.OPENAI_API_KEY?.trim());
 console.log(`        ai key: ${hasAiKey ? "present — exercising the live translate path" : "absent — asserting the honest 503"}`);
 
-const translateBad = await post("/pdf/translate-pdf", PDF_FIXTURE, { targetLanguage: "klingon" });
+const translateBad = await post("/pdf/translate-pdf", TRANSLATE_PDF, { targetLanguage: "klingon" });
 check("api translate: an unknown language is rejected before any model call", translateBad.status, 400);
 
 if (!hasAiKey) {
-  const translate = await post("/pdf/translate-pdf", PDF_FIXTURE, { targetLanguage: "french" });
+  const translate = await post("/pdf/translate-pdf", TRANSLATE_PDF, { targetLanguage: "french" });
   check("api translate: without a configured key the answer is 503", translate.status, 503);
   check("api translate: the 503 names the fix",
         translate.error.includes("OPENAI_API_KEY"), true);
@@ -296,7 +297,7 @@ if (!hasAiKey) {
   // The real thing. The assertion is that the output changed — the fixture's
   // known English wording must NOT survive — not that it matches any exact
   // wording a model might vary.
-  const translate = await post("/pdf/translate-pdf", PDF_FIXTURE, { targetLanguage: "french" });
+  const translate = await post("/pdf/translate-pdf", TRANSLATE_PDF, { targetLanguage: "french" });
   check("api translate (live): 200", translate.status, 200);
   const payload = translate.json() ?? {};
   check("api translate (live): at least one page translated, none failed",
@@ -304,14 +305,24 @@ if (!hasAiKey) {
   check("api translate (live): the target language is echoed", payload.targetLanguage, "french");
   check("api translate (live): the markdown carries the first page heading",
         String(payload.markdown ?? "").includes("## Page 1"), true);
-  // flash-lite under load relapses to the English source on individual pages
-  // while genuinely translating the rest — a real echo bug (the model ignoring
-  // the target language) echoes EVERY page. The assertion therefore requires a
-  // majority of pages to be echo-free, which survives the model's quality noise
-  // and still fails a pipeline that stopped translating.
+  // Echo detection rides English FUNCTION words (" the ", " and ", " are ",
+  // " with ", " of "): no French sentence contains them, while an echoed
+  // English line is full of them. The old detector matched a body-text
+  // substring the fixture repeated on EVERY page, so page 1's genuine English
+  // wording made every relapse page look twice as bad and the majority rule
+  // flaked; per-page-unique probe nouns (almanac, driftwood, …) plus this
+  // detector fix the false-positive half. The tolerance half stays: the live
+  // model provably relapses on INDIVIDUAL lines at random (probed: headings
+  // always translate, a body line came back raw English on a different page
+  // every run — the documented Item-25 noise), so a page-majority rule still
+  // fails a pipeline that stopped translating while surviving one noisy page.
+  const ENGLISH_MARKERS = [" the ", " and ", " are ", " with ", " of "];
   const pages = payload.pages ?? [];
-  const echoPages = pages.filter((p) => String(p.text ?? "").includes("of body text")).length;
-  check("api translate (live): real translated text, not the English source",
+  const echoPages = pages.filter((p) => {
+    const t = " " + String(p.text ?? "").replace(/\s+/g, " ") + " ";
+    return ENGLISH_MARKERS.some((m) => t.includes(m));
+  }).length;
+  check("api translate (live): the pipeline translates — echo pages stay a minority",
         pages.length >= 1 && echoPages * 2 <= pages.length, true);
   const pageText = String(payload.pages?.[0]?.text ?? "");
   console.log(`        translation, page 1 line 1: ${JSON.stringify(pageText.split("\n")[0]?.slice(0, 70))}`);
@@ -407,7 +418,7 @@ await shot("pdf-to-excel-complete");
 
 /* ── 9. TRANSLATE panel: language picker, key-aware run ─────────────── */
 await openThemed(`${BASE}/tools/translate-pdf`, '[data-testid="upload-dropzone"]', "light");
-await uploadFiles([PDF_FIXTURE]);
+await uploadFiles([TRANSLATE_PDF]);
 await waitFor('[data-testid="translate-note"]');
 check("translate: the note discloses that layout is not rebuilt",
       await evaluate(`document.querySelector('[data-testid="translate-note"]').textContent.includes("not rebuilt")`), true);

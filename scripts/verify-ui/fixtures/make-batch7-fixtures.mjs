@@ -93,4 +93,31 @@ fpage.drawText("This document has no interactive fields at all.", { x: 40, y: 15
 fpage.drawText("It is here so the suite can prove the filler refuses it.", { x: 40, y: 130, size: 12, font: helv });
 writeFileSync(OUT + "notform.pdf", Buffer.from(await flat.save()));
 
-console.log("batch7 fixtures written:", ["form.pdf", "table.pdf", "notform.pdf"].map((n) => OUT + n).join(", "));
+/* ── translate.pdf: the translation-stable input for batch7's live branch ────
+   batch7's echo detection needs per-page-unique English wording: the old 6-page
+   fixture's body lines were identical across pages ("Line K of body text"), so
+   an echo on page 2 was indistinguishable from legitimate page-1 wording. Every
+   page here carries probe words chosen so their FRENCH forms cannot contain the
+   English strings (almanach≠almanac, cartographie≠cartography, …) — a page that
+   echoes its English source names itself, a translated page cannot false-positive.
+   Page 1 keeps the "…— page 1" heading shape the suite's "## Page 1"
+   markdown assertion relies on. */
+const TRANSLATE_PROBES = [
+  ["almanac", "benevolent", "cartography"],
+  ["driftwood", "estuary", "fennel"],
+  ["gossamer", "harbor", "meadow"],
+];
+const tdoc2 = await PDFDocument.create();
+TRANSLATE_PROBES.forEach((probes, p) => {
+  const tp = tdoc2.addPage([520, 420]);
+  tp.drawText(`Translation verification document — page ${p + 1}`, { x: 40, y: 376, size: 14, font: helv });
+  for (let line = 0; line < 8; line += 1) {
+    const [w1, w2, w3] = probes;
+    tp.drawText(`Line ${line}: ${w1}, ${w2} and ${w3} are samples on page ${p + 1}.`, {
+      x: 40, y: 340 - line * 24, size: 11, font: helv,
+    });
+  }
+});
+writeFileSync(OUT + "translate.pdf", Buffer.from(await tdoc2.save()));
+
+console.log("batch7 fixtures written:", ["form.pdf", "table.pdf", "notform.pdf", "translate.pdf"].map((n) => OUT + n).join(", "));
